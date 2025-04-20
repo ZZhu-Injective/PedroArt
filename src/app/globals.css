@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Define CSS variables for colors */
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+  --font-family: 'Press Start 2P', cursive; /* Set default font to Pixel font */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #000000;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Monaco', monospace;
+  -webkit-text-size-adjust: 100%; /* For Safari and Chrome */
+  text-size-adjust: 100%; /* For other browsers */
+  word-wrap: break-word; /* For older browsers */
+  overflow-wrap: break-word; /* For modern browsers */
+}
+
+* {
+  font-family: 'Monaco', monospace;
+  -webkit-text-size-adjust: 100%; /* For Safari and Chrome */
+  text-size-adjust: 100%; /* For other browsers */
+  word-wrap: break-word; /* For older browsers */
+  overflow-wrap: break-word; /* For modern browsers */
+}
+
+
+
+
