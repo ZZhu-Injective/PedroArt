@@ -1,23 +1,73 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
-import { motion } from 'framer-motion';
+import { motion, PanInfo } from 'framer-motion';
 import Image from 'next/image';
 
 const stickers = Array.from({ length: 12 }, (_, i) => `/${i + 1}.png`);
 
+interface StickerElement {
+  id: string;
+  src: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+}
+
 export default function PedroDesignStudio() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [activeTool, setActiveTool] = useState<'sticker' | null>(null);
-  const [stickerElements, setStickerElements] = useState<Array<{id: string, src: string, x: number, y: number, size: number}>>([]);
+  const [stickerElements, setStickerElements] = useState<StickerElement[]>([]);
+  const [selectedSticker, setSelectedSticker] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragItem, setDragItem] = useState<{type: string, id: string} | null>(null);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [originalDimensions, setOriginalDimensions] = useState({ width: 0, height: 0 });
+  const [displayDimensions, setDisplayDimensions] = useState({ width: 0, height: 0 });
   const [isDownloading, setIsDownloading] = useState(false);
-  const [currentScale, setCurrentScale] = useState(1);
   const [baseStickerSize, setBaseStickerSize] = useState(96);
+  const [activeHandle, setActiveHandle] = useState<'resize' | 'rotate' | null>(null);
+  const [imageScale, setImageScale] = useState(1);
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
+  const [isImageSelected, setIsImageSelected] = useState(false);
+  const lastTouchDistance = useRef<number | null>(null);
+
+  // Add keyboard shortcuts for resizing
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selectedSticker) return;
+      
+      const scaleFactor = e.shiftKey ? 10 : 5;
+
+      if (e.key === '+') {
+        setStickerElements(stickerElements.map(item => 
+          item.id === selectedSticker ? { 
+            ...item, 
+            width: Math.min(500, item.width + scaleFactor),
+            height: Math.min(500, item.height + scaleFactor)
+          } : item
+        ));
+      } else if (e.key === '-') {
+        setStickerElements(stickerElements.map(item => 
+          item.id === selectedSticker ? { 
+            ...item, 
+            width: Math.max(30, item.width - scaleFactor),
+            height: Math.max(30, item.height - scaleFactor)
+          } : item
+        ));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedSticker, stickerElements]);
+
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setSelectedSticker(null);
+      setIsImageSelected(false);
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -27,71 +77,213 @@ export default function PedroDesignStudio() {
         const img = new window.Image();
         img.src = event.target?.result as string;
         img.onload = () => {
-          const containerWidth = canvasRef.current?.clientWidth || 800;
-          const scale = Math.min(1, containerWidth / img.naturalWidth);
-          setCurrentScale(scale);
+          const containerWidth = canvasRef.current?.parentElement?.clientWidth || 800;
+          const containerHeight = window.innerHeight * 0.7;
+          
+          const scale = Math.min(
+            containerWidth / img.naturalWidth,
+            containerHeight / img.naturalHeight,
+            1
+          );
+          
+          const displayWidth = img.naturalWidth * scale;
+          const displayHeight = img.naturalHeight * scale;
           
           const avgDimension = (img.naturalWidth + img.naturalHeight) / 2;
           const calculatedSize = Math.max(48, Math.min(150, avgDimension * 0.1));
-          setBaseStickerSize(calculatedSize);
           
+          setBaseStickerSize(calculatedSize);
           setOriginalDimensions({
             width: img.naturalWidth,
             height: img.naturalHeight
           });
+          setDisplayDimensions({
+            width: displayWidth,
+            height: displayHeight
+          });
           setUploadedImage(event.target?.result as string);
+          setSelectedSticker(null);
+          setImageScale(1);
+          setImagePosition({ x: 0, y: 0 });
         };
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const handleImageResize = (info: PanInfo, corner: string) => {
+    const minScale = 0.3;
+    const maxScale = 3;
+    const sensitivity = 0.005;
+    
+    setImageScale(prev => {
+      let scaleChange = 0;
+      
+      if (corner.includes('right')) {
+        scaleChange = info.delta.x * sensitivity;
+      } else if (corner.includes('left')) {
+        scaleChange = -info.delta.x * sensitivity;
+      }
+      
+      if (corner.includes('bottom')) {
+        scaleChange += info.delta.y * sensitivity;
+      } else if (corner.includes('top')) {
+        scaleChange += -info.delta.y * sensitivity;
+      }
+      
+      return Math.min(maxScale, Math.max(minScale, prev + scaleChange));
+    });
+  };
+
+  const handleImageDrag = (info: PanInfo) => {
+    if (activeHandle) return;
+    
+    setImagePosition({
+      x: imagePosition.x + info.delta.x,
+      y: imagePosition.y + info.delta.y
+    });
+  };
+
   const handleAddSticker = (sticker: string) => {
     if (!canvasRef.current) return;
     
-    const rect = canvasRef.current.getBoundingClientRect();
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
+    const centerX = displayDimensions.width / 2;
+    const centerY = displayDimensions.height / 2;
     
-    const newSticker = {
-      id: `sticker-${Date.now()}`,
+    let initialWidth, initialHeight;
+    
+    if (uploadedImage) {
+      const scaleFactor = 0.3;
+      initialWidth = displayDimensions.width * scaleFactor;
+      initialHeight = displayDimensions.height * scaleFactor;
+    } else {
+      initialWidth = baseStickerSize;
+      initialHeight = baseStickerSize;
+    }
+
+    const newSticker: StickerElement = {
+      id: `sticker-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       src: sticker,
       x: centerX,
       y: centerY,
-      size: baseStickerSize * currentScale
+      width: initialWidth,
+      height: initialHeight,
+      rotation: 0
     };
+    
     setStickerElements([...stickerElements, newSticker]);
+    setSelectedSticker(newSticker.id);
     setActiveTool(null);
+    setIsImageSelected(false);
   };
 
-  const handleMouseDown = (e: React.MouseEvent, type: string, id: string) => {
-    setIsDragging(true);
-    setDragItem({ type, id });
-    e.stopPropagation();
+  const handleDragSticker = (id: string, info: PanInfo) => {
+    if (activeHandle) return;
+    
+    setStickerElements(stickerElements.map(item => 
+      item.id === id ? { 
+        ...item, 
+        x: info.point.x,
+        y: info.point.y
+      } : item
+    ));
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    setMousePosition({ x: e.clientX, y: e.clientY });
+  const handleResize = (id: string, info: PanInfo, corner: string) => {
+    setStickerElements(stickerElements.map(item => {
+      if (item.id !== id) return item;
+      
+      const minSize = 30;
+      let newWidth = item.width;
+      let newHeight = item.height;
+      let newX = item.x;
+      let newY = item.y;
+      
+      switch (corner) {
+        case 'top-left':
+          newWidth = Math.max(minSize, item.width - info.delta.x);
+          newHeight = Math.max(minSize, item.height - info.delta.y);
+          newX = item.x + (item.width - newWidth) / 2;
+          newY = item.y + (item.height - newHeight) / 2;
+          break;
+        case 'top-right':
+          newWidth = Math.max(minSize, item.width + info.delta.x);
+          newHeight = Math.max(minSize, item.height - info.delta.y);
+          newX = item.x - (newWidth - item.width) / 2;
+          newY = item.y + (item.height - newHeight) / 2;
+          break;
+        case 'bottom-left':
+          newWidth = Math.max(minSize, item.width - info.delta.x);
+          newHeight = Math.max(minSize, item.height + info.delta.y);
+          newX = item.x + (item.width - newWidth) / 2;
+          newY = item.y - (newHeight - item.height) / 2;
+          break;
+        case 'bottom-right':
+          newWidth = Math.max(minSize, item.width + info.delta.x);
+          newHeight = Math.max(minSize, item.height + info.delta.y);
+          newX = item.x - (newWidth - item.width) / 2;
+          newY = item.y - (newHeight - item.height) / 2;
+          break;
+      }
 
-    if (!isDragging || !dragItem) return;
+      return { 
+        ...item, 
+        x: newX,
+        y: newY,
+        width: newWidth,
+        height: newHeight
+      };
+    }));
+  };
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const handleRotate = (id: string, centerX: number, centerY: number, mouseX: number, mouseY: number) => {
+    const angle = Math.atan2(mouseY - centerY, mouseX - centerX) * 180 / Math.PI;
+    setStickerElements(stickerElements.map(item => 
+      item.id === id ? { 
+        ...item, 
+        rotation: angle
+      } : item
+    ));
+  };
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    if (dragItem.type === 'sticker') {
-      setStickerElements(stickerElements.map(item => 
-        item.id === dragItem.id ? { ...item, x, y } : item
-      ));
+  const handleHandleDrag = (id: string, info: PanInfo, handleType: 'resize' | 'rotate', corner?: string) => {
+    if (handleType === 'resize' && corner) {
+      handleResize(id, info, corner);
+    } else if (handleType === 'rotate') {
+      const sticker = stickerElements.find(item => item.id === id);
+      if (!sticker) return;
+      handleRotate(id, sticker.x, sticker.y, info.point.x, info.point.y);
     }
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    setDragItem(null);
+  const handleTouch = (id: string, e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      );
+      
+      if (lastTouchDistance.current) {
+        const scale = distance / lastTouchDistance.current;
+        const sticker = stickerElements.find(item => item.id === id);
+        if (sticker) {
+          setStickerElements(stickerElements.map(item => 
+            item.id === id ? { 
+              ...item, 
+              width: Math.max(30, Math.min(800, item.width * scale)),
+              height: Math.max(30, Math.min(800, item.height * scale))
+            } : item
+          ));
+        }
+      }
+      lastTouchDistance.current = distance;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    lastTouchDistance.current = null;
   };
 
   const handleDownload = async () => {
@@ -110,11 +302,13 @@ export default function PedroDesignStudio() {
       await new Promise((resolve) => {
         img.onload = resolve;
       });
-      ctx.drawImage(img, 0, 0, originalDimensions.width, originalDimensions.height);
-
-      const canvasRect = canvasRef.current.getBoundingClientRect();
-      const canvasWidth = canvasRect.width;
-      const canvasHeight = canvasRect.height;
+      
+      const scaledWidth = originalDimensions.width * imageScale;
+      const scaledHeight = originalDimensions.height * imageScale;
+      const offsetX = (originalDimensions.width - scaledWidth) / 2 + (imagePosition.x * (originalDimensions.width / displayDimensions.width));
+      const offsetY = (originalDimensions.height - scaledHeight) / 2 + (imagePosition.y * (originalDimensions.height / displayDimensions.height));
+      
+      ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
 
       await Promise.all(stickerElements.map(async (item) => {
         const stickerImg = new window.Image();
@@ -123,20 +317,23 @@ export default function PedroDesignStudio() {
           stickerImg.onload = resolve;
         });
         
-        const relativeX = item.x / canvasWidth;
-        const relativeY = item.y / canvasHeight;
+        const scaleFactor = originalDimensions.width / displayDimensions.width;
+        const originalX = item.x * scaleFactor;
+        const originalY = item.y * scaleFactor;
+        const originalWidth = item.width * scaleFactor;
+        const originalHeight = item.height * scaleFactor;
         
-        const originalX = relativeX * originalDimensions.width;
-        const originalY = relativeY * originalDimensions.height;
-        const originalSize = baseStickerSize;
-        
+        ctx.save();
+        ctx.translate(originalX, originalY);
+        ctx.rotate(item.rotation * Math.PI / 180);
         ctx.drawImage(
           stickerImg,
-          originalX - (originalSize / 2),
-          originalY - (originalSize / 2),
-          originalSize,
-          originalSize
+          -originalWidth / 2,
+          -originalHeight / 2,
+          originalWidth,
+          originalHeight
         );
+        ctx.restore();
       }));
 
       const link = document.createElement('a');
@@ -152,15 +349,10 @@ export default function PedroDesignStudio() {
 
   const removeElement = (id: string) => {
     setStickerElements(stickerElements.filter(item => item.id !== id));
+    if (selectedSticker === id) {
+      setSelectedSticker(null);
+    }
   };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
 
   return (
     <>
@@ -171,7 +363,7 @@ export default function PedroDesignStudio() {
       </Head>
 
       <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
-        <style jsx>{`
+        <style jsx global>{`
           .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
           }
@@ -184,6 +376,87 @@ export default function PedroDesignStudio() {
           }
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
+          }
+          .sticker-handle {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #facc15;
+            border: 2px solid black;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.8);
+            cursor: pointer;
+            z-index: 100;
+          }
+          .image-handle {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #facc15;
+            border: 2px solid black;
+            cursor: pointer;
+            z-index: 100;
+          }
+          .sticker-handle:hover, .image-handle:hover {
+            transform: scale(1.3);
+          }
+          .resize-handle-tl {
+            left: -8px;
+            top: -8px;
+            cursor: nwse-resize;
+          }
+          .resize-handle-tr {
+            right: -8px;
+            top: -8px;
+            cursor: nesw-resize;
+          }
+          .resize-handle-bl {
+            left: -8px;
+            bottom: -8px;
+            cursor: nesw-resize;
+          }
+          .resize-handle-br {
+            right: -8px;
+            bottom: -8px;
+            cursor: nwse-resize;
+          }
+          .rotate-handle {
+            left: 50%;
+            bottom: -24px;
+            transform: translateX(-50%);
+            background: #3b82f6;
+            cursor: grab;
+          }
+          .delete-button {
+            position: absolute;
+            right: -10px;
+            top: -10px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            z-index: 100;
+          }
+          .delete-button:hover {
+            background: #ef4444;
+            color: white;
+            transform: scale(1.2);
+          }
+          .sticker-outline, .image-outline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed rgba(255, 255, 255, 0.7);
+            pointer-events: none;
           }
         `}</style>
         
@@ -331,35 +604,96 @@ export default function PedroDesignStudio() {
             </motion.div>
 
             <motion.div 
-              className="flex-1"
+              className="flex-1 flex justify-center"
               initial={{ x: 20 }}
               animate={{ x: 0 }}
               transition={{ type: "spring", stiffness: 100 }}
             >
               <motion.div 
                 ref={canvasRef}
-                className="relative bg-black/50 border border-white/10 rounded-lg w-full max-h-[80vh] overflow-hidden backdrop-blur-sm flex items-center justify-center"
+                className="relative bg-black/50 border border-white/10 rounded-lg overflow-hidden backdrop-blur-sm"
                 style={{
-                  aspectRatio: uploadedImage ? `${originalDimensions.width}/${originalDimensions.height}` : '1/1'
+                  width: `${displayDimensions.width}px`,
+                  height: `${displayDimensions.height}px`,
+                  minWidth: uploadedImage ? `${displayDimensions.width}px` : '500px',
+                  minHeight: uploadedImage ? `${displayDimensions.height}px` : '500px'
                 }}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
+                onClick={handleCanvasClick}
                 whileHover={{ borderColor: 'rgba(255,255,255,0.3)' }}
                 transition={{ duration: 0.3 }}
               >
                 {uploadedImage && (
-                  <img 
-                    src={uploadedImage} 
-                    alt="Uploaded content" 
-                    className="absolute inset-0 w-full h-full object-contain"
+                  <motion.div
+                    className="absolute inset-0 origin-center"
                     style={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      width: 'auto',
-                      height: 'auto'
+                      scale: imageScale,
+                      x: imagePosition.x,
+                      y: imagePosition.y,
+                      zIndex: isImageSelected ? 5 : 0
                     }}
-                  />
+                    drag
+                    dragConstraints={canvasRef}
+                    dragElastic={0}
+                    dragMomentum={false}
+                    onDrag={(e, info) => handleImageDrag(info)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsImageSelected(true);
+                      setSelectedSticker(null);
+                    }}
+                  >
+                    <img 
+                      src={uploadedImage} 
+                      alt="Uploaded content" 
+                      className="w-full h-full object-contain"
+                    />
+                    
+                    {isImageSelected && (
+                      <>
+                        <div className="image-outline" />
+                        
+                        <motion.div
+                          className="image-handle resize-handle-tl"
+                          drag
+                          dragConstraints={canvasRef}
+                          dragElastic={0}
+                          onDragStart={() => setActiveHandle('resize')}
+                          onDragEnd={() => setActiveHandle(null)}
+                          onDrag={(e, info) => handleImageResize(info, 'top-left')}
+                        />
+                        
+                        <motion.div
+                          className="image-handle resize-handle-tr"
+                          drag
+                          dragConstraints={canvasRef}
+                          dragElastic={0}
+                          onDragStart={() => setActiveHandle('resize')}
+                          onDragEnd={() => setActiveHandle(null)}
+                          onDrag={(e, info) => handleImageResize(info, 'top-right')}
+                        />
+                        
+                        <motion.div
+                          className="image-handle resize-handle-bl"
+                          drag
+                          dragConstraints={canvasRef}
+                          dragElastic={0}
+                          onDragStart={() => setActiveHandle('resize')}
+                          onDragEnd={() => setActiveHandle(null)}
+                          onDrag={(e, info) => handleImageResize(info, 'bottom-left')}
+                        />
+                        
+                        <motion.div
+                          className="image-handle resize-handle-br"
+                          drag
+                          dragConstraints={canvasRef}
+                          dragElastic={0}
+                          onDragStart={() => setActiveHandle('resize')}
+                          onDragEnd={() => setActiveHandle(null)}
+                          onDrag={(e, info) => handleImageResize(info, 'bottom-right')}
+                        />
+                      </>
+                    )}
+                  </motion.div>
                 )}
 
                 {stickerElements.map((item) => (
@@ -367,31 +701,115 @@ export default function PedroDesignStudio() {
                     key={item.id}
                     className="absolute cursor-move"
                     style={{ 
-                      left: `${item.x}px`, 
-                      top: `${item.y}px`,
-                      transform: 'translate(-50%, -50%)',
-                      width: `${item.size}px`,
-                      height: `${item.size}px`
+                      left: 0,
+                      top: 0,
+                      transform: `translate(${item.x}px, ${item.y}px)`,
+                      width: `${item.width}px`,
+                      height: `${item.height}px`,
+                      zIndex: selectedSticker === item.id ? 100 : 1,
+                      pointerEvents: 'auto'
                     }}
-                    onMouseDown={(e) => handleMouseDown(e, 'sticker', item.id)}
-                    whileHover={{ scale: 1.1 }}
-                    drag={isDragging && dragItem?.id === item.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedSticker(item.id);
+                      setIsImageSelected(false);
+                    }}
+                    onDoubleClick={() => {
+                      setStickerElements(stickerElements.map(s => 
+                        s.id === item.id ? { 
+                          ...s, 
+                          width: baseStickerSize,
+                          height: baseStickerSize 
+                        } : s
+                      ));
+                    }}
+                    onTouchStart={(e) => handleTouch(item.id, e)}
+                    onTouchMove={(e) => handleTouch(item.id, e)}
+                    onTouchEnd={handleTouchEnd}
+                    drag
                     dragConstraints={canvasRef}
-                    dragElastic={0.1}
+                    dragElastic={0}
+                    dragMomentum={false}
+                    onDrag={(e, info) => handleDragSticker(item.id, info)}
                   >
-                    <div className="relative group w-full h-full">
-                      <img 
+                    <div className="relative w-full h-full">
+                      {selectedSticker === item.id && (
+                        <>
+                          <div className="sticker-outline" />
+                          <button 
+                            className="delete-button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeElement(item.id);
+                            }}
+                          >
+                            ×
+                          </button>
+                          
+                          {/* Resize Handles */}
+                          <motion.div
+                            className="sticker-handle resize-handle-tl"
+                            drag
+                            dragConstraints={canvasRef}
+                            dragElastic={0}
+                            onDragStart={() => setActiveHandle('resize')}
+                            onDragEnd={() => setActiveHandle(null)}
+                            onDrag={(e, info) => handleHandleDrag(item.id, info, 'resize', 'top-left')}
+                          />
+                          
+                          <motion.div
+                            className="sticker-handle resize-handle-tr"
+                            drag
+                            dragConstraints={canvasRef}
+                            dragElastic={0}
+                            onDragStart={() => setActiveHandle('resize')}
+                            onDragEnd={() => setActiveHandle(null)}
+                            onDrag={(e, info) => handleHandleDrag(item.id, info, 'resize', 'top-right')}
+                          />
+                          
+                          <motion.div
+                            className="sticker-handle resize-handle-bl"
+                            drag
+                            dragConstraints={canvasRef}
+                            dragElastic={0}
+                            onDragStart={() => setActiveHandle('resize')}
+                            onDragEnd={() => setActiveHandle(null)}
+                            onDrag={(e, info) => handleHandleDrag(item.id, info, 'resize', 'bottom-left')}
+                          />
+                          
+                          <motion.div
+                            className="sticker-handle resize-handle-br"
+                            drag
+                            dragConstraints={canvasRef}
+                            dragElastic={0}
+                            onDragStart={() => setActiveHandle('resize')}
+                            onDragEnd={() => setActiveHandle(null)}
+                            onDrag={(e, info) => handleHandleDrag(item.id, info, 'resize', 'bottom-right')}
+                          />
+                          
+                          {/* Rotate Handle */}
+                          <motion.div
+                            className="sticker-handle rotate-handle"
+                            drag
+                            dragConstraints={canvasRef}
+                            dragElastic={0}
+                            onDragStart={() => setActiveHandle('rotate')}
+                            onDragEnd={() => setActiveHandle(null)}
+                            onDrag={(e, info) => handleHandleDrag(item.id, info, 'rotate')}
+                          />
+                        </>
+                      )}
+                      <motion.img 
                         src={item.src} 
                         alt="Sticker" 
-                        className="w-full h-full object-contain drop-shadow-lg"
+                        className="w-full h-full object-contain drop-shadow-lg pointer-events-none"
+                        style={{ 
+                          transform: `rotate(${item.rotation}deg)`,
+                          filter: selectedSticker === item.id ? 
+                            'drop-shadow(0 0 8px rgba(255,255,255,0.7))' : 
+                            'drop-shadow(0 0 4px rgba(0,0,0,0.5))'
+                        }}
                       />
-                      <motion.button
-                        onClick={() => removeElement(item.id)}
-                        className="absolute -right-2 -top-2 bg-black border border-white/10 rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white hover:text-black"
-                        whileHover={{ scale: 1.2 }}
-                      >
-                        ×
-                      </motion.button>
                     </div>
                   </motion.div>
                 ))}
