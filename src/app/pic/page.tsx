@@ -4,7 +4,7 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
-const stickers = Array.from({ length: 50 }, (_, i) => `/${i + 1}.png`);
+const stickers = Array.from({ length: 12 }, (_, i) => `/${i + 1}.png`);
 
 export default function PedroDesignStudio() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -105,7 +105,6 @@ export default function PedroDesignStudio() {
       const ctx = tempCanvas.getContext('2d');
       if (!ctx) return;
 
-      // Draw base image
       const img = new window.Image();
       img.src = uploadedImage;
       await new Promise((resolve) => {
@@ -113,12 +112,10 @@ export default function PedroDesignStudio() {
       });
       ctx.drawImage(img, 0, 0, originalDimensions.width, originalDimensions.height);
 
-      // Get canvas position and dimensions
       const canvasRect = canvasRef.current.getBoundingClientRect();
       const canvasWidth = canvasRect.width;
       const canvasHeight = canvasRect.height;
 
-      // Draw stickers
       await Promise.all(stickerElements.map(async (item) => {
         const stickerImg = new window.Image();
         stickerImg.src = item.src;
@@ -126,7 +123,6 @@ export default function PedroDesignStudio() {
           stickerImg.onload = resolve;
         });
         
-        // Calculate position relative to original image dimensions
         const relativeX = item.x / canvasWidth;
         const relativeY = item.y / canvasHeight;
         
@@ -205,15 +201,6 @@ export default function PedroDesignStudio() {
               }}
             />
           </div>
-          
-          <motion.div 
-            className="absolute w-[300px] h-[300px] rounded-full bg-white opacity-[0.02] blur-[100px]"
-            animate={{
-              x: mousePosition.x - 150,
-              y: mousePosition.y - 150,
-            }}
-            transition={{ type: "spring", damping: 30, stiffness: 100 }}
-          />
         </div>
 
         <div className="relative z-10">

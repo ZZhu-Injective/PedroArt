@@ -4,7 +4,7 @@ import Footer from "@/components/footer";
 
 export const metadata = {
   title: {
-    default: "Pedro The Raccoon", 
+    default: "PEDRO x ART", 
     template: "%s | Pedro The Raccoon", 
   },
 };

@@ -52,10 +52,10 @@ export default function AltHomePage() {
             className="px-6 max-w-4xl"
           >
             <motion.h1 
-              className="text-5xl md:text-8xl font-bold mb-6 tracking-tighter"
+              className="text-5xl md:text-8xl font-bold mb-6 tracking-tighter font-mono"
               whileHover={{ scale: 1.02 }}
             >
-              PEDRO X <span className="text-white bg-clip-text bg-gradient-to-r">ART</span>
+              PEDRO x <span className="text-white font-mono bg-clip-text bg-gradient-to-r">ART</span>
             </motion.h1>
             <motion.p 
               className="text-xl md:text-2xl opacity-80 mb-8"
