@@ -1,832 +1,478 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
-import Head from 'next/head';
-import { motion, PanInfo } from 'framer-motion';
-import Image from 'next/image';
+import { motion } from "framer-motion";
+import Head from "next/head";
+import Image from "next/image";
+import { useState, useRef } from 'react';
+import Button from '@/components/basic_button';
 
-const stickers = Array.from({ length: 12 }, (_, i) => `/${i + 1}.png`);
-
-interface StickerElement {
-  id: string;
-  src: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-}
-
-export default function PedroDesignStudio() {
+export default function MemeGenerator() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [activeTool, setActiveTool] = useState<'sticker' | null>(null);
-  const [stickerElements, setStickerElements] = useState<StickerElement[]>([]);
-  const [selectedSticker, setSelectedSticker] = useState<string | null>(null);
+  const [stickers, setStickers] = useState<Array<{
+    id: string;
+    src: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    rotation: number;
+  }>>([]);
+  const [texts, setTexts] = useState<Array<{
+    id: string;
+    content: string;
+    x: number;
+    y: number;
+    color: string;
+    fontSize: number;
+    fontFamily: string;
+    rotation: number;
+  }>>([]);
+  const [selectedElement, setSelectedElement] = useState<string | null>(null);
+  const [activeTool, setActiveTool] = useState<'sticker' | 'text' | null>(null);
+  const [newText, setNewText] = useState('');
+  const [textColor, setTextColor] = useState('#ffffff');
+  const [textSize, setTextSize] = useState(32);
+  const [fontFamily, setFontFamily] = useState('Arial');
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [originalDimensions, setOriginalDimensions] = useState({ width: 0, height: 0 });
-  const [displayDimensions, setDisplayDimensions] = useState({ width: 0, height: 0 });
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [baseStickerSize, setBaseStickerSize] = useState(96);
-  const [activeHandle, setActiveHandle] = useState<'resize' | 'rotate' | null>(null);
-  const [imageScale, setImageScale] = useState(1);
-  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
-  const [isImageSelected, setIsImageSelected] = useState(false);
-  const lastTouchDistance = useRef<number | null>(null);
 
-  // Add keyboard shortcuts for resizing
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!selectedSticker) return;
-      
-      const scaleFactor = e.shiftKey ? 10 : 5;
-
-      if (e.key === '+') {
-        setStickerElements(stickerElements.map(item => 
-          item.id === selectedSticker ? { 
-            ...item, 
-            width: Math.min(500, item.width + scaleFactor),
-            height: Math.min(500, item.height + scaleFactor)
-          } : item
-        ));
-      } else if (e.key === '-') {
-        setStickerElements(stickerElements.map(item => 
-          item.id === selectedSticker ? { 
-            ...item, 
-            width: Math.max(30, item.width - scaleFactor),
-            height: Math.max(30, item.height - scaleFactor)
-          } : item
-        ));
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedSticker, stickerElements]);
-
-  const handleCanvasClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      setSelectedSticker(null);
-      setIsImageSelected(false);
-    }
-  };
+  const stickerOptions = Array.from({ length: 12 }, (_, i) => `sticker${i + 1}.png`);
+  const fontOptions = ['Arial', 'Impact', 'Comic Sans MS', 'Courier New', 'Georgia', 'Times New Roman'];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        const img = new window.Image();
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const containerWidth = canvasRef.current?.parentElement?.clientWidth || 800;
-          const containerHeight = window.innerHeight * 0.7;
-          
-          const scale = Math.min(
-            containerWidth / img.naturalWidth,
-            containerHeight / img.naturalHeight,
-            1
-          );
-          
-          const displayWidth = img.naturalWidth * scale;
-          const displayHeight = img.naturalHeight * scale;
-          
-          const avgDimension = (img.naturalWidth + img.naturalHeight) / 2;
-          const calculatedSize = Math.max(48, Math.min(150, avgDimension * 0.1));
-          
-          setBaseStickerSize(calculatedSize);
-          setOriginalDimensions({
-            width: img.naturalWidth,
-            height: img.naturalHeight
-          });
-          setDisplayDimensions({
-            width: displayWidth,
-            height: displayHeight
-          });
-          setUploadedImage(event.target?.result as string);
-          setSelectedSticker(null);
-          setImageScale(1);
-          setImagePosition({ x: 0, y: 0 });
-        };
+        setUploadedImage(event.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleImageResize = (info: PanInfo, corner: string) => {
-    const minScale = 0.3;
-    const maxScale = 3;
-    const sensitivity = 0.005;
-    
-    setImageScale(prev => {
-      let scaleChange = 0;
-      
-      if (corner.includes('right')) {
-        scaleChange = info.delta.x * sensitivity;
-      } else if (corner.includes('left')) {
-        scaleChange = -info.delta.x * sensitivity;
-      }
-      
-      if (corner.includes('bottom')) {
-        scaleChange += info.delta.y * sensitivity;
-      } else if (corner.includes('top')) {
-        scaleChange += -info.delta.y * sensitivity;
-      }
-      
-      return Math.min(maxScale, Math.max(minScale, prev + scaleChange));
-    });
-  };
-
-  const handleImageDrag = (info: PanInfo) => {
-    if (activeHandle) return;
-    
-    setImagePosition({
-      x: imagePosition.x + info.delta.x,
-      y: imagePosition.y + info.delta.y
-    });
-  };
-
-  const handleAddSticker = (sticker: string) => {
-    if (!canvasRef.current) return;
-    
-    const centerX = displayDimensions.width / 2;
-    const centerY = displayDimensions.height / 2;
-    
-    let initialWidth, initialHeight;
-    
-    if (uploadedImage) {
-      const scaleFactor = 0.3;
-      initialWidth = displayDimensions.width * scaleFactor;
-      initialHeight = displayDimensions.height * scaleFactor;
-    } else {
-      initialWidth = baseStickerSize;
-      initialHeight = baseStickerSize;
-    }
-
-    const newSticker: StickerElement = {
-      id: `sticker-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      src: sticker,
-      x: centerX,
-      y: centerY,
-      width: initialWidth,
-      height: initialHeight,
+  const addSticker = (stickerSrc: string) => {
+    const newSticker = {
+      id: `sticker-${Date.now()}`,
+      src: stickerSrc,
+      x: 50,
+      y: 50,
+      width: 100,
+      height: 100,
       rotation: 0
     };
-    
-    setStickerElements([...stickerElements, newSticker]);
-    setSelectedSticker(newSticker.id);
+    setStickers([...stickers, newSticker]);
+    setSelectedElement(newSticker.id);
     setActiveTool(null);
-    setIsImageSelected(false);
   };
 
-  const handleDragSticker = (id: string, info: PanInfo) => {
-    if (activeHandle) return;
+  const addText = () => {
+    if (!newText.trim()) return;
     
-    setStickerElements(stickerElements.map(item => 
-      item.id === id ? { 
-        ...item, 
-        x: info.point.x,
-        y: info.point.y
-      } : item
-    ));
+    const newTextElement = {
+      id: `text-${Date.now()}`,
+      content: newText,
+      x: 50,
+      y: 50,
+      color: textColor,
+      fontSize: textSize,
+      fontFamily,
+      rotation: 0
+    };
+    setTexts([...texts, newTextElement]);
+    setSelectedElement(newTextElement.id);
+    setNewText('');
+    setActiveTool(null);
   };
 
-  const handleResize = (id: string, info: PanInfo, corner: string) => {
-    setStickerElements(stickerElements.map(item => {
-      if (item.id !== id) return item;
-      
-      const minSize = 30;
-      let newWidth = item.width;
-      let newHeight = item.height;
-      let newX = item.x;
-      let newY = item.y;
-      
-      switch (corner) {
-        case 'top-left':
-          newWidth = Math.max(minSize, item.width - info.delta.x);
-          newHeight = Math.max(minSize, item.height - info.delta.y);
-          newX = item.x + (item.width - newWidth) / 2;
-          newY = item.y + (item.height - newHeight) / 2;
-          break;
-        case 'top-right':
-          newWidth = Math.max(minSize, item.width + info.delta.x);
-          newHeight = Math.max(minSize, item.height - info.delta.y);
-          newX = item.x - (newWidth - item.width) / 2;
-          newY = item.y + (item.height - newHeight) / 2;
-          break;
-        case 'bottom-left':
-          newWidth = Math.max(minSize, item.width - info.delta.x);
-          newHeight = Math.max(minSize, item.height + info.delta.y);
-          newX = item.x + (item.width - newWidth) / 2;
-          newY = item.y - (newHeight - item.height) / 2;
-          break;
-        case 'bottom-right':
-          newWidth = Math.max(minSize, item.width + info.delta.x);
-          newHeight = Math.max(minSize, item.height + info.delta.y);
-          newX = item.x - (newWidth - item.width) / 2;
-          newY = item.y - (newHeight - item.height) / 2;
-          break;
-      }
-
-      return { 
-        ...item, 
-        x: newX,
-        y: newY,
-        width: newWidth,
-        height: newHeight
-      };
-    }));
+  const handleElementClick = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedElement(id);
   };
 
-  const handleRotate = (id: string, centerX: number, centerY: number, mouseX: number, mouseY: number) => {
-    const angle = Math.atan2(mouseY - centerY, mouseX - centerX) * 180 / Math.PI;
-    setStickerElements(stickerElements.map(item => 
-      item.id === id ? { 
-        ...item, 
-        rotation: angle
-      } : item
-    ));
+  const handleCanvasClick = () => {
+    setSelectedElement(null);
   };
 
-  const handleHandleDrag = (id: string, info: PanInfo, handleType: 'resize' | 'rotate', corner?: string) => {
-    if (handleType === 'resize' && corner) {
-      handleResize(id, info, corner);
-    } else if (handleType === 'rotate') {
-      const sticker = stickerElements.find(item => item.id === id);
-      if (!sticker) return;
-      handleRotate(id, sticker.x, sticker.y, info.point.x, info.point.y);
+  const handleDragEnd = (id: string, event: any, info: { offset: { x: number; y: number } }) => {
+    const { offset } = info;
+    
+    if (id.startsWith('sticker')) {
+      setStickers(stickers.map(sticker => 
+        sticker.id === id ? { 
+          ...sticker, 
+          x: sticker.x + offset.x,
+          y: sticker.y + offset.y
+        } : sticker
+      ));
+    } else {
+      setTexts(texts.map(text => 
+        text.id === id ? { 
+          ...text, 
+          x: text.x + offset.x,
+          y: text.y + offset.y
+        } : text
+      ));
     }
   };
 
-  const handleTouch = (id: string, e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const distance = Math.hypot(
-        touch2.clientX - touch1.clientX,
-        touch2.clientY - touch1.clientY
-      );
-      
-      if (lastTouchDistance.current) {
-        const scale = distance / lastTouchDistance.current;
-        const sticker = stickerElements.find(item => item.id === id);
-        if (sticker) {
-          setStickerElements(stickerElements.map(item => 
-            item.id === id ? { 
-              ...item, 
-              width: Math.max(30, Math.min(800, item.width * scale)),
-              height: Math.max(30, Math.min(800, item.height * scale))
-            } : item
-          ));
-        }
-      }
-      lastTouchDistance.current = distance;
+  const handleResize = (id: string, delta: number) => {
+    if (id.startsWith('sticker')) {
+      setStickers(stickers.map(sticker => 
+        sticker.id === id ? { 
+          ...sticker, 
+          width: Math.max(20, sticker.width + delta),
+          height: Math.max(20, sticker.height + delta)
+        } : sticker
+      ));
+    } else {
+      setTexts(texts.map(text => 
+        text.id === id ? { 
+          ...text, 
+          fontSize: Math.max(8, text.fontSize + delta/2) 
+        } : text
+      ));
     }
   };
 
-  const handleTouchEnd = () => {
-    lastTouchDistance.current = null;
-  };
-
-  const handleDownload = async () => {
-    if (!canvasRef.current || !uploadedImage) return;
-    
-    setIsDownloading(true);
-    try {
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = originalDimensions.width;
-      tempCanvas.height = originalDimensions.height;
-      const ctx = tempCanvas.getContext('2d');
-      if (!ctx) return;
-
-      const img = new window.Image();
-      img.src = uploadedImage;
-      await new Promise((resolve) => {
-        img.onload = resolve;
-      });
-      
-      const scaledWidth = originalDimensions.width * imageScale;
-      const scaledHeight = originalDimensions.height * imageScale;
-      const offsetX = (originalDimensions.width - scaledWidth) / 2 + (imagePosition.x * (originalDimensions.width / displayDimensions.width));
-      const offsetY = (originalDimensions.height - scaledHeight) / 2 + (imagePosition.y * (originalDimensions.height / displayDimensions.height));
-      
-      ctx.drawImage(img, offsetX, offsetY, scaledWidth, scaledHeight);
-
-      await Promise.all(stickerElements.map(async (item) => {
-        const stickerImg = new window.Image();
-        stickerImg.src = item.src;
-        await new Promise((resolve) => {
-          stickerImg.onload = resolve;
-        });
-        
-        const scaleFactor = originalDimensions.width / displayDimensions.width;
-        const originalX = item.x * scaleFactor;
-        const originalY = item.y * scaleFactor;
-        const originalWidth = item.width * scaleFactor;
-        const originalHeight = item.height * scaleFactor;
-        
-        ctx.save();
-        ctx.translate(originalX, originalY);
-        ctx.rotate(item.rotation * Math.PI / 180);
-        ctx.drawImage(
-          stickerImg,
-          -originalWidth / 2,
-          -originalHeight / 2,
-          originalWidth,
-          originalHeight
-        );
-        ctx.restore();
-      }));
-
-      const link = document.createElement('a');
-      link.download = 'pedro-meme.png';
-      link.href = tempCanvas.toDataURL('image/png');
-      link.click();
-    } catch (error) {
-      console.error('Error generating image:', error);
-    } finally {
-      setIsDownloading(false);
+  const handleRotate = (id: string, delta: number) => {
+    if (id.startsWith('sticker')) {
+      setStickers(stickers.map(sticker => 
+        sticker.id === id ? { 
+          ...sticker, 
+          rotation: (sticker.rotation + delta) % 360 
+        } : sticker
+      ));
+    } else {
+      setTexts(texts.map(text => 
+        text.id === id ? { 
+          ...text, 
+          rotation: (text.rotation + delta) % 360 
+        } : text
+      ));
     }
   };
 
   const removeElement = (id: string) => {
-    setStickerElements(stickerElements.filter(item => item.id !== id));
-    if (selectedSticker === id) {
-      setSelectedSticker(null);
+    if (id.startsWith('sticker')) {
+      setStickers(stickers.filter(sticker => sticker.id !== id));
+    } else {
+      setTexts(texts.filter(text => text.id !== id));
     }
+    setSelectedElement(null);
+  };
+
+  const downloadMeme = () => {
+    if (!canvasRef.current) return;
+    alert('In a real implementation, this would download the meme as an image');
   };
 
   return (
     <>
       <Head>
-        <title>Pedro MEME Studio</title>
-        <meta name="description" content="Create your own Pedro designs" />
+        <title>Pedro | Meme Generator</title>
+        <meta name="description" content="Create your own Pedro memes" />
         <meta property="og:image" content="/pedro-social-preview.jpg" />
       </Head>
 
       <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
-        <style jsx global>{`
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
-          }
-          .sticker-handle {
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #facc15;
-            border: 2px solid black;
-            box-shadow: 0 0 0 2px rgba(255,255,255,0.8);
-            cursor: pointer;
-            z-index: 100;
-          }
-          .image-handle {
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #facc15;
-            border: 2px solid black;
-            cursor: pointer;
-            z-index: 100;
-          }
-          .sticker-handle:hover, .image-handle:hover {
-            transform: scale(1.3);
-          }
-          .resize-handle-tl {
-            left: -8px;
-            top: -8px;
-            cursor: nwse-resize;
-          }
-          .resize-handle-tr {
-            right: -8px;
-            top: -8px;
-            cursor: nesw-resize;
-          }
-          .resize-handle-bl {
-            left: -8px;
-            bottom: -8px;
-            cursor: nesw-resize;
-          }
-          .resize-handle-br {
-            right: -8px;
-            bottom: -8px;
-            cursor: nwse-resize;
-          }
-          .rotate-handle {
-            left: 50%;
-            bottom: -24px;
-            transform: translateX(-50%);
-            background: #3b82f6;
-            cursor: grab;
-          }
-          .delete-button {
-            position: absolute;
-            right: -10px;
-            top: -10px;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: white;
-            color: black;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: none;
-            z-index: 100;
-          }
-          .delete-button:hover {
-            background: #ef4444;
-            color: white;
-            transform: scale(1.2);
-          }
-          .sticker-outline, .image-outline {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 2px dashed rgba(255, 255, 255, 0.7);
-            pointer-events: none;
-          }
-        `}</style>
-        
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0">
             <Image
               src="/wallpaper4.png"
               alt="Background texture"
-              fill
+              layout="fill"
+              objectFit="cover"
+              className="opacity-20 mix-blend-overlay"
               priority
-              style={{
-                objectFit: 'cover',
-                opacity: 0.2,
-                mixBlendMode: 'overlay'
-              }}
             />
           </div>
         </div>
 
         <div className="relative z-10">
-          <motion.header 
-            className="border-b border-white/10 py-6"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="container mx-auto px-6 flex justify-between items-center">
-              <motion.h1 
-                className="text-2xl md:text-3xl font-bold tracking-wider"
+          <section className="flex items-center justify-center py-7 text-center relative overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="px-6 max-w-4xl relative z-10"
+            >
+              <motion.h1
+                className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-white"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.2, duration: 0.8 }}
               >
-                PEDRO MEME STUDIO
+                MEME GENERATOR
               </motion.h1>
-              <motion.button 
-                onClick={handleDownload}
-                disabled={!uploadedImage || isDownloading}
-                className="border border-white/30 px-6 py-2 text-sm hover:bg-white hover:text-black transition-all duration-300 hover:shadow-lg hover:shadow-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                whileHover={{ scale: uploadedImage && !isDownloading ? 1.05 : 1 }}
-                whileTap={{ scale: uploadedImage && !isDownloading ? 0.95 : 1 }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                {isDownloading ? 'PROCESSING...' : 'DOWNLOAD MEME'}
-              </motion.button>
-            </div>
-          </motion.header>
-
-          <motion.div 
-            className="container mx-auto px-6 py-8 flex flex-col md:flex-row gap-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <motion.div 
-              className="w-full md:w-80 space-y-6"
-              initial={{ x: -20 }}
-              animate={{ x: 0 }}
-              transition={{ type: "spring", stiffness: 100 }}
-            >
-              <motion.div 
-                className="p-4 border border-white/10 rounded-lg bg-black/50 backdrop-blur-sm"
-                whileHover={{ borderColor: 'rgba(255,255,255,0.3)' }}
-                transition={{ duration: 0.3 }}
-              >
-                <h2 className="text-sm uppercase tracking-wider mb-3 opacity-70">Upload Image</h2>
-                <label className="block w-full cursor-pointer">
-                  <div className="border border-white/10 hover:border-white/30 transition-colors rounded p-4 text-center">
-                    <div className="flex flex-col items-center justify-center space-y-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                      <span className="text-sm">Click to upload image</span>
-                      <span className="text-xs opacity-50">PNG, JPG, JPEG</span>
-                    </div>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                  </div>
-                </label>
-              </motion.div>
-
-              <motion.div 
-                className="p-4 border border-white/10 rounded-lg bg-black/50 backdrop-blur-sm"
-                whileHover={{ borderColor: 'rgba(255,255,255,0.3)' }}
-                transition={{ duration: 0.3 }}
-              >
-                <h2 className="text-sm uppercase tracking-wider mb-3 opacity-70">Add Stickers</h2>
-                <div className="space-y-4">
-                  <motion.div layout className="space-y-2">
-                    <motion.button
-                      onClick={() => setActiveTool(activeTool === 'sticker' ? null : 'sticker')}
-                      className={`w-full py-3 text-left px-4 text-sm border ${activeTool === 'sticker' ? 'border-white bg-white/10' : 'border-white/10'} hover:border-white transition-all duration-300 rounded flex items-center justify-between`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <span>Sticker Library ({stickers.length})</span>
-                      <motion.span
-                        animate={{ rotate: activeTool === 'sticker' ? 180 : 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="text-xs"
-                      >
-                        ▼
-                      </motion.span>
-                    </motion.button>
-
-                    {activeTool === 'sticker' && (
-                      <motion.div 
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="mt-2 overflow-hidden"
-                      >
-                        <div className="h-64 overflow-y-auto pr-2 custom-scrollbar">
-                          <div className="grid grid-cols-3 gap-3">
-                            {stickers.map((sticker, index) => (
-                              <motion.button
-                                key={index}
-                                onClick={() => handleAddSticker(sticker)}
-                                className="p-1 border border-white/10 hover:border-white transition-all duration-300 rounded bg-black/50 aspect-square overflow-hidden group relative"
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                              >
-                                <img 
-                                  src={sticker} 
-                                  alt={`Sticker ${index + 1}`} 
-                                  className="w-full h-full object-contain transition-transform group-hover:scale-110" 
-                                />
-                                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors" />
-                              </motion.button>
-                            ))}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                </div>
-              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scaleX: 0 }}
+                animate={{ opacity: 1, scaleX: 1 }}
+                transition={{ delay: 0.6, duration: 1.2, ease: "circOut" }}
+                className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent"
+              />
             </motion.div>
+          </section>
 
-            <motion.div 
-              className="flex-1 flex justify-center"
-              initial={{ x: 20 }}
-              animate={{ x: 0 }}
-              transition={{ type: "spring", stiffness: 100 }}
-            >
-              <motion.div 
-                ref={canvasRef}
-                className="relative bg-black/50 border border-white/10 rounded-lg overflow-hidden backdrop-blur-sm"
-                style={{
-                  width: `${displayDimensions.width}px`,
-                  height: `${displayDimensions.height}px`,
-                  minWidth: uploadedImage ? `${displayDimensions.width}px` : '500px',
-                  minHeight: uploadedImage ? `${displayDimensions.height}px` : '500px'
-                }}
-                onClick={handleCanvasClick}
-                whileHover={{ borderColor: 'rgba(255,255,255,0.3)' }}
-                transition={{ duration: 0.3 }}
-              >
-                {uploadedImage && (
-                  <motion.div
-                    className="absolute inset-0 origin-center"
-                    style={{
-                      scale: imageScale,
-                      x: imagePosition.x,
-                      y: imagePosition.y,
-                      zIndex: isImageSelected ? 5 : 0
-                    }}
-                    drag
-                    dragConstraints={canvasRef}
-                    dragElastic={0}
-                    dragMomentum={false}
-                    onDrag={(e, info) => handleImageDrag(info)}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsImageSelected(true);
-                      setSelectedSticker(null);
-                    }}
-                  >
-                    <img 
-                      src={uploadedImage} 
-                      alt="Uploaded content" 
-                      className="w-full h-full object-contain"
-                    />
-                    
-                    {isImageSelected && (
-                      <>
-                        <div className="image-outline" />
-                        
-                        <motion.div
-                          className="image-handle resize-handle-tl"
-                          drag
-                          dragConstraints={canvasRef}
-                          dragElastic={0}
-                          onDragStart={() => setActiveHandle('resize')}
-                          onDragEnd={() => setActiveHandle(null)}
-                          onDrag={(e, info) => handleImageResize(info, 'top-left')}
-                        />
-                        
-                        <motion.div
-                          className="image-handle resize-handle-tr"
-                          drag
-                          dragConstraints={canvasRef}
-                          dragElastic={0}
-                          onDragStart={() => setActiveHandle('resize')}
-                          onDragEnd={() => setActiveHandle(null)}
-                          onDrag={(e, info) => handleImageResize(info, 'top-right')}
-                        />
-                        
-                        <motion.div
-                          className="image-handle resize-handle-bl"
-                          drag
-                          dragConstraints={canvasRef}
-                          dragElastic={0}
-                          onDragStart={() => setActiveHandle('resize')}
-                          onDragEnd={() => setActiveHandle(null)}
-                          onDrag={(e, info) => handleImageResize(info, 'bottom-left')}
-                        />
-                        
-                        <motion.div
-                          className="image-handle resize-handle-br"
-                          drag
-                          dragConstraints={canvasRef}
-                          dragElastic={0}
-                          onDragStart={() => setActiveHandle('resize')}
-                          onDragEnd={() => setActiveHandle(null)}
-                          onDrag={(e, info) => handleImageResize(info, 'bottom-right')}
-                        />
-                      </>
-                    )}
-                  </motion.div>
-                )}
-
-                {stickerElements.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    className="absolute cursor-move"
-                    style={{ 
-                      left: 0,
-                      top: 0,
-                      transform: `translate(${item.x}px, ${item.y}px)`,
-                      width: `${item.width}px`,
-                      height: `${item.height}px`,
-                      zIndex: selectedSticker === item.id ? 100 : 1,
-                      pointerEvents: 'auto'
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedSticker(item.id);
-                      setIsImageSelected(false);
-                    }}
-                    onDoubleClick={() => {
-                      setStickerElements(stickerElements.map(s => 
-                        s.id === item.id ? { 
-                          ...s, 
-                          width: baseStickerSize,
-                          height: baseStickerSize 
-                        } : s
-                      ));
-                    }}
-                    onTouchStart={(e) => handleTouch(item.id, e)}
-                    onTouchMove={(e) => handleTouch(item.id, e)}
-                    onTouchEnd={handleTouchEnd}
-                    drag
-                    dragConstraints={canvasRef}
-                    dragElastic={0}
-                    dragMomentum={false}
-                    onDrag={(e, info) => handleDragSticker(item.id, info)}
-                  >
-                    <div className="relative w-full h-full">
-                      {selectedSticker === item.id && (
-                        <>
-                          <div className="sticker-outline" />
-                          <button 
-                            className="delete-button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeElement(item.id);
-                            }}
-                          >
-                            ×
-                          </button>
-                          
-                          {/* Resize Handles */}
-                          <motion.div
-                            className="sticker-handle resize-handle-tl"
-                            drag
-                            dragConstraints={canvasRef}
-                            dragElastic={0}
-                            onDragStart={() => setActiveHandle('resize')}
-                            onDragEnd={() => setActiveHandle(null)}
-                            onDrag={(e, info) => handleHandleDrag(item.id, info, 'resize', 'top-left')}
+          <section className="relative py-5 px-6 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* Controls Panel */}
+              <div className="lg:col-span-1 bg-black/50 p-6 rounded-lg border border-white/10">
+                <h2 className="text-xl font-bold mb-4">Controls</h2>
+                
+                {/* Image Upload */}
+                <div className="mb-6">
+                  <label className="block mb-2 text-sm font-medium">Upload Image</label>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageUpload}
+                    className="w-full text-sm text-gray-400
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-full file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-white/10 file:text-white
+                      hover:file:bg-white/20"
+                  />
+                </div>
+                
+                {/* Stickers */}
+                <div className="mb-6">
+                  <Button 
+                    onClick={() => setActiveTool(activeTool === 'sticker' ? null : 'sticker')}
+                    className="w-full mb-2"
+                    label="Add Sticker"
+                  />
+                  {activeTool === 'sticker' && (
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      {stickerOptions.map((sticker, index) => (
+                        <button
+                          key={index}
+                          onClick={() => addSticker(sticker)}
+                          className="p-2 bg-white/10 hover:bg-white/20 rounded transition"
+                        >
+                          <Image
+                            src={`/${index+1}.png`}
+                            alt={`Sticker ${index + 1}`}
+                            width={40}
+                            height={40}
+                            className="object-contain"
                           />
-                          
-                          <motion.div
-                            className="sticker-handle resize-handle-tr"
-                            drag
-                            dragConstraints={canvasRef}
-                            dragElastic={0}
-                            onDragStart={() => setActiveHandle('resize')}
-                            onDragEnd={() => setActiveHandle(null)}
-                            onDrag={(e, info) => handleHandleDrag(item.id, info, 'resize', 'top-right')}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Text */}
+                <div className="mb-6">
+                  <Button 
+                    onClick={() => setActiveTool(activeTool === 'text' ? null : 'text')}
+                    className="w-full mb-2"
+                    label="Add Text"
+                  />
+                  {activeTool === 'text' && (
+                    <div className="space-y-4 mt-2">
+                      <input
+                        type="text"
+                        value={newText}
+                        onChange={(e) => setNewText(e.target.value)}
+                        placeholder="Enter your text"
+                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white"
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm mb-1">Color</label>
+                          <input
+                            type="color"
+                            value={textColor}
+                            onChange={(e) => setTextColor(e.target.value)}
+                            className="w-full h-10"
                           />
-                          
-                          <motion.div
-                            className="sticker-handle resize-handle-bl"
-                            drag
-                            dragConstraints={canvasRef}
-                            dragElastic={0}
-                            onDragStart={() => setActiveHandle('resize')}
-                            onDragEnd={() => setActiveHandle(null)}
-                            onDrag={(e, info) => handleHandleDrag(item.id, info, 'resize', 'bottom-left')}
+                        </div>
+                        <div>
+                          <label className="block text-sm mb-1">Size</label>
+                          <input
+                            type="range"
+                            min="8"
+                            max="72"
+                            value={textSize}
+                            onChange={(e) => setTextSize(parseInt(e.target.value))}
+                            className="w-full"
                           />
-                          
-                          <motion.div
-                            className="sticker-handle resize-handle-br"
-                            drag
-                            dragConstraints={canvasRef}
-                            dragElastic={0}
-                            onDragStart={() => setActiveHandle('resize')}
-                            onDragEnd={() => setActiveHandle(null)}
-                            onDrag={(e, info) => handleHandleDrag(item.id, info, 'resize', 'bottom-right')}
-                          />
-                          
-                          {/* Rotate Handle */}
-                          <motion.div
-                            className="sticker-handle rotate-handle"
-                            drag
-                            dragConstraints={canvasRef}
-                            dragElastic={0}
-                            onDragStart={() => setActiveHandle('rotate')}
-                            onDragEnd={() => setActiveHandle(null)}
-                            onDrag={(e, info) => handleHandleDrag(item.id, info, 'rotate')}
-                          />
-                        </>
-                      )}
-                      <motion.img 
-                        src={item.src} 
-                        alt="Sticker" 
-                        className="w-full h-full object-contain drop-shadow-lg pointer-events-none"
-                        style={{ 
-                          transform: `rotate(${item.rotation}deg)`,
-                          filter: selectedSticker === item.id ? 
-                            'drop-shadow(0 0 8px rgba(255,255,255,0.7))' : 
-                            'drop-shadow(0 0 4px rgba(0,0,0,0.5))'
-                        }}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm mb-1">Font</label>
+                        <select
+                          value={fontFamily}
+                          onChange={(e) => setFontFamily(e.target.value)}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white"
+                        >
+                          {fontOptions.map(font => (
+                            <option key={font} value={font}>{font}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <Button 
+                        onClick={addText}
+                        className="w-full"
+                        label="Add Text to Meme"
                       />
                     </div>
-                  </motion.div>
-                ))}
-
-                {!uploadedImage && stickerElements.length === 0 && (
-                  <motion.div 
-                    className="absolute inset-0 flex items-center justify-center text-white/30"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                  >
-                    <p>Upload an image or add stickers to start designing</p>
-                  </motion.div>
-                )}
-              </motion.div>
-            </motion.div>
-          </motion.div>
+                  )}
+                </div>
+                
+                {/* Download Button */}
+                <Button 
+                  onClick={downloadMeme}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                  label="Download Meme"
+                />
+              </div>
+              
+              {/* Canvas Area */}
+              <div className="lg:col-span-3">
+                <div 
+                  ref={canvasRef}
+                  onClick={handleCanvasClick}
+                  className="relative bg-black/50 rounded-lg border-2 border-white/10 aspect-square w-full overflow-hidden"
+                >
+                  {uploadedImage ? (
+                    <Image
+                      src={uploadedImage}
+                      alt="Uploaded meme base"
+                      fill
+                      className="object-contain"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-white/50">
+                      Upload an image to start creating your meme
+                    </div>
+                  )}
+                  
+                  {/* Render Stickers */}
+                  {stickers.map(sticker => (
+                    <motion.div
+                      key={sticker.id}
+                      drag
+                      dragMomentum={false}
+                      dragElastic={0}
+                      onDragEnd={(e, info) => handleDragEnd(sticker.id, e, info)}
+                      onClick={(e) => handleElementClick(sticker.id, e)}
+                      className={`absolute cursor-move ${selectedElement === sticker.id ? 'ring-2 ring-blue-500' : ''}`}
+                      style={{
+                        left: `${sticker.x}px`,
+                        top: `${sticker.y}px`,
+                        width: `${sticker.width}px`,
+                        height: `${sticker.height}px`,
+                        transform: `rotate(${sticker.rotation}deg)`
+                      }}
+                    >
+                      <Image
+                        src={`/${sticker.src}`}
+                        alt="Sticker"
+                        fill
+                        className="object-contain"
+                      />
+                      {selectedElement === sticker.id && (
+                        <div className="absolute -bottom-8 left-0 right-0 flex justify-center space-x-2">
+                          <button 
+                            onClick={() => handleResize(sticker.id, 10)}
+                            className="bg-white/20 hover:bg-white/30 p-1 rounded"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => handleResize(sticker.id, -10)}
+                            className="bg-white/20 hover:bg-white/30 p-1 rounded"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => handleRotate(sticker.id, 15)}
+                            className="bg-white/20 hover:bg-white/30 p-1 rounded"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => removeElement(sticker.id)}
+                            className="bg-red-500/80 hover:bg-red-500 p-1 rounded"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                  
+                  {/* Render Texts */}
+                  {texts.map(text => (
+                    <motion.div
+                      key={text.id}
+                      drag
+                      dragMomentum={false}
+                      dragElastic={0}
+                      onDragEnd={(e, info) => handleDragEnd(text.id, e, info)}
+                      onClick={(e) => handleElementClick(text.id, e)}
+                      className={`absolute cursor-move ${selectedElement === text.id ? 'ring-2 ring-blue-500' : ''}`}
+                      style={{
+                        left: `${text.x}px`,
+                        top: `${text.y}px`,
+                        color: text.color,
+                        fontSize: `${text.fontSize}px`,
+                        fontFamily: text.fontFamily,
+                        transform: `rotate(${text.rotation}deg)`
+                      }}
+                    >
+                      {text.content}
+                      {selectedElement === text.id && (
+                        <div className="absolute -bottom-8 left-0 right-0 flex justify-center space-x-2">
+                          <button 
+                            onClick={() => handleResize(text.id, 2)}
+                            className="bg-white/20 hover:bg-white/30 p-1 rounded"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => handleResize(text.id, -2)}
+                            className="bg-white/20 hover:bg-white/30 p-1 rounded"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => handleRotate(text.id, 15)}
+                            className="bg-white/20 hover:bg-white/30 p-1 rounded"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => removeElement(text.id)}
+                            className="bg-red-500/80 hover:bg-red-500 p-1 rounded"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </>

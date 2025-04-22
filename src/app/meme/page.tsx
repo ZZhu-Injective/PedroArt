@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
 import Image from "next/image";
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Button from '@/components/basic_button';
 
 interface GalleryImage {
@@ -47,7 +47,6 @@ const itemVariants = {
 
 const Card = ({ imageUrl, link, index }: CardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <motion.div
@@ -57,14 +56,11 @@ const Card = ({ imageUrl, link, index }: CardProps) => {
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
       className="group relative overflow-hidden rounded-lg bg-black shadow-lg hover:shadow-xl hover:shadow-white/10 transition-all duration-300"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       initial="hidden"
       animate="show"
       custom={index}
     >
       <div className="absolute inset-0 border-2 border-white/10 group-hover:border-white/30 transition-all duration-500 z-20 pointer-events-none rounded-lg" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent z-10" />
       <div className="relative w-full aspect-square overflow-hidden rounded-lg">
         <Image 
           src={`/${imageUrl}`}
@@ -75,24 +71,17 @@ const Card = ({ imageUrl, link, index }: CardProps) => {
           priority={index < 6}
         />
       </div>
-      <motion.div 
-        className="absolute bottom-0 left-0 right-0 p-6 z-30 text-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={isHovered ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Button 
-          onClick={() => window.open(link, '_blank')}
-          className="text-white hover:text-black hover:bg-white text-sm font-medium px-4 py-2 rounded-full border border-white/30 hover:border-white transition-all"
-          label={"Follow Creator"}
-        />
-      </motion.div>
-      <motion.div 
-        className="absolute inset-0 bg-black/30 z-0"
-        initial={{ opacity: 0 }}
-        animate={isHovered ? { opacity: 1 } : { opacity: 0 }}
-        transition={{ duration: 0.3 }}
-      />
+      
+      {/* Always visible button section */}
+      <div className="bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4 rounded-b-lg">
+        <div className="flex justify-center">
+          <Button 
+            onClick={() => window.open(link, '_blank')}
+            className="text-white hover:text-black hover:bg-white text-sm font-medium px-4 py-2 rounded-full border border-white/30 hover:border-white transition-all"
+            label={"Follow Creator"}
+          />
+        </div>
+      </div>
     </motion.div>
   );
 };
@@ -143,7 +132,6 @@ export default function Art() {
               priority
             />
           </div>
-        
         </div>
 
         <div className="relative z-10">
