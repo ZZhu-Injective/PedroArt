@@ -1,480 +1,458 @@
 'use client';
-import { motion } from "framer-motion";
-import Head from "next/head";
-import Image from "next/image";
-import { useState, useRef } from 'react';
-import Button from '@/components/basic_button';
+import { useState, useRef, useEffect } from 'react';
 
-export default function MemeGenerator() {
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [stickers, setStickers] = useState<Array<{
-    id: string;
-    src: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    rotation: number;
-  }>>([]);
-  const [texts, setTexts] = useState<Array<{
-    id: string;
-    content: string;
-    x: number;
-    y: number;
-    color: string;
-    fontSize: number;
-    fontFamily: string;
-    rotation: number;
-  }>>([]);
-  const [selectedElement, setSelectedElement] = useState<string | null>(null);
-  const [activeTool, setActiveTool] = useState<'sticker' | 'text' | null>(null);
-  const [newText, setNewText] = useState('');
-  const [textColor, setTextColor] = useState('#ffffff');
-  const [textSize, setTextSize] = useState(32);
-  const [fontFamily, setFontFamily] = useState('Arial');
+interface Layer {
+  id: string;
+  url: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotate: number;
+  naturalWidth: number;
+  naturalHeight: number;
+  isBackground?: boolean;
+}
+
+export default function ImageEditor() {
+  const [layers, setLayers] = useState<Layer[]>([]);
+  const [activeLayerId, setActiveLayerId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [initialLayerPos, setInitialLayerPos] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const stickerFileInputRef = useRef<HTMLInputElement>(null);
 
-  const stickerOptions = Array.from({ length: 12 }, (_, i) => `sticker${i + 1}.png`);
-  const fontOptions = ['Arial', 'Impact', 'Comic Sans MS', 'Courier New', 'Georgia', 'Times New Roman'];
+  const stickers = [
+    '/1.png', '/2.png', '/3.png', '/4.png', '/5.png', '/6.png',
+    '/7.png', '/8.png', '/9.png', '/10.png', '/11.png', '/12.png',
+    '/13.png', '/14.png', '/15.png'
+  ];
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  const createLayer = (url: string, x: number, y: number, width?: number, isBackground = false) => {
+    const img = new Image();
+    img.src = url;
+    img.crossOrigin = 'Anonymous';
+
+    img.onload = () => {
+      const aspectRatio = img.width / img.height;
+      let newWidth, newHeight;
+
+      if (isBackground) {
+        if (canvasRef.current) {
+          const canvasWidth = canvasRef.current.clientWidth;
+          const canvasHeight = canvasRef.current.clientHeight;
+          const imgRatio = img.width / img.height;
+          const canvasRatio = canvasWidth / canvasHeight;
+          
+          if (imgRatio > canvasRatio) {
+            newHeight = canvasHeight;
+            newWidth = canvasHeight * imgRatio;
+          } else {
+            newWidth = canvasWidth;
+            newHeight = canvasWidth / imgRatio;
+          }
+        } else {
+          newWidth = img.width;
+          newHeight = img.height;
+        }
+      } else {
+        newWidth = width || Math.min(300, img.width);
+        newHeight = newWidth / aspectRatio;
+      }
+
+      const newLayer: Layer = {
+        id: Math.random().toString(36).substring(2, 9),
+        url: url,
+        x: isBackground ? (canvasRef.current ? (canvasRef.current.clientWidth - newWidth) / 2 : 0) : x - newWidth / 2,
+        y: isBackground ? (canvasRef.current ? (canvasRef.current.clientHeight - newHeight) / 2 : 0) : y - newHeight / 2,
+        width: newWidth,
+        height: newHeight,
+        rotate: 0,
+        naturalWidth: img.width,
+        naturalHeight: img.height,
+        isBackground: isBackground
+      };
+
+      if (isBackground) {
+        setLayers(prev => [
+          newLayer,
+          ...prev.filter(l => !l.isBackground)
+        ]);
+      } else {
+        setLayers(prev => [...prev, newLayer]);
+      }
+      setActiveLayerId(isBackground ? null : newLayer.id);
+    };
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setUploadedImage(event.target?.result as string);
+        if (canvasRef.current && event.target?.result) {
+          createLayer(event.target.result as string, 0, 0, undefined, true);
+        }
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(e.target.files[0]);
     }
   };
 
-  const addSticker = (stickerSrc: string) => {
-    const newSticker = {
-      id: `sticker-${Date.now()}`,
-      src: stickerSrc,
-      x: 50,
-      y: 50,
-      width: 100,
-      height: 100,
-      rotation: 0
-    };
-    setStickers([...stickers, newSticker]);
-    setSelectedElement(newSticker.id);
-    setActiveTool(null);
+  const handleStickerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (canvasRef.current && event.target?.result) {
+          const rect = canvasRef.current.getBoundingClientRect();
+          createLayer(event.target.result as string, rect.width / 2, rect.height / 2, 150);
+        }
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
   };
 
-  const addText = () => {
-    if (!newText.trim()) return;
-    
-    const newTextElement = {
-      id: `text-${Date.now()}`,
-      content: newText,
-      x: 50,
-      y: 50,
-      color: textColor,
-      fontSize: textSize,
-      fontFamily,
-      rotation: 0
-    };
-    setTexts([...texts, newTextElement]);
-    setSelectedElement(newTextElement.id);
-    setNewText('');
-    setActiveTool(null);
+  const handleStickerClick = (url: string) => {
+    if (canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      createLayer(url, rect.width / 2, rect.height / 2, 150);
+    }
   };
 
-  const handleElementClick = (id: string, e: React.MouseEvent) => {
+  const handleMouseDown = (e: React.MouseEvent, layerId: string, isResizeHandle = false) => {
     e.stopPropagation();
-    setSelectedElement(id);
-  };
+    const layer = layers.find(l => l.id === layerId);
+    if (!layer || layer.isBackground) return;
 
-  const handleCanvasClick = () => {
-    setSelectedElement(null);
-  };
-
-  const handleDragEnd = (id: string, event: any, info: { offset: { x: number; y: number } }) => {
-    const { offset } = info;
+    setActiveLayerId(layerId);
     
-    if (id.startsWith('sticker')) {
-      setStickers(stickers.map(sticker => 
-        sticker.id === id ? { 
-          ...sticker, 
-          x: sticker.x + offset.x,
-          y: sticker.y + offset.y
-        } : sticker
-      ));
+    if (isResizeHandle) {
+      setIsResizing(true);
     } else {
-      setTexts(texts.map(text => 
-        text.id === id ? { 
-          ...text, 
-          x: text.x + offset.x,
-          y: text.y + offset.y
-        } : text
-      ));
+      setIsDragging(true);
+    }
+    
+    setDragStart({ x: e.clientX, y: e.clientY });
+    setInitialLayerPos({ x: layer.x, y: layer.y, width: layer.width, height: layer.height });
+  };
+
+  const handleDoubleClick = (layerId: string) => {
+    const layer = layers.find(l => l.id === layerId);
+    if (!layer || layer.isBackground) return;
+
+    setLayers(prev => {
+      const layerIndex = prev.findIndex(l => l.id === layerId);
+      if (layerIndex === -1) return prev;
+      
+      return [
+        ...prev.slice(0, layerIndex),
+        ...prev.slice(layerIndex + 1),
+        prev[layerIndex]
+      ];
+    });
+    setActiveLayerId(layerId);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!activeLayerId || !isDragging && !isResizing) return;
+    
+    const layer = layers.find(l => l.id === activeLayerId);
+    if (!layer || layer.isBackground) return;
+
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+
+    if (isDragging) {
+      setLayers(prev =>
+        prev.map(l =>
+          l.id === activeLayerId
+            ? { ...l, x: initialLayerPos.x + dx, y: initialLayerPos.y + dy }
+            : l
+        )
+      );
+    } else if (isResizing) {
+      const aspectRatio = layer.naturalWidth / layer.naturalHeight;
+      const newWidth = initialLayerPos.width + dx;
+      const newHeight = newWidth / aspectRatio;
+      
+      setLayers(prev =>
+        prev.map(l =>
+          l.id === activeLayerId
+            ? { 
+                ...l, 
+                width: newWidth, 
+                height: newHeight,
+                x: initialLayerPos.x - (newWidth - initialLayerPos.width) / 2,
+                y: initialLayerPos.y - (newHeight - initialLayerPos.height) / 2
+              }
+            : l
+        )
+      );
     }
   };
 
-  const handleResize = (id: string, delta: number) => {
-    if (id.startsWith('sticker')) {
-      setStickers(stickers.map(sticker => 
-        sticker.id === id ? { 
-          ...sticker, 
-          width: Math.max(20, sticker.width + delta),
-          height: Math.max(20, sticker.height + delta)
-        } : sticker
-      ));
-    } else {
-      setTexts(texts.map(text => 
-        text.id === id ? { 
-          ...text, 
-          fontSize: Math.max(8, text.fontSize + delta/2) 
-        } : text
-      ));
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setIsResizing(false);
+  };
+
+  const deleteActiveLayer = () => {
+    if (activeLayerId) {
+      setLayers(prev => prev.filter(layer => layer.id !== activeLayerId));
+      setActiveLayerId(null);
     }
   };
 
-  const handleRotate = (id: string, delta: number) => {
-    if (id.startsWith('sticker')) {
-      setStickers(stickers.map(sticker => 
-        sticker.id === id ? { 
-          ...sticker, 
-          rotation: (sticker.rotation + delta) % 360 
-        } : sticker
-      ));
-    } else {
-      setTexts(texts.map(text => 
-        text.id === id ? { 
-          ...text, 
-          rotation: (text.rotation + delta) % 360 
-        } : text
-      ));
-    }
+  const rotateLayer = (degrees: number) => {
+    if (!activeLayerId) return;
+    
+    const layer = layers.find(l => l.id === activeLayerId);
+    if (!layer || layer.isBackground) return;
+
+    setLayers(prev =>
+      prev.map(layer =>
+        layer.id === activeLayerId
+          ? { ...layer, rotate: (layer.rotate + degrees) % 360 }
+          : layer
+      )
+    );
   };
 
-  const removeElement = (id: string) => {
-    if (id.startsWith('sticker')) {
-      setStickers(stickers.filter(sticker => sticker.id !== id));
+  const saveImage = () => {
+    if (layers.length === 0) return;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const backgroundLayer = layers.find(layer => layer.isBackground);
+    
+    if (backgroundLayer) {
+      canvas.width = backgroundLayer.width;
+      canvas.height = backgroundLayer.height;
     } else {
-      setTexts(texts.filter(text => text.id !== id));
+      if (!canvasRef.current) return;
+      const rect = canvasRef.current.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-    setSelectedElement(null);
+
+    layers.forEach(layer => {
+      const img = new Image();
+      img.src = layer.url;
+      
+      ctx.save();
+      
+      let drawX = layer.x;
+      let drawY = layer.y;
+      
+      if (backgroundLayer) {
+        drawX = layer.x - backgroundLayer.x;
+        drawY = layer.y - backgroundLayer.y;
+      }
+      
+      ctx.translate(drawX + layer.width / 2, drawY + layer.height / 2);
+      ctx.rotate((layer.rotate * Math.PI) / 180);
+      ctx.drawImage(
+        img,
+        -layer.width / 2,
+        -layer.height / 2,
+        layer.width,
+        layer.height
+      );
+      ctx.restore();
+    });
+
+    const dataUrl = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = 'meme-creator.png';
+    link.href = dataUrl;
+    link.click();
   };
 
-  const downloadMeme = () => {
-    if (!canvasRef.current) return;
-    alert('In a real implementation, this would download the meme as an image');
-  };
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' && activeLayerId) {
+        deleteActiveLayer();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeLayerId]);
 
   return (
-    <>
-      <Head>
-        <title>Pedro | Meme Generator</title>
-        <meta name="description" content="Create your own Pedro memes" />
-        <meta property="og:image" content="/pedro-social-preview.jpg" />
-      </Head>
+    <div className="min-h-screen bg-[#f0f0f0] font-sans">
+      <div className="max-w-7xl mx-auto p-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="bg-white p-4 rounded-lg w-full md:w-24">
+            <ul className="space-y-4">
+              <li>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full p-3 rounded-lg flex items-center justify-center hover:bg-gray-100 text-gray-700"
+                  title="Add Background Image"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
+              </li>
+              <li>
+                <button
+                  onClick={saveImage}
+                  disabled={layers.length === 0}
+                  className={`w-full p-3 rounded-lg flex items-center justify-center ${layers.length === 0 ? 'bg-gray-100 text-gray-400' : 'hover:bg-gray-100 text-gray-700'}`}
+                  title="Save"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  </svg>
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={deleteActiveLayer}
+                  disabled={!activeLayerId}
+                  className={`w-full p-3 rounded-lg flex items-center justify-center ${!activeLayerId ? 'bg-gray-100 text-gray-400' : 'hover:bg-gray-100 text-gray-700'}`}
+                  title="Delete"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => rotateLayer(15)}
+                  disabled={!activeLayerId}
+                  className={`w-full p-3 rounded-lg flex items-center justify-center ${!activeLayerId ? 'bg-gray-100 text-gray-400' : 'hover:bg-gray-100 text-gray-700'}`}
+                  title="Rotate Right"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setLayers([])}
+                  disabled={layers.length === 0}
+                  className={`w-full p-3 rounded-lg flex items-center justify-center ${layers.length === 0 ? 'bg-gray-100 text-gray-400' : 'hover:bg-gray-100 text-gray-700'}`}
+                  title="Clear All"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </li>
+              <li className="pt-4 border-t text-center border-gray-200">
+                <span className="text-xs text-gray-500">V1.0</span>
+              </li>
+            </ul>
+          </div>
 
-      <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute inset-0">
-            <Image
-              src="/wallpaper4.png"
-              alt="Background texture"
-              layout="fill"
-              objectFit="cover"
-              className="opacity-20 mix-blend-overlay"
-              priority
-            />
+          <div
+            ref={canvasRef}
+            className={`bg-white p-4 rounded-lg flex-1 h-[700px] relative overflow-hidden ${layers.length === 0 ? 'cursor-pointer' : ''}`}
+            onClick={() => layers.length === 0 && fileInputRef.current?.click()}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          >
+            {layers.length === 0 ? (
+              <div className="absolute inset-0 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400">
+                <span className="text-2xl mb-2">Upload a background image</span>
+                <span className="text-sm mb-4">or</span>
+                <span className="text-lg">Click to choose</span>
+              </div>
+            ) : (
+              layers.map((layer) => (
+                <div
+                  key={layer.id}
+                  className={`absolute ${activeLayerId === layer.id && !layer.isBackground ? 'ring-2 ring-blue-500' : ''}`}
+                  style={{
+                    left: `${layer.x}px`,
+                    top: `${layer.y}px`,
+                    width: `${layer.width}px`,
+                    height: `${layer.height}px`,
+                    transform: `rotate(${layer.rotate}deg)`,
+                    cursor: layer.isBackground ? 'default' : 'move',
+                  }}
+                  onMouseDown={layer.isBackground ? undefined : (e) => handleMouseDown(e, layer.id)}
+                  onDoubleClick={layer.isBackground ? undefined : () => handleDoubleClick(layer.id)}
+                >
+                  <img
+                    src={layer.url}
+                    alt={layer.isBackground ? "Background" : "Layer"}
+                    className="w-full h-full object-contain select-none"
+                    draggable="false"
+                  />
+                  {activeLayerId === layer.id && !layer.isBackground && (
+                    <div 
+                      className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 cursor-nwse-resize"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        handleMouseDown(e, layer.id, true);
+                      }}
+                    />
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="bg-white p-4 rounded-lg w-full md:w-96 h-[700px] overflow-y-auto">
+            <div className="mb-4">
+              <button
+                onClick={() => stickerFileInputRef.current?.click()}
+                className="w-full p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 flex items-center justify-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Upload Sticker
+              </button>
+              <input
+                type="file"
+                ref={stickerFileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleStickerUpload}
+              />
+            </div>
+            <p className="text-sm text-center text-gray-500 mb-4">
+              Click on a sticker to add it to your image
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {stickers.map((sticker, index) => (
+                <div
+                  key={index}
+                  className="p-2 rounded-lg hover:bg-gray-100 cursor-pointer"
+                  onClick={() => handleStickerClick(sticker)}
+                >
+                  <img
+                    src={sticker}
+                    alt={`Sticker ${index}`}
+                    className="w-full h-32 object-contain"
+                    crossOrigin="anonymous"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-
-        <div className="relative z-10">
-          <section className="flex items-center justify-center py-7 text-center relative overflow-hidden">
-            <motion.div
-              initial={{ opacity: 0, y: -50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className="px-6 max-w-4xl relative z-10"
-            >
-              <motion.h1
-                className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-white"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.8 }}
-              >
-                MEME GENERATOR
-              </motion.h1>
-              <motion.div
-                initial={{ opacity: 0, scaleX: 0 }}
-                animate={{ opacity: 1, scaleX: 1 }}
-                transition={{ delay: 0.6, duration: 1.2, ease: "circOut" }}
-                className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent"
-              />
-            </motion.div>
-          </section>
-
-          <section className="relative py-5 px-6 max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Controls Panel */}
-              <div className="lg:col-span-1 bg-black/50 p-6 rounded-lg border border-white/10">
-                <h2 className="text-xl font-bold mb-4">Controls</h2>
-                
-                {/* Image Upload */}
-                <div className="mb-6">
-                  <label className="block mb-2 text-sm font-medium">Upload Image</label>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleImageUpload}
-                    className="w-full text-sm text-gray-400
-                      file:mr-4 file:py-2 file:px-4
-                      file:rounded-full file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-white/10 file:text-white
-                      hover:file:bg-white/20"
-                  />
-                </div>
-                
-                {/* Stickers */}
-                <div className="mb-6">
-                  <Button 
-                    onClick={() => setActiveTool(activeTool === 'sticker' ? null : 'sticker')}
-                    className="w-full mb-2"
-                    label="Add Sticker"
-                  />
-                  {activeTool === 'sticker' && (
-                    <div className="grid grid-cols-3 gap-2 mt-2">
-                      {stickerOptions.map((sticker, index) => (
-                        <button
-                          key={index}
-                          onClick={() => addSticker(sticker)}
-                          className="p-2 bg-white/10 hover:bg-white/20 rounded transition"
-                        >
-                          <Image
-                            src={`/${index+1}.png`}
-                            alt={`Sticker ${index + 1}`}
-                            width={40}
-                            height={40}
-                            className="object-contain"
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                
-                {/* Text */}
-                <div className="mb-6">
-                  <Button 
-                    onClick={() => setActiveTool(activeTool === 'text' ? null : 'text')}
-                    className="w-full mb-2"
-                    label="Add Text"
-                  />
-                  {activeTool === 'text' && (
-                    <div className="space-y-4 mt-2">
-                      <input
-                        type="text"
-                        value={newText}
-                        onChange={(e) => setNewText(e.target.value)}
-                        placeholder="Enter your text"
-                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white"
-                      />
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm mb-1">Color</label>
-                          <input
-                            type="color"
-                            value={textColor}
-                            onChange={(e) => setTextColor(e.target.value)}
-                            className="w-full h-10"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm mb-1">Size</label>
-                          <input
-                            type="range"
-                            min="8"
-                            max="72"
-                            value={textSize}
-                            onChange={(e) => setTextSize(parseInt(e.target.value))}
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm mb-1">Font</label>
-                        <select
-                          value={fontFamily}
-                          onChange={(e) => setFontFamily(e.target.value)}
-                          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-white"
-                        >
-                          {fontOptions.map(font => (
-                            <option key={font} value={font}>{font}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <Button 
-                        onClick={addText}
-                        className="w-full"
-                        label="Add Text to Meme"
-                      />
-                    </div>
-                  )}
-                </div>
-                
-                {/* Download Button */}
-                <Button 
-                  onClick={downloadMeme}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  label="Download Meme"
-                />
-              </div>
-              
-              {/* Canvas Area */}
-              <div className="lg:col-span-3">
-                <div 
-                  ref={canvasRef}
-                  onClick={handleCanvasClick}
-                  className="relative bg-black/50 rounded-lg border-2 border-white/10 aspect-square w-full overflow-hidden"
-                >
-                  {uploadedImage ? (
-                    <Image
-                      src={uploadedImage}
-                      alt="Uploaded meme base"
-                      fill
-                      className="object-contain"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-white/50">
-                      Upload an image to start creating your meme
-                    </div>
-                  )}
-                  
-                  {/* Render Stickers */}
-                  {stickers.map(sticker => (
-                    <motion.div
-                      key={sticker.id}
-                      drag
-                      dragMomentum={false}
-                      dragElastic={0}
-                      onDragEnd={(e, info) => handleDragEnd(sticker.id, e, info)}
-                      onClick={(e) => handleElementClick(sticker.id, e)}
-                      className={`absolute cursor-move ${selectedElement === sticker.id ? 'ring-2 ring-blue-500' : ''}`}
-                      style={{
-                        left: `${sticker.x}px`,
-                        top: `${sticker.y}px`,
-                        width: `${sticker.width}px`,
-                        height: `${sticker.height}px`,
-                        transform: `rotate(${sticker.rotation}deg)`
-                      }}
-                    >
-                      <Image
-                        src={`/${sticker.src}`}
-                        alt="Sticker"
-                        fill
-                        className="object-contain"
-                      />
-                      {selectedElement === sticker.id && (
-                        <div className="absolute -bottom-8 left-0 right-0 flex justify-center space-x-2">
-                          <button 
-                            onClick={() => handleResize(sticker.id, 10)}
-                            className="bg-white/20 hover:bg-white/30 p-1 rounded"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                          </button>
-                          <button 
-                            onClick={() => handleResize(sticker.id, -10)}
-                            className="bg-white/20 hover:bg-white/30 p-1 rounded"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                            </svg>
-                          </button>
-                          <button 
-                            onClick={() => handleRotate(sticker.id, 15)}
-                            className="bg-white/20 hover:bg-white/30 p-1 rounded"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                          </button>
-                          <button 
-                            onClick={() => removeElement(sticker.id)}
-                            className="bg-red-500/80 hover:bg-red-500 p-1 rounded"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
-                    </motion.div>
-                  ))}
-                  
-                  {/* Render Texts */}
-                  {texts.map(text => (
-                    <motion.div
-                      key={text.id}
-                      drag
-                      dragMomentum={false}
-                      dragElastic={0}
-                      onDragEnd={(e, info) => handleDragEnd(text.id, e, info)}
-                      onClick={(e) => handleElementClick(text.id, e)}
-                      className={`absolute cursor-move ${selectedElement === text.id ? 'ring-2 ring-blue-500' : ''}`}
-                      style={{
-                        left: `${text.x}px`,
-                        top: `${text.y}px`,
-                        color: text.color,
-                        fontSize: `${text.fontSize}px`,
-                        fontFamily: text.fontFamily,
-                        transform: `rotate(${text.rotation}deg)`
-                      }}
-                    >
-                      {text.content}
-                      {selectedElement === text.id && (
-                        <div className="absolute -bottom-8 left-0 right-0 flex justify-center space-x-2">
-                          <button 
-                            onClick={() => handleResize(text.id, 2)}
-                            className="bg-white/20 hover:bg-white/30 p-1 rounded"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                          </button>
-                          <button 
-                            onClick={() => handleResize(text.id, -2)}
-                            className="bg-white/20 hover:bg-white/30 p-1 rounded"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                            </svg>
-                          </button>
-                          <button 
-                            onClick={() => handleRotate(text.id, 15)}
-                            className="bg-white/20 hover:bg-white/30 p-1 rounded"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                          </button>
-                          <button 
-                            onClick={() => removeElement(text.id)}
-                            className="bg-red-500/80 hover:bg-red-500 p-1 rounded"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
       </div>
-    </>
+    </div>
   );
 }

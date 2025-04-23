@@ -22,6 +22,7 @@ interface CardProps {
 }
 
 const images: GalleryImage[] = [
+  { url: 'fan27.jpg', title: 'Crazy Art', description: 'Made By zar_batyshka', link: 'https://x.com/zar_batyshka' },
   { url: 'fan26.jpg', title: 'Pedro Skating', description: 'Made By the_crannberry', link: 'https://x.com/the_crannberry' },
   { url: 'fan25.jpg', title: 'Pedro and Monad', description: 'Made By MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
   { url: 'fan24.jpg', title: 'Pedro The Rocket', description: 'Made By felixx_78', link: 'https://x.com/felixx_78' },
