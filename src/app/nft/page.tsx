@@ -6,10 +6,19 @@ import { useEffect, useState, useRef } from 'react';
 
 export default function Art() {
   const [layers, setLayers] = useState([]);
-  const [preview, setPreview] = useState(null);
+  const [previews, setPreviews] = useState([]);
+  const [batchSize, setBatchSize] = useState(1);
   const fileInputRefs = useRef({});
   const [activeTab, setActiveTab] = useState('builder');
   const [newLayerName, setNewLayerName] = useState('');
+  const [totalCombinations, setTotalCombinations] = useState(0);
+
+  useEffect(() => {
+    const combinations = layers.reduce((total, layer) => {
+      return total * (layer.images.length || 1);
+    }, 1);
+    setTotalCombinations(combinations);
+  }, [layers]);
 
   const addLayer = () => {
     if (!newLayerName.trim()) return;
@@ -17,7 +26,7 @@ export default function Art() {
     const newLayer = {
       name: newLayerName.trim(),
       images: [],
-      zIndex: layers.length // To manage stacking order
+      zIndex: layers.length
     };
     
     setLayers([...layers, newLayer]);
@@ -28,9 +37,6 @@ export default function Art() {
     const updatedLayers = [...layers];
     updatedLayers.splice(index, 1);
     setLayers(updatedLayers);
-    if (preview && preview.layers.includes(index)) {
-      setPreview(null); // Clear preview if it used this layer
-    }
   };
 
   const handleImageUpload = (layerIndex, e) => {
@@ -41,8 +47,8 @@ export default function Art() {
     const newImages = files.map(file => ({
       file,
       preview: URL.createObjectURL(file),
-      rarity: 10, // Default rarity (10%)
-      name: file.name.split('.')[0] // Remove extension
+      rarity: 10,
+      name: file.name.split('.')[0]
     }));
 
     updatedLayers[layerIndex].images = [...updatedLayers[layerIndex].images, ...newImages];
@@ -61,7 +67,7 @@ export default function Art() {
     setLayers(updatedLayers);
   };
 
-  const generatePreview = () => {
+  const generateSinglePreview = () => {
     if (layers.length === 0) return;
 
     const selectedImages = [];
@@ -70,12 +76,10 @@ export default function Art() {
     layers.forEach((layer, layerIndex) => {
       if (layer.images.length === 0) return;
 
-      // Calculate total rarity weight
       const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
       let random = Math.random() * totalRarity;
       let currentSum = 0;
 
-      // Select image based on rarity
       for (let i = 0; i < layer.images.length; i++) {
         currentSum += layer.images[i].rarity;
         if (random <= currentSum) {
@@ -86,22 +90,32 @@ export default function Art() {
       }
     });
 
-    setPreview({
+    return {
       images: selectedImages,
-      layers: selectedLayers
-    });
+      layers: selectedLayers,
+      id: Date.now() + Math.random().toString(36).substr(2, 9)
+    };
   };
 
-  const downloadPreview = () => {
+  const generateBatchPreviews = () => {
+    if (layers.length === 0 || batchSize < 1) return;
+
+    const newPreviews = [];
+    for (let i = 0; i < batchSize; i++) {
+      newPreviews.push(generateSinglePreview());
+    }
+    setPreviews(newPreviews);
+    setActiveTab('preview');
+  };
+
+  const downloadPreview = (preview) => {
     if (!preview) return;
     
-    // Create a canvas to composite the images
     const canvas = document.createElement('canvas');
-    canvas.width = 1000; // Set your desired dimensions
+    canvas.width = 1000;
     canvas.height = 1000;
     const ctx = canvas.getContext('2d');
     
-    // Draw each image in order (respecting zIndex)
     const layersToDraw = [...preview.layers]
       .map((layerIdx, i) => ({ layerIdx, zIndex: layers[layerIdx].zIndex, imgIndex: i }))
       .sort((a, b) => a.zIndex - b.zIndex);
@@ -116,14 +130,19 @@ export default function Art() {
         imagesLoaded++;
         
         if (imagesLoaded === totalImages) {
-          // All images loaded, trigger download
           const link = document.createElement('a');
-          link.download = 'nft-preview.png';
+          link.download = `nft-${preview.id}.png`;
           link.href = canvas.toDataURL('image/png');
           link.click();
         }
       };
       img.src = preview.images[imgIndex];
+    });
+  };
+
+  const downloadAllPreviews = () => {
+    previews.forEach(preview => {
+      downloadPreview(preview);
     });
   };
 
@@ -172,6 +191,63 @@ export default function Art() {
                 className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent"
               />
             </motion.div>
+          </section>
+
+          {/* How It Works Section */}
+          <section className="max-w-7xl mx-auto px-6 py-8 bg-black/50 rounded-xl border border-white/10 mb-8">
+            <h2 className="text-2xl font-bold mb-6 text-white">How It Works</h2>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="bg-white/5 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-3 text-blue-400">Getting Started</h3>
+                <ol className="list-decimal list-inside space-y-3 text-white/80">
+                  <li className="mb-2">
+                    <span className="font-medium">Add Layers</span> - Create different layers for your NFT
+                  </li>
+                  <li className="mb-2">
+                    <span className="font-medium">Upload Images</span> - Add variations for each layer
+                  </li>
+                  <li className="mb-2">
+                    <span className="font-medium">Set Rarity</span> - Adjust percentage chance for each image
+                  </li>
+                  <li>
+                    <span className="font-medium">Generate NFTs</span> - Create random combinations
+                  </li>
+                </ol>
+              </div>
+
+              <div className="bg-white/5 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-3 text-blue-400">Key Features</h3>
+                <ul className="space-y-3 text-white/80">
+                  <li className="flex items-start">
+                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
+                    <span><strong>Layer Management</strong> - Reorder with z-index</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
+                    <span><strong>Batch Generation</strong> - Create up to 100 NFTs</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
+                    <span><strong>Combination Calculator</strong> - See possible unique NFTs</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-white/5 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-3 text-blue-400">Rarity System</h3>
+                <ul className="space-y-3 text-white/80">
+                  <li className="flex items-start">
+                    <span className="bg-purple-500/20 text-purple-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">%</span>
+                    <span>Set rarity percentage (0-100)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="bg-purple-500/20 text-purple-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">⚖️</span>
+                    <span>Higher percentage = more common</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </section>
 
           <div className="container mx-auto px-4 pb-20">
@@ -312,59 +388,113 @@ export default function Art() {
                   </div>
                 </div>
 
-                <div className="flex justify-center">
-                  <button
-                    onClick={generatePreview}
-                    disabled={layers.length === 0}
-                    className={`px-6 py-3 rounded-lg font-medium ${layers.length === 0 ? 'bg-gray-700 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} transition-colors`}
-                  >
-                    Generate Preview
-                  </button>
+                <div className="bg-gray-900 bg-opacity-50 p-6 rounded-xl border border-gray-700">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4">Generate NFTs</h3>
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-1">
+                          <label className="block text-sm text-gray-400 mb-1">Number to generate</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={batchSize}
+                            onChange={(e) => setBatchSize(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
+                            className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          />
+                        </div>
+                        <button
+                          onClick={generateBatchPreviews}
+                          disabled={layers.length === 0}
+                          className={`mt-6 px-6 py-2 rounded-lg font-medium ${layers.length === 0 ? 'bg-gray-700 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} transition-colors`}
+                        >
+                          Generate {batchSize} NFT{batchSize !== 1 ? 's' : ''}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="bg-gray-800 bg-opacity-50 p-4 rounded-lg border border-gray-700">
+                      <h3 className="text-lg font-semibold mb-2">Statistics</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Layers:</span>
+                          <span>{layers.length}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Total Images:</span>
+                          <span>{layers.reduce((sum, layer) => sum + layer.images.length, 0)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Possible Combinations:</span>
+                          <span>{totalCombinations.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
               <div className="bg-gray-900 bg-opacity-50 p-6 rounded-xl border border-gray-700">
-                {preview ? (
-                  <div className="flex flex-col items-center">
-                    <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 mb-6 bg-gray-800 rounded-xl overflow-hidden">
-                      {preview.images.map((img, i) => (
-                        <img
-                          key={i}
-                          src={img}
-                          alt={`Layer ${i}`}
-                          className="absolute inset-0 w-full h-full object-contain"
-                          style={{ zIndex: layers[preview.layers[i]]?.zIndex || i }}
-                        />
-                      ))}
+                {previews.length > 0 ? (
+                  <div>
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-xl font-semibold">
+                        Generated Previews ({previews.length})
+                      </h2>
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={generateBatchPreviews}
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition-colors text-sm"
+                        >
+                          Generate More
+                        </button>
+                        <button
+                          onClick={downloadAllPreviews}
+                          className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors text-sm"
+                        >
+                          Download All
+                        </button>
+                      </div>
                     </div>
-                    
-                    <div className="flex space-x-4">
-                      <button
-                        onClick={generatePreview}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded transition-colors"
-                      >
-                        Generate Another
-                      </button>
-                      <button
-                        onClick={downloadPreview}
-                        className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded transition-colors"
-                      >
-                        Download Preview
-                      </button>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                      {previews.map((preview) => (
+                        <div key={preview.id} className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
+                          <div className="relative aspect-square bg-gray-900">
+                            {preview.images.map((img, i) => (
+                              <img
+                                key={i}
+                                src={img}
+                                alt={`Layer ${i}`}
+                                className="absolute inset-0 w-full h-full object-contain"
+                                style={{ zIndex: layers[preview.layers[i]]?.zIndex || i }}
+                              />
+                            ))}
+                          </div>
+                          <div className="p-3">
+                            <button
+                              onClick={() => downloadPreview(preview)}
+                              className="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 rounded transition-colors text-sm"
+                            >
+                              Download
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <div className="text-gray-400 mb-4">No preview generated yet</div>
+                    <div className="text-gray-400 mb-4">No previews generated yet</div>
                     <button
                       onClick={() => {
-                        generatePreview();
+                        generateBatchPreviews();
                         setActiveTab('preview');
                       }}
                       disabled={layers.length === 0}
                       className={`px-6 py-2 rounded-lg ${layers.length === 0 ? 'bg-gray-700 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} transition-colors`}
                     >
-                      Generate Your First Preview
+                      Generate Your First Batch
                     </button>
                   </div>
                 )}

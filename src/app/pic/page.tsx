@@ -18,35 +18,24 @@ interface Layer {
 
 export default function ImageEditor() {
   // State management
-  const [layers, setLayers] = useState<Layer[]>([]); // Stores all image layers
-  const [activeLayerId, setActiveLayerId] = useState<string | null>(null); // Currently selected layer
-  const [isDragging, setIsDragging] = useState(false); // Drag state
-  const [isResizing, setIsResizing] = useState(false); // Resize state
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 }); // Mouse position when drag starts
-  const [initialLayerPos, setInitialLayerPos] = useState({ x: 0, y: 0, width: 0, height: 0 }); // Layer position when drag starts
-  const [showStickers, setShowStickers] = useState(true); // Toggle between stickers/layers view
-  const [zoom, setZoom] = useState(100); // Canvas zoom level
+  const [layers, setLayers] = useState<Layer[]>([]);
+  const [activeLayerId, setActiveLayerId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [initialLayerPos, setInitialLayerPos] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [showStickers, setShowStickers] = useState(true);
+  const [zoom, setZoom] = useState(100);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const stickerFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Refs
-  const canvasRef = useRef<HTMLDivElement>(null); // Reference to canvas div
-  const fileInputRef = useRef<HTMLInputElement>(null); // Reference to background file input
-  const stickerFileInputRef = useRef<HTMLInputElement>(null); // Reference to sticker file input
-
-  // Predefined sticker images
   const stickers = [
     '/1.png', '/2.png', '/3.png', '/4.png', '/5.png', '/6.png',
     '/7.png', '/8.png', '/9.png', '/10.png', '/11.png', '/12.png',
     '/13.png', '/14.png', '/15.png'
   ];
 
-  /**
-   * Creates a new layer on the canvas
-   * @param url - Image URL or data URL
-   * @param x - X position to place the layer
-   * @param y - Y position to place the layer
-   * @param width - Optional width (height will maintain aspect ratio)
-   * @param isBackground - Whether this is a background layer
-   */
   const createLayer = (url: string, x: number, y: number, width?: number, isBackground = false) => {
     const img = new window.Image();
     img.src = url;
@@ -56,10 +45,8 @@ export default function ImageEditor() {
       const aspectRatio = img.width / img.height;
       let newWidth, newHeight;
 
-      // Calculate dimensions differently for background vs stickers
       if (isBackground) {
         if (canvasRef.current) {
-          // Scale background to fit canvas while maintaining aspect ratio
           const canvasWidth = canvasRef.current.clientWidth;
           const canvasHeight = canvasRef.current.clientHeight;
           const imgRatio = img.width / img.height;
@@ -77,14 +64,12 @@ export default function ImageEditor() {
           newHeight = img.height;
         }
       } else {
-        // For stickers, use provided width or default to 300px (max)
         newWidth = width || Math.min(300, img.width);
         newHeight = newWidth / aspectRatio;
       }
 
-      // Create new layer object
       const newLayer: Layer = {
-        id: Math.random().toString(36).substring(2, 9), // Random ID
+        id: Math.random().toString(36).substring(2, 9),
         url: url,
         x: isBackground ? (canvasRef.current ? (canvasRef.current.clientWidth - newWidth) / 2 : 0) : x - newWidth / 2,
         y: isBackground ? (canvasRef.current ? (canvasRef.current.clientHeight - newHeight) / 2 : 0) : y - newHeight / 2,
@@ -96,7 +81,6 @@ export default function ImageEditor() {
         isBackground: isBackground
       };
 
-      // Add to layers array (background goes first)
       if (isBackground) {
         setLayers(prev => [
           newLayer,
@@ -109,7 +93,6 @@ export default function ImageEditor() {
     };
   };
 
-  // File handlers for background and sticker uploads
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const reader = new FileReader();
@@ -135,7 +118,6 @@ export default function ImageEditor() {
     }
   };
 
-  // Add predefined sticker to canvas
   const handleStickerClick = (url: string) => {
     if (canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect();
@@ -143,7 +125,6 @@ export default function ImageEditor() {
     }
   };
 
-  // Layer interaction handlers
   const handleMouseDown = (e: React.MouseEvent, layerId: string, isResizeHandle = false) => {
     e.stopPropagation();
     const layer = layers.find(l => l.id === layerId);
@@ -161,7 +142,6 @@ export default function ImageEditor() {
     setInitialLayerPos({ x: layer.x, y: layer.y, width: layer.width, height: layer.height });
   };
 
-  // Bring layer to front on double click
   const handleDoubleClick = (layerId: string) => {
     const layer = layers.find(l => l.id === layerId);
     if (!layer || layer.isBackground) return;
@@ -179,7 +159,6 @@ export default function ImageEditor() {
     setActiveLayerId(layerId);
   };
 
-  // Handle dragging/resizing of layers
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!activeLayerId || !isDragging && !isResizing) return;
     
@@ -190,7 +169,6 @@ export default function ImageEditor() {
     const dy = e.clientY - dragStart.y;
 
     if (isDragging) {
-      // Update layer position
       setLayers(prev =>
         prev.map(l =>
           l.id === activeLayerId
@@ -199,7 +177,6 @@ export default function ImageEditor() {
         )
       );
     } else if (isResizing) {
-      // Update layer size (maintaining aspect ratio)
       const aspectRatio = layer.naturalWidth / layer.naturalHeight;
       const newWidth = initialLayerPos.width + dx;
       const newHeight = newWidth / aspectRatio;
@@ -220,13 +197,11 @@ export default function ImageEditor() {
     }
   };
 
-  // End drag/resize operations
   const handleMouseUp = () => {
     setIsDragging(false);
     setIsResizing(false);
   };
 
-  // Delete the active layer
   const deleteActiveLayer = () => {
     if (activeLayerId) {
       setLayers(prev => prev.filter(layer => layer.id !== activeLayerId));
@@ -234,7 +209,6 @@ export default function ImageEditor() {
     }
   };
 
-  // Rotate layer by specified degrees
   const rotateLayer = (degrees: number) => {
     if (!activeLayerId) return;
     
@@ -250,7 +224,6 @@ export default function ImageEditor() {
     );
   };
 
-  // Save canvas as PNG image
   const saveImage = async () => {
     if (layers.length === 0) return;
 
@@ -258,7 +231,6 @@ export default function ImageEditor() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas dimensions based on background or default
     const backgroundLayer = layers.find(layer => layer.isBackground);
     
     if (backgroundLayer) {
@@ -273,7 +245,6 @@ export default function ImageEditor() {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // Helper to load images with CORS handling
     const loadImage = (url: string): Promise<HTMLImageElement> => {
       return new Promise((resolve, reject) => {
         const img = new window.Image();
@@ -285,19 +256,16 @@ export default function ImageEditor() {
     };
 
     try {
-      // Draw background first if it exists
       if (backgroundLayer) {
         const bgImg = await loadImage(backgroundLayer.url);
         ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
       }
 
-      // Draw all other layers
       for (const layer of layers.filter(l => !l.isBackground)) {
         const img = await loadImage(layer.url);
         
         ctx.save();
         
-        // Calculate position and size based on background scaling
         let drawX, drawY, drawWidth, drawHeight;
         if (backgroundLayer) {
           const scaleX = canvas.width / backgroundLayer.width;
@@ -313,7 +281,6 @@ export default function ImageEditor() {
           drawHeight = layer.height;
         }
         
-        // Apply rotation and draw image
         ctx.translate(drawX + drawWidth / 2, drawY + drawHeight / 2);
         ctx.rotate((layer.rotate * Math.PI) / 180);
         ctx.drawImage(
@@ -326,7 +293,6 @@ export default function ImageEditor() {
         ctx.restore();
       }
 
-      // Trigger download
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.download = 'meme-creator.png';
@@ -337,7 +303,6 @@ export default function ImageEditor() {
     }
   };
 
-  // Delete layer when Delete key is pressed
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete' && activeLayerId) {
@@ -349,7 +314,6 @@ export default function ImageEditor() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeLayerId]);
 
-  // UI Rendering
   return (
     <>
       <Head>
@@ -359,7 +323,6 @@ export default function ImageEditor() {
       </Head>
 
       <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
-        {/* Background texture */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0">
             <Image
@@ -374,25 +337,88 @@ export default function ImageEditor() {
         </div>
 
         <div className="relative z-10">
-          {/* Header */}
           <section className="flex items-center justify-center py-7 text-center relative overflow-hidden">
             <div className="px-6 max-w-4xl relative z-10">
               <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-white">
-                MEME CREATOR
+                PEDRO EDIT
               </h1>
               <div className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent" />
             </div>
           </section>
 
-          {/* Main editor area */}
+          <section className="max-w-7xl mx-auto px-6 py-8 bg-black/50 rounded-xl border border-white/10 mb-8">
+            <h2 className="text-2xl font-bold mb-4 text-white">How It Works</h2>
+            
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="bg-white/5 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2 text-blue-400">Getting Started</h3>
+                <ol className="list-decimal list-inside space-y-2 text-white/80">
+                  <li>Upload a background image by clicking the <span className="text-white">Background</span> button or the canvas area</li>
+                  <li>Add stickers from the right panel or upload your own</li>
+                  <li>Arrange elements by dragging, resizing, and rotating</li>
+                  <li>Download your creation when finished</li>
+                </ol>
+              </div>
+
+              {/* Editing Features */}
+              <div className="bg-white/5 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2 text-blue-400">Editing Features</h3>
+                <ul className="space-y-2 text-white/80">
+                  <li className="flex items-start">
+                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
+                    <span><strong>Move:</strong> Click and drag any layer</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
+                    <span><strong>Resize:</strong> Drag the blue handle</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
+                    <span><strong>Rotate:</strong> Use the rotate buttons (±15°)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
+                    <span><strong>Layer Order:</strong> Double-click to bring forward</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
+                    <span><strong>Pedro:</strong> Be yourself and use a real photo!</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-purple-500/10 p-4 rounded-lg border border-purple-500/30">
+                <h3 className="text-lg font-semibold mb-2 text-purple-400">🎁 Monthly Contest</h3>
+                <ul className="space-y-3 text-white/90">
+                  <li className="flex items-start">
+                    <span className="bg-purple-500/20 text-purple-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✨</span>
+                    <span>Post your Pedro Picture with <span className="font-mono bg-white/10 px-1.5 py-0.5 rounded">$INJ #Myself @injpedro</span></span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="bg-purple-500/20 text-purple-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">🎟️</span>
+                    <span>Max 2 entries per person (1 ticket per post)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="bg-purple-500/20 text-purple-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">🏆</span>
+                    <span>Prize: <span className="font-bold">1 $INJ + 100,000 $PEDRO</span></span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="bg-purple-500/20 text-purple-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">🔄</span>
+                    <span>New winner every month!</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
           <div className="max-w-7xl mx-auto p-4">
             <div className="flex flex-col md:flex-row gap-4">
-              {/* Left Toolbar */}
               <div className="bg-black/50 p-4 rounded-xl border border-white/10 shadow-lg w-full md:w-20 lg:w-24 transition-all duration-200 backdrop-blur-sm">
                 <div className="flex flex-col items-center space-y-4">
-                  <h2 className="text-xs font-semibold text-white/50 uppercase tracking-wider hidden md:block">Tools</h2>
+                  <div className="text-center mb-2">
+                    <h2 className="text-xs font-semibold text-white/50 uppercase tracking-wider hidden md:block">Tools</h2>
+                  </div>
                   
-                  {/* Background image button */}
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     className="group p-3 rounded-xl flex flex-col items-center justify-center hover:bg-white/10 text-white transition-colors duration-200"
@@ -413,7 +439,6 @@ export default function ImageEditor() {
                     onChange={handleFileChange}
                   />
 
-                  {/* Save button */}
                   <button
                     onClick={saveImage}
                     disabled={layers.length === 0}
@@ -428,7 +453,6 @@ export default function ImageEditor() {
                     <span className="text-xs mt-1 hidden lg:block">Save</span>
                   </button>
 
-                  {/* Delete button */}
                   <button
                     onClick={deleteActiveLayer}
                     disabled={!activeLayerId}
@@ -445,7 +469,6 @@ export default function ImageEditor() {
 
                   <div className="border-t border-white/10 w-full my-2"></div>
 
-                  {/* Rotate buttons */}
                   <button
                     onClick={() => rotateLayer(15)}
                     disabled={!activeLayerId}
@@ -476,7 +499,6 @@ export default function ImageEditor() {
 
                   <div className="border-t border-white/10 w-full my-2"></div>
 
-                  {/* Clear all button */}
                   <button
                     onClick={() => setLayers([])}
                     disabled={layers.length === 0}
@@ -493,15 +515,13 @@ export default function ImageEditor() {
 
                   <div className="flex-1"></div>
 
-                  {/* Footer */}
                   <div className="text-center pt-4 border-t border-white/10 w-full">
-                    <span className="text-xs text-white/40">Meme Creator</span>
+                    <span className="text-xs text-white/40">Picture Creator</span>
                     <span className="block text-xs text-white/40">v1.2</span>
                   </div>
                 </div>
               </div>
 
-              {/* Canvas area */}
               <div className="flex-1 flex flex-col gap-4">
                 <div className="bg-black/50 p-3 rounded-xl border border-white/10 shadow-lg backdrop-blur-sm">
                   <div className="flex justify-between items-center">
@@ -530,7 +550,6 @@ export default function ImageEditor() {
                   </div>
                 </div>
 
-                {/* Main canvas */}
                 <div
                   ref={canvasRef}
                   className={`bg-black/50 p-4 rounded-xl border border-white/10 shadow-lg flex-1 h-[600px] relative overflow-hidden ${layers.length === 0 ? 'cursor-pointer' : ''}`}
@@ -544,7 +563,6 @@ export default function ImageEditor() {
                   }}
                 >
                   {layers.length === 0 ? (
-                    // Empty state
                     <div className="absolute inset-0 border-2 border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center text-white/50 bg-black/20">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -554,7 +572,6 @@ export default function ImageEditor() {
                       <span className="text-lg font-medium text-white hover:text-white/80 transition-colors duration-200">Click to choose</span>
                     </div>
                   ) : (
-                    // Render all layers
                     layers.map((layer) => (
                       <div
                         key={layer.id}
@@ -576,7 +593,6 @@ export default function ImageEditor() {
                           className="w-full h-full object-contain select-none"
                           draggable="false"
                         />
-                        {/* Resize handle and info for active layer */}
                         {activeLayerId === layer.id && !layer.isBackground && (
                           <>
                             <div 
@@ -597,7 +613,6 @@ export default function ImageEditor() {
                 </div>
               </div>
 
-              {/* Right Panel */}
               <div className="bg-black/50 rounded-xl border border-white/10 shadow-lg w-full md:w-80 lg:w-96 h-[700px] overflow-hidden flex flex-col backdrop-blur-sm">
                 <div className="border-b border-white/10">
                   <div className="flex">
@@ -616,7 +631,6 @@ export default function ImageEditor() {
                   </div>
                 </div>
 
-                {/* Sticker upload button */}
                 <div className="p-4 border-b border-white/10">
                   <button
                     onClick={() => stickerFileInputRef.current?.click()}
@@ -636,7 +650,6 @@ export default function ImageEditor() {
                   />
                 </div>
 
-                {/* Stickers/Layers content */}
                 <div className="flex-1 overflow-y-auto p-4">
                   {showStickers ? (
                     <>
