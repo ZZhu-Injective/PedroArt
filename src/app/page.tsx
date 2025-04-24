@@ -15,7 +15,7 @@ export default function AltHomePage() {
   return (
     <>
       <Head>
-        <title>Pedro X Art</title>
+        <title>PEDRO×ART</title>
         <meta name="description" content="Explore Pedro's art in pure black and white" />
       </Head>
 
