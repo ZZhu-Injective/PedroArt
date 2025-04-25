@@ -52,15 +52,17 @@ const Card = ({ imageUrl, link, index }: CardProps) => {
     <motion.div
       ref={cardRef}
       variants={itemVariants}
-      whileHover={{ scale: 1.05, zIndex: 10 }}
+      initial={{ opacity: 0.8 }}
+      whileHover={{ 
+        scale: 1.05, 
+        zIndex: 10,
+        opacity: 1
+      }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      className="group relative overflow-hidden rounded-lg bg-black shadow-lg hover:shadow-xl hover:shadow-white/10 transition-all duration-300"
-      initial="hidden"
-      animate="show"
-      custom={index}
+      className="group relative overflow-hidden rounded-lg bg-black/80 shadow-lg hover:shadow-xl hover:shadow-white/10 transition-all duration-300"
     >
-      <div className="absolute inset-0 border-2 border-white/10 group-hover:border-white/30 transition-all duration-500 z-20 pointer-events-none rounded-lg" />
+      <div className="absolute inset-0 border-2 border-white/20 group-hover:border-white/50 transition-all duration-500 z-20 pointer-events-none rounded-lg" />
       <div className="relative w-full aspect-square overflow-hidden rounded-lg">
         <Image 
           src={`/${imageUrl}`}
@@ -72,7 +74,6 @@ const Card = ({ imageUrl, link, index }: CardProps) => {
         />
       </div>
       
-      {/* Always visible button section */}
       <div className="bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4 rounded-b-lg">
         <div className="flex justify-center">
           <Button 
@@ -148,7 +149,7 @@ export default function Art() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
               >
-                FAN GALLERY
+                MEME GALLERY
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}

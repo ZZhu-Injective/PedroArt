@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useEffect, useState, useRef } from 'react';
 import Button from '@/components/basic_button';
 
-
 interface GalleryImage {
   url: string;
   title: string;
@@ -72,15 +71,17 @@ const Card = ({ imageUrl, title, description, link, index }: CardProps) => {
     <motion.div
       ref={cardRef}
       variants={itemVariants}
-      whileHover={{ scale: 1.05, zIndex: 10 }}
+      initial={{ opacity: 0.8 }}
+      whileHover={{ 
+        scale: 1.05, 
+        zIndex: 10,
+        opacity: 1
+      }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      className="group relative overflow-hidden rounded-lg bg-black shadow-lg hover:shadow-xl hover:shadow-white/10 transition-all duration-300"
-      initial="hidden"
-      animate="show"
-      custom={index}
+      className="group relative overflow-hidden rounded-lg bg-black/80 shadow-lg hover:shadow-xl hover:shadow-white/10 transition-all duration-300"
     >
-      <div className="absolute inset-0 border-2 border-white/10 group-hover:border-white/30 transition-all duration-500 z-20 pointer-events-none rounded-lg" />
+      <div className="absolute inset-0 border-2 border-white/20 group-hover:border-white/50 transition-all duration-500 z-20 pointer-events-none rounded-lg" />
       <div className="relative w-full aspect-square overflow-hidden rounded-lg">
         <Image 
           src={`/${imageUrl}`}
@@ -98,7 +99,8 @@ const Card = ({ imageUrl, title, description, link, index }: CardProps) => {
           <Button
             onClick={() => window.open(link, '_blank')}
             className="text-white bg-transparent hover:bg-white hover:text-black text-sm font-medium px-5 py-2 rounded-full border border-white/50 hover:border-white transition-all duration-300 shadow-md hover:shadow-white/20" 
-            label={"Follow Artist"}/>
+            label={"Follow Artist"}
+          />
         </div>
       </div>
     </motion.div>

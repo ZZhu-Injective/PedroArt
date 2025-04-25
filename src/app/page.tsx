@@ -79,10 +79,12 @@ export default function AltHomePage() {
               className="flex justify-center mt-8"
             >
               <motion.a
-                href="/media-kit"
+                href="https://drive.google.com/drive/folders/1Zq7sQ0iAAvxNz-3woP8amSMNj1b-TJZE"
                 className="inline-block"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <button className="px-8 py-3 border-2 border-gray-400 bg-transparent text-gray-300 text-lg font-mono hover:bg-white hover:text-black hover:border-white transition-all duration-300">
                   MEDIA KIT

@@ -57,9 +57,9 @@ const Navbar = () => {
               height={40}
             />
             <span className="hidden sm:inline flex items-center gap-2">
-              <span className="font-mono">PEDRO×ART</span>
+              <span className="font-mono">PEDRO x ART</span>
             </span>
-            <span className="sm:hidden font-mono">PEDRO ART</span>
+            <span className="sm:hidden font-mono">PEDRO x ART</span>
           </Link>
 
           {!isLargeScreen && (
