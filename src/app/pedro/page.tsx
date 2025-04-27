@@ -10,10 +10,16 @@ const elements = {
     { name: 'None', image: '' },
     { name: 'Normal', image: '/eyes/3D Glass.png' },
     { name: 'Angry', image: '/eyes/Black Glass.png' },
-    { name: 'Happy', image: '/eyes/Gold Glass.png' },
+    { name: 'Blue', image: '/eyes/Blue Glass.png' },
     { name: 'Sleepy', image: '/eyes/Laser Eyes.png' },
     { name: 'Summer', image: '/eyes/Summer Glass.png' },
     { name: 'Yolo', image: '/eyes/Yolo Glass.png' },
+    { name: 'Fawn', image: '/eyes/Fawn Glass.png' },
+    { name: 'Pink', image: '/eyes/Light Pink Glass.png' },
+    { name: 'Mint', image: '/eyes/Mint Glass.png' },
+    { name: 'Silver', image: '/eyes/Silver Glass.png' },
+    { name: 'Sonic', image: '/eyes/Sonic Glass.png' },
+
   ],
   outfit: [
     { name: 'None', image: '' },
