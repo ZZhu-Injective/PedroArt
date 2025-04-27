@@ -254,7 +254,7 @@ export default function NFTCreator() {
                   )}
                 </motion.div>
 
-                <div className="flex justify-center">
+                <div className="flex justify-center items-center p-20">
                   <Button
                     onClick={downloadNFT}
                     disabled={isDownloading}
