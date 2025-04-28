@@ -7,50 +7,97 @@ import Button from '@/components/basic_button';
 
 const elements = {
   eyes: [
-    { name: 'None', image: '' },
-    { name: 'Normal', image: '/eyes/3D Glass.png' },
-    { name: 'Angry', image: '/eyes/Black Glass.png' },
-    { name: 'Blue', image: '/eyes/Blue Glass.png' },
-    { name: 'Sleepy', image: '/eyes/Laser Eyes.png' },
-    { name: 'Summer', image: '/eyes/Summer Glass.png' },
-    { name: 'Yolo', image: '/eyes/Yolo Glass.png' },
-    { name: 'Fawn', image: '/eyes/Fawn Glass.png' },
-    { name: 'Pink', image: '/eyes/Light Pink Glass.png' },
-    { name: 'Mint', image: '/eyes/Mint Glass.png' },
-    { name: 'Silver', image: '/eyes/Silver Glass.png' },
-    { name: 'Sonic', image: '/eyes/Sonic Glass.png' },
-
+    { image: '' },
+    { image: '/eyes/1.png' },
+    { image: '/eyes/2.png' },
+    { image: '/eyes/3.png' },
+    { image: '/eyes/4.png' },
+    { image: '/eyes/5.png' },
+    { image: '/eyes/6.png' },
+    { image: '/eyes/7.png' },
+    { image: '/eyes/8.png' },
+    { image: '/eyes/9.png' },
+    { image: '/eyes/10.png' },
+    { image: '/eyes/11.png' },
+    { image: '/eyes/12.png' },
+    { image: '/eyes/13.png' },
+    { image: '/eyes/14.png' },
+    { image: '/eyes/15.png' },
+    { image: '/eyes/16.png' },
+    { image: '/eyes/17.png' },
+    { image: '/eyes/20.png' },
+    { image: '/eyes/21.png' },
   ],
   outfit: [
-    { name: 'None', image: '' },
-    { name: 'Black Long Sleeve', image: '/outfit/Black Long Sleeve.png' },
-    { name: 'Black Shirt', image: '/outfit/Black Shirt.png' },
-    { name: 'White Shirt', image: '/outfit/White Shirt.png' },
-    { name: 'White Sweater', image: '/outfit/White Sweater.png' },
-    { name: 'Black Suit', image: '/outfit/Black Suit.png' },
-    { name: 'Black Sweater', image: '/outfit/Black Sweater.png' },
-    { name: 'Fawn Long Sleeve', image: '/outfit/Fawn Long Sleeve.png' },
-    { name: 'Labcoat', image: '/outfit/Labcoat.png' },
-    { name: 'Blue Long Sleeve', image: '/outfit/Light Blue Long Sleeve.png' },
-    { name: 'Pink Long Sleeve', image: '/outfit/Pink Long Sleeve.png' },
-    { name: 'Red Suit', image: '/outfit/Red Suit.png' },
-    { name: 'White Long Sleeve', image: '/outfit/White Long Sleeve.png' },
+    { image: '' },
+    { image: '/outfit/1.png' },
+    { image: '/outfit/2.png' },
+    { image: '/outfit/3.png' },
+    { image: '/outfit/4.png' },
+    { image: '/outfit/5.png' },
+    { image: '/outfit/6.png' },
+    { image: '/outfit/7.png' },
+    { image: '/outfit/8.png' },
+    { image: '/outfit/9.png' },
+    { image: '/outfit/10.png' },
+    { image: '/outfit/11.png' },
+    { image: '/outfit/12.png' },
+    { image: '/outfit/13.png' },
+    { image: '/outfit/14.png' },
+    { image: '/outfit/15.png' },
+    { image: '/outfit/16.png' },
+    { image: '/outfit/17.png' },
+    { image: '/outfit/18.png' },
+    { image: '/outfit/19.png' },
   ],
-  mouth: [
-    { name: 'None', image: '' },
-    { name: 'Smoke', image: '/mouth/mouth_1.png' },
-    { name: 'Smoke2', image: '/mouth/mouth_2.png' },
+  hat: [
+    { image: '' },
+    { image: '/hat/1.png' },
+    { image: '/hat/2.png' },
+    { image: '/hat/3.png' },
+    { image: '/hat/4.png' },
+    { image: '/hat/5.png' },
+    { image: '/hat/6.png' },
+    { image: '/hat/7.png' },
+    { image: '/hat/8.png' },
+    { image: '/hat/9.png' },
+    { image: '/hat/10.png' },
+    { image: '/hat/11.png' },
+    { image: '/hat/12.png' },
+    { image: '/hat/13.png' },
+    { image: '/hat/14.png' },
+    { image: '/hat/15.png' },
+    { image: '/hat/16.png' },
+    { image: '/hat/17.png' },
+    { image: '/hat/18.png' },
+    { image: '/hat/19.png' },
   ],
   accessory: [
-    { name: 'None', image: '' },
-    { name: 'Bee', image: '/attribute/Bee.png' },
-    { name: 'Bitcoin', image: '/attribute/Bitcoin.png' },
-    { name: 'Drugs', image: '/attribute/Drugs.png' },
-    { name: 'Duck', image: '/attribute/Duck.png' },
-    { name: 'Silver Sword', image: '/attribute/Silver Sword.png' },
-    { name: 'Glocks', image: '/attribute/Glocks.png' },
-    { name: 'Golden Sword', image: '/attribute/Golden Sword.png' },
-    { name: 'Injective', image: '/attribute/Injective.png' },
+    { image: '' },
+    { image: '/attribute/1.png' },
+    { image: '/attribute/2.png' },
+    { image: '/attribute/3.png' },
+    { image: '/attribute/4.png' },
+    { image: '/attribute/5.png' },
+    { image: '/attribute/6.png' },
+    { image: '/attribute/7.png' },
+    { image: '/attribute/8.png' },
+    { image: '/attribute/9.png' },
+    { image: '/attribute/10.png' },
+    { image: '/attribute/11.png' },
+    { image: '/attribute/12.png' },
+    { image: '/attribute/13.png' },
+    { image: '/attribute/14.png' },
+    { image: '/attribute/15.png' },
+    { image: '/attribute/16.png' },
+    { image: '/attribute/17.png' },
+    { image: '/attribute/18.png' },
+    { image: '/attribute/19.png' },
+  ],
+  mouth: [
+    { image: '' },
+    { image: '/mouth/1.png' },
+    { image: '/mouth/2.png' },
   ],
 };
 
@@ -172,7 +219,7 @@ export default function NFTCreator() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
               >
-                PEDRO CREATOR
+                MAKE PEDRO
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}
@@ -254,7 +301,8 @@ export default function NFTCreator() {
                   )}
                 </motion.div>
 
-                <div className="flex justify-center items-center p-20">
+                {/* Desktop Download Button - Hidden on mobile */}
+                <div className="hidden lg:flex justify-center items-center p-20">
                   <Button
                     onClick={downloadNFT}
                     disabled={isDownloading}
@@ -348,17 +396,12 @@ export default function NFTCreator() {
                             }`}
                           >
                             {item.image ? (
-                              <>
-                                <Image
-                                  src={item.image}
-                                  alt={item.name}
-                                  fill
-                                  className="object-cover"
-                                />
-                                <div className="absolute bottom-0 left-0 right-0 bg-black/70 py-1 text-center text-xs text-white">
-                                  {item.name}
-                                </div>
-                              </>
+                              <Image
+                                src={item.image}
+                                alt=""
+                                fill
+                                className="object-cover"
+                              />
                             ) : (
                               <div className="absolute inset-0 flex items-center justify-center bg-white/5">
                                 <span className="text-xs text-white/70">None</span>
@@ -370,6 +413,15 @@ export default function NFTCreator() {
                     </>
                   )}
                 </motion.div>
+
+                <div className="lg:hidden p-12 text-center">
+                  <Button
+                    onClick={downloadNFT}
+                    disabled={isDownloading}
+                    className="w-full py-3 text-lg font-bold bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                    label={isDownloading ? 'Downloading...' : 'Download Image'}
+                  />
+                </div>
               </div>
             </div>
           </div>

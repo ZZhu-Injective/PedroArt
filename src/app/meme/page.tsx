@@ -149,7 +149,7 @@ export default function Art() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
               >
-                MEME GALLERY
+                MEME JOKER
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}

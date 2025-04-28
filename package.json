@@ -31,6 +31,7 @@
     "discord.js": "^14.16.3",
     "fabric": "^6.6.4",
     "framer-motion": "^11.18.2",
+    "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "jscrypto": "^1.0.3",
     "lucide-react": "^0.501.0",
