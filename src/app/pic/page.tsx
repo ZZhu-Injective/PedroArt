@@ -346,21 +346,11 @@ export default function ImageEditor() {
             </div>
           </section>
 
-          <section className="max-w-7xl mx-auto px-6 py-8 bg-black/50 rounded-xl border border-white/10 mb-8">
+          <section className="max-w-7xl mx-auto px-8 py-6 bg-black/50 rounded-xl border border-white/10 mb-5">
             <h2 className="text-2xl font-bold mb-4 text-white">How It Works</h2>
             
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white/5 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-2 text-blue-400">Getting Started</h3>
-                <ol className="list-decimal list-inside space-y-2 text-white/80">
-                  <li>Upload a background image by clicking the <span className="text-white">Background</span> button or the canvas area</li>
-                  <li>Add stickers from the right panel or upload your own</li>
-                  <li>Arrange elements by dragging, resizing, and rotating</li>
-                  <li>Download your creation when finished</li>
-                </ol>
-              </div>
+            <div className="grid md:grid-cols-2 gap-6">
 
-              {/* Editing Features */}
               <div className="bg-white/5 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-2 text-blue-400">Editing Features</h3>
                 <ul className="space-y-2 text-white/80">
