@@ -1,9 +1,10 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Button from '@/components/basic_button';
+import { toPng } from 'html-to-image';
 
 const elements = {
   eyes: [
@@ -153,11 +154,44 @@ export default function NFTCreator() {
     outfit: 0,
     mouth: 0,
     accessory: 0,
+    hat: 0,
   });
 
   const [activeCategory, setActiveCategory] = useState('background');
   const [isDownloading, setIsDownloading] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
+  useEffect(() => {
+    const preloadImages = async () => {
+      const imageUrls = [
+        '/raccoon/Raccoon.png',
+        ...elements.eyes.filter(e => e.image).map(e => e.image),
+        ...elements.outfit.filter(e => e.image).map(e => e.image),
+        ...elements.hat.filter(e => e.image).map(e => e.image),
+        ...elements.accessory.filter(e => e.image).map(e => e.image),
+        ...elements.mouth.filter(e => e.image).map(e => e.image),
+      ];
+
+      const loadPromises = imageUrls.map(url => {
+        return new Promise((resolve, reject) => {
+          const img = document.createElement('img');
+          img.src = url;
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+      });
+
+      try {
+        await Promise.all(loadPromises);
+        setImagesLoaded(true);
+      } catch (error) {
+        console.error('Error preloading images:', error);
+      }
+    };
+
+    preloadImages();
+  }, []);
 
   const handleElementChange = (category: keyof typeof selectedElements, index: number) => {
     setSelectedElements(prev => ({
@@ -167,9 +201,55 @@ export default function NFTCreator() {
   };
 
   const downloadNFT = async () => {
+    if (!imagesLoaded) {
+      alert('Images are still loading. Please wait a moment and try again.');
+      return;
+    }
+  
     setIsDownloading(true);
     try {
-      alert('NFT downloaded! (This would save the image in a real implementation)');
+      const preview = canvasRef.current;
+      if (!preview) return;
+  
+      // Hide buttons during capture
+      const buttons = document.querySelectorAll('button');
+      buttons.forEach(button => button.style.visibility = 'hidden');
+  
+      // Wait for all images in the preview to load
+      const imgs = preview.querySelectorAll('img');
+      await Promise.all(
+        Array.from(imgs).map(img => {
+          if (img.complete) return Promise.resolve();
+          return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        })
+      );
+  
+      await new Promise(resolve => setTimeout(resolve, 300));
+  
+      const bgValue = backgroundColors[selectedElements.backgroundColor].value;
+      
+      const dataUrl = await toPng(preview, {
+        quality: 1,
+        pixelRatio: 3,
+        skipFonts: true,
+        backgroundColor: bgValue.startsWith('linear-gradient') 
+          ? '#00000000' 
+          : bgValue,    
+      });
+  
+      buttons.forEach(button => button.style.visibility = 'visible');
+  
+      const link = document.createElement('a');
+      link.download = 'pedro-nft.png';
+      link.href = dataUrl;
+      link.click();
+      
+    } catch (error) {
+      console.error('Error generating NFT:', error);
+      alert('Error generating NFT. Please try again.');
     } finally {
       setIsDownloading(false);
     }
@@ -188,10 +268,10 @@ export default function NFTCreator() {
       <Head>
         <title>Pedro PF Creator</title>
         <meta name="description" content="Create your custom Pedro raccoon NFT" />
-        <meta property="og:image" content="/pedro-social-preview.jpg" />
       </Head>
 
-      <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
+      <div className="min-h-screen bg-black text-white overflow-hidden font-mono">
+        {/* Background texture */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0">
             <Image
@@ -206,6 +286,7 @@ export default function NFTCreator() {
         </div>
 
         <div className="relative z-10">
+          {/* Header */}
           <section className="flex items-center justify-center py-7 text-center relative overflow-hidden">
             <motion.div
               initial={{ opacity: 0, y: -50 }}
@@ -213,12 +294,7 @@ export default function NFTCreator() {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="px-6 max-w-4xl relative z-10"
             >
-              <motion.h1
-                className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-white"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.8 }}
-              >
+              <motion.h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-white">
                 MAKE PEDRO
               </motion.h1>
               <motion.div
@@ -233,45 +309,45 @@ export default function NFTCreator() {
           <div className="max-w-7xl mx-auto p-4 md:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* NFT Preview */}
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 order-1 lg:order-none">
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
                   className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/20 shadow-lg"
                   ref={canvasRef}
-                  style={getBackgroundStyle()}
+                  style={{
+                    ...getBackgroundStyle(),
+                    isolation: 'isolate' // Creates new stacking context
+                  }}
                 >
-                  {/* Raccoon Base */}
+                  {/* Base Raccoon */}
                   <div className="absolute inset-0">
-                    <Image
+                    <img
                       src="/raccoon/Raccoon.png"
                       alt="Raccoon"
-                      fill
-                      className="object-contain"
+                      className="w-full h-full object-contain"
                     />
                   </div>
 
-                  {/* Eyes - Only show if not "None" */}
+                  {/* Eyes */}
                   {selectedElements.eyes > 0 && (
                     <div className="absolute inset-0">
-                      <Image
+                      <img
                         src={elements.eyes[selectedElements.eyes].image}
                         alt="Eyes"
-                        fill
-                        className="object-contain"
+                        className="w-full h-full object-contain"
                       />
                     </div>
                   )}
 
-                  {/* Outfit - Only show if not "None" */}
+                  {/* Outfit */}
                   {selectedElements.outfit > 0 && (
                     <div className="absolute inset-0">
-                      <Image
+                      <img
                         src={elements.outfit[selectedElements.outfit].image}
                         alt="Outfit"
-                        fill
-                        className="object-contain"
+                        className="w-full h-full object-contain"
                       />
                     </div>
                   )}
@@ -279,33 +355,42 @@ export default function NFTCreator() {
                   {/* Mouth */}
                   {selectedElements.mouth > 0 && (
                     <div className="absolute inset-0">
-                      <Image
+                      <img
                         src={elements.mouth[selectedElements.mouth].image}
                         alt="Mouth"
-                        fill
-                        className="object-contain"
+                        className="w-full h-full object-contain"
                       />
                     </div>
                   )}
 
-                  {/* Accessory - Only show if not "None" */}
+                  {/* Hat */}
+                  {selectedElements.hat > 0 && (
+                    <div className="absolute inset-0">
+                      <img
+                        src={elements.hat[selectedElements.hat].image}
+                        alt="Hat"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+
+                  {/* Accessory */}
                   {selectedElements.accessory > 0 && (
                     <div className="absolute inset-0">
-                      <Image
+                      <img
                         src={elements.accessory[selectedElements.accessory].image}
                         alt="Accessory"
-                        fill
-                        className="object-contain"
+                        className="w-full h-full object-contain"
                       />
                     </div>
                   )}
                 </motion.div>
 
-                {/* Desktop Download Button - Hidden on mobile */}
+                {/* Download Button - Desktop */}
                 <div className="hidden lg:flex justify-center items-center p-20">
                   <Button
                     onClick={downloadNFT}
-                    disabled={isDownloading}
+                    disabled={isDownloading || !imagesLoaded}
                     className="w-full md:w-1/2 py-3 text-lg font-bold bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
                     label={isDownloading ? 'Downloading...' : 'Download Image'}
                   />
@@ -313,7 +398,8 @@ export default function NFTCreator() {
               </div>
 
               {/* Customization Panel */}
-              <div className="space-y-6">
+              <div className="space-y-6 order-2">
+                {/* Category Selector */}
                 <div className="flex overflow-x-auto pb-2 gap-2">
                   <button
                     onClick={() => setActiveCategory('background')}
@@ -396,11 +482,10 @@ export default function NFTCreator() {
                             }`}
                           >
                             {item.image ? (
-                              <Image
+                              <img
                                 src={item.image}
                                 alt=""
-                                fill
-                                className="object-cover"
+                                className="w-full h-full object-cover"
                               />
                             ) : (
                               <div className="absolute inset-0 flex items-center justify-center bg-white/5">
@@ -414,10 +499,11 @@ export default function NFTCreator() {
                   )}
                 </motion.div>
 
-                <div className="lg:hidden p-12 text-center">
+                {/* Download Button - Mobile */}
+                <div className="lg:hidden flex justify-center items-center p-10">
                   <Button
                     onClick={downloadNFT}
-                    disabled={isDownloading}
+                    disabled={isDownloading || !imagesLoaded}
                     className="w-full py-3 text-lg font-bold bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
                     label={isDownloading ? 'Downloading...' : 'Download Image'}
                   />
