@@ -209,6 +209,26 @@ export default function ImageEditor() {
     }
   };
 
+  const handleTouchStart = (e: React.TouchEvent, layerId: string, isResizeHandle = false) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    handleMouseDown({
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      stopPropagation: () => e.stopPropagation(),
+    } as unknown as React.MouseEvent, layerId, isResizeHandle);
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    handleMouseMove({
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      preventDefault: () => e.preventDefault(),
+    } as unknown as React.MouseEvent);
+  };
+
   const rotateLayer = (degrees: number) => {
     if (!activeLayerId) return;
     
@@ -337,6 +357,7 @@ export default function ImageEditor() {
         </div>
 
         <div className="relative z-10">
+          
           <section className="flex items-center justify-center py-7 text-center relative overflow-hidden">
             <div className="px-6 max-w-4xl relative z-10">
               <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-white">
@@ -346,60 +367,63 @@ export default function ImageEditor() {
             </div>
           </section>
 
-          <section className="max-w-7xl mx-auto px-8 py-6 bg-black/50 rounded-xl border border-white/10 mb-5">
-            <h2 className="text-2xl font-bold mb-4 text-white">How It Works</h2>
-            
-            <div className="grid md:grid-cols-2 gap-6">
+          <div className='p-4'>
+            <section className="max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:py-6 bg-black/50 rounded-xl border border-white/10 mb-4 sm:mb-5">
+              <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-white">How It Works</h2>
+              
+              <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
 
-              <div className="bg-white/5 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-2 text-blue-400">Editing Features</h3>
-                <ul className="space-y-2 text-white/80">
-                  <li className="flex items-start">
-                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span><strong>Move:</strong> Click and drag any layer</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span><strong>Resize:</strong> Drag the blue handle</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span><strong>Rotate:</strong> Use the rotate buttons (±15°)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span><strong>Layer Order:</strong> Double-click to bring forward</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span><strong>Pedro:</strong> Be yourself and use a real photo!</span>
-                  </li>
-                </ul>
-              </div>
+                <div className="bg-white/5 p-3 sm:p-4 rounded-lg">
+                  <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 text-blue-400">Editing Features</h3>
+                  <ul className="space-y-1 sm:space-y-2 text-sm sm:text-base text-white/80">
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span><strong>Move:</strong> Click and drag any layer</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span><strong>Resize:</strong> Drag the blue handle</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span><strong>Rotate:</strong> Use the rotate buttons (±15°)</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span><strong>Layer Order:</strong> Double-click to bring forward</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span><strong>Pedro:</strong> Be yourself and use a real photo!</span>
+                    </li>
+                  </ul>
+                </div>
 
-              <div className="bg-purple-500/10 p-4 rounded-lg border border-purple-500/30">
-                <h3 className="text-lg font-semibold mb-2 text-purple-400">🎁 Monthly Contest</h3>
-                <ul className="space-y-3 text-white/90">
-                  <li className="flex items-start">
-                    <span className="bg-purple-500/20 text-purple-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✨</span>
-                    <span>Post your Pedro Picture with <span className="font-mono bg-white/10 px-1.5 py-0.5 rounded">$INJ #Myself @injpedro</span></span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="bg-purple-500/20 text-purple-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">🎟️</span>
-                    <span>Max 2 entries per person (1 ticket per post)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="bg-purple-500/20 text-purple-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">🏆</span>
-                    <span>Prize: <span className="font-bold">1 $INJ + 100,000 $PEDRO</span></span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="bg-purple-500/20 text-purple-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">🔄</span>
-                    <span>New winner every month!</span>
-                  </li>
-                </ul>
+                <div className="bg-purple-500/10 p-3 sm:p-4 rounded-lg border border-purple-500/30">
+                  <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 text-purple-400">🎁 Monthly Contest</h3>
+                  <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-white/90">
+                    <li className="flex items-start">
+                      <span className="bg-purple-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✨</span>
+                      <span>Post with <span className="font-mono bg-white/10 px-1 py-0.5 sm:px-1.5 rounded text-xs sm:text-sm">$INJ #Myself @injpedro</span></span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-purple-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🎟️</span>
+                      <span>Max 2 entries per person</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-purple-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🏆</span>
+                      <span>Prize: <span className="font-bold">1 $INJ + 100,000 $PEDRO</span></span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-purple-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🔄</span>
+                      <span>New winner every month!</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
+          
 
           <div className="max-w-7xl mx-auto p-4">
             <div className="flex flex-col md:flex-row gap-4">
@@ -542,10 +566,15 @@ export default function ImageEditor() {
 
                 <div
                   ref={canvasRef}
-                  className={`bg-black/50 p-4 rounded-xl border border-white/10 shadow-lg flex-1 h-[600px] relative overflow-hidden ${layers.length === 0 ? 'cursor-pointer' : ''}`}
+                  className={`bg-black/50 p-1 sm:p-2 rounded-xl border border-white/10 shadow-lg flex-1 min-h-[500px] h-[40vh] relative overflow-hidden touch-none ${
+                    layers.length === 0 ? 'cursor-pointer' : ''
+                  }`}
                   onClick={() => layers.length === 0 && fileInputRef.current?.click()}
+                  onTouchMove={handleTouchMove}
                   onMouseMove={handleMouseMove}
+                  onTouchEnd={handleMouseUp}
                   onMouseUp={handleMouseUp}
+                  onTouchCancel={handleMouseUp}
                   onMouseLeave={handleMouseUp}
                   style={{
                     transform: `scale(${zoom/100})`,
@@ -553,19 +582,24 @@ export default function ImageEditor() {
                   }}
                 >
                   {layers.length === 0 ? (
-                    <div className="absolute inset-0 border-2 border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center text-white/50 bg-black/20">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="absolute inset-0 border-2 border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center text-white/50 bg-black/20 p-2 text-center">
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-8 w-8 sm:h-10 sm:w-10 mb-2 text-white/40" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <span className="text-xl font-medium mb-2">Upload a background image</span>
-                      <span className="text-sm mb-4">or</span>
-                      <span className="text-lg font-medium text-white hover:text-white/80 transition-colors duration-200">Click to choose</span>
+                      <span className="text-sm sm:text-base font-medium">Upload background</span>
+                      <span className="text-xs mt-1 opacity-70">or tap to select</span>
                     </div>
                   ) : (
                     layers.map((layer) => (
                       <div
                         key={layer.id}
-                        className={`absolute ${activeLayerId === layer.id && !layer.isBackground ? 'ring-2 ring-blue-500 shadow-lg' : ''} transition-all duration-100`}
+                        className={`absolute ${activeLayerId === layer.id && !layer.isBackground ? 'ring-1 ring-blue-500' : ''}`}
                         style={{
                           left: `${layer.x}px`,
                           top: `${layer.y}px`,
@@ -573,29 +607,29 @@ export default function ImageEditor() {
                           height: `${layer.height}px`,
                           transform: `rotate(${layer.rotate}deg)`,
                           cursor: layer.isBackground ? 'default' : 'move',
+                          touchAction: 'none',
                         }}
+                        onTouchStart={layer.isBackground ? undefined : (e) => handleTouchStart(e, layer.id)}
                         onMouseDown={layer.isBackground ? undefined : (e) => handleMouseDown(e, layer.id)}
-                        onDoubleClick={layer.isBackground ? undefined : () => handleDoubleClick(layer.id)}
                       >
                         <img
                           src={layer.url}
                           alt={layer.isBackground ? "Background" : "Layer"}
-                          className="w-full h-full object-contain select-none"
+                          className="w-full h-full object-contain select-none pointer-events-none"
                           draggable="false"
                         />
                         {activeLayerId === layer.id && !layer.isBackground && (
-                          <>
-                            <div 
-                              className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 cursor-nwse-resize rounded-full border-2 border-white"
-                              onMouseDown={(e) => {
-                                e.stopPropagation();
-                                handleMouseDown(e, layer.id, true);
-                              }}
-                            />
-                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                              {Math.round(layer.width)} × {Math.round(layer.height)} • {layer.rotate}°
-                            </div>
-                          </>
+                          <div 
+                            className="absolute bottom-0 right-0 w-5 h-5 bg-blue-500 cursor-nwse-resize rounded-full border border-white"
+                            onTouchStart={(e) => {
+                              e.stopPropagation();
+                              handleTouchStart(e, layer.id, true);
+                            }}
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              handleMouseDown(e, layer.id, true);
+                            }}
+                          />
                         )}
                       </div>
                     ))
