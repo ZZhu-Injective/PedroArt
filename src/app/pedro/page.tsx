@@ -211,11 +211,9 @@ export default function NFTCreator() {
       const preview = canvasRef.current;
       if (!preview) return;
   
-      // Hide buttons during capture
       const buttons = document.querySelectorAll('button');
       buttons.forEach(button => button.style.visibility = 'hidden');
   
-      // Wait for all images in the preview to load
       const imgs = preview.querySelectorAll('img');
       await Promise.all(
         Array.from(imgs).map(img => {
@@ -271,7 +269,6 @@ export default function NFTCreator() {
       </Head>
 
       <div className="min-h-screen bg-black text-white overflow-hidden font-mono">
-        {/* Background texture */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0">
             <Image
@@ -286,7 +283,6 @@ export default function NFTCreator() {
         </div>
 
         <div className="relative z-10">
-          {/* Header */}
           <section className="flex items-center justify-center py-7 text-center relative overflow-hidden">
             <motion.div
               initial={{ opacity: 0, y: -50 }}
@@ -308,7 +304,6 @@ export default function NFTCreator() {
 
           <div className="max-w-7xl mx-auto p-4 md:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* NFT Preview */}
               <div className="flex flex-col gap-4 order-1 lg:order-none">
                 <motion.div 
                   initial={{ opacity: 0 }}
@@ -318,10 +313,9 @@ export default function NFTCreator() {
                   ref={canvasRef}
                   style={{
                     ...getBackgroundStyle(),
-                    isolation: 'isolate' // Creates new stacking context
+                    isolation: 'isolate' 
                   }}
                 >
-                  {/* Base Raccoon */}
                   <div className="absolute inset-0">
                     <img
                       src="/raccoon/Raccoon.png"
@@ -330,7 +324,6 @@ export default function NFTCreator() {
                     />
                   </div>
 
-                  {/* Eyes */}
                   {selectedElements.eyes > 0 && (
                     <div className="absolute inset-0">
                       <img
@@ -341,7 +334,6 @@ export default function NFTCreator() {
                     </div>
                   )}
 
-                  {/* Outfit */}
                   {selectedElements.outfit > 0 && (
                     <div className="absolute inset-0">
                       <img
@@ -352,7 +344,6 @@ export default function NFTCreator() {
                     </div>
                   )}
 
-                  {/* Mouth */}
                   {selectedElements.mouth > 0 && (
                     <div className="absolute inset-0">
                       <img
@@ -363,7 +354,6 @@ export default function NFTCreator() {
                     </div>
                   )}
 
-                  {/* Hat */}
                   {selectedElements.hat > 0 && (
                     <div className="absolute inset-0">
                       <img
@@ -374,7 +364,6 @@ export default function NFTCreator() {
                     </div>
                   )}
 
-                  {/* Accessory */}
                   {selectedElements.accessory > 0 && (
                     <div className="absolute inset-0">
                       <img
@@ -386,7 +375,6 @@ export default function NFTCreator() {
                   )}
                 </motion.div>
 
-                {/* Download Button - Desktop */}
                 <div className="hidden lg:flex justify-center items-center p-20">
                   <Button
                     onClick={downloadNFT}
@@ -397,9 +385,7 @@ export default function NFTCreator() {
                 </div>
               </div>
 
-              {/* Customization Panel */}
               <div className="space-y-6 order-2">
-                {/* Category Selector */}
                 <div className="flex overflow-x-auto pb-2 gap-2">
                   <button
                     onClick={() => setActiveCategory('background')}
@@ -426,7 +412,6 @@ export default function NFTCreator() {
                   ))}
                 </div>
 
-                {/* Active Panel */}
                 <motion.div
                   key={activeCategory}
                   initial={{ opacity: 0, y: 10 }}
@@ -499,7 +484,6 @@ export default function NFTCreator() {
                   )}
                 </motion.div>
 
-                {/* Download Button - Mobile */}
                 <div className="lg:hidden flex justify-center items-center p-10">
                   <Button
                     onClick={downloadNFT}

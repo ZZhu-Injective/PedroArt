@@ -78,7 +78,7 @@ export default function Art() {
       images: [],
       zIndex: layers.length,
       enabled: true,
-      layerRarity: 100 // Default to always enabled
+      layerRarity: 100 
     };
     
     setLayers([...layers, newLayer]);
@@ -103,7 +103,6 @@ export default function Art() {
       name: file.name.split('.')[0]
     }));
 
-    // Adjust existing rarities to maintain total 100%
     const totalImages = updatedLayers[layerIndex].images.length + newImages.length;
     const equalRarity = Math.floor(100 / totalImages);
     
@@ -126,12 +125,10 @@ export default function Art() {
     const numValue = parseInt(value) || 0;
     updatedLayers[layerIndex].images[imageIndex].rarity = Math.min(100, Math.max(0, numValue));
     
-    // Normalize other rarities in this layer to maintain total 100%
     const layer = updatedLayers[layerIndex];
     const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
     
     if (totalRarity > 100) {
-      // If we exceeded 100%, scale down other rarities proportionally
       const excess = totalRarity - 100;
       const otherImages = layer.images.filter((_, i) => i !== imageIndex);
       const totalOtherRarity = otherImages.reduce((sum, img) => sum + img.rarity, 0);
@@ -144,7 +141,6 @@ export default function Art() {
           }
         });
       } else {
-        // If all rarity is on this one image, cap it at 100
         layer.images[imageIndex].rarity = 100;
       }
     }
@@ -156,7 +152,6 @@ export default function Art() {
     const updatedLayers = [...layers];
     updatedLayers[layerIndex].images.splice(imageIndex, 1);
     
-    // If there are remaining images, redistribute rarities
     if (updatedLayers[layerIndex].images.length > 0) {
       const equalRarity = Math.floor(100 / updatedLayers[layerIndex].images.length);
       updatedLayers[layerIndex].images.forEach(img => {
@@ -205,11 +200,10 @@ export default function Art() {
       
       layers.forEach((layer, layerIdx) => {
         if (!usedLayers[layerIdx] || layer.images.length === 0) {
-          selectedImages.push(-1); // -1 indicates layer not used
+          selectedImages.push(-1);
           return;
         }
         
-        // Calculate total rarity for this layer's images
         const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
         let random = Math.random() * totalRarity;
         let cumulative = 0;
@@ -288,10 +282,8 @@ export default function Art() {
     const zip = new JSZip();
     const imgFolder = zip.folder("nfts");
     
-    // Create metadata content
     let metadataContent = 'image name;';
     
-    // Add layer names to header
     metadataContent += layers.map(layer => layer.name).join(';') + '\n';
     
     const canvas = document.createElement('canvas');
@@ -317,7 +309,6 @@ export default function Art() {
         }))
         .sort((a, b) => a.zIndex - b.zIndex);
       
-      // Prepare metadata row for this image
       let metadataRow = `${fileName};`;
       
       for (let layerIdx = 0; layerIdx < layers.length; layerIdx++) {
@@ -346,12 +337,10 @@ export default function Art() {
           img.src = layers[layerIdx].images[imgIdx].preview;
         });
         
-        // Add the image name for this layer to the metadata
         metadataRow += layers[layerIdx].images[imgIdx]?.name || 'None';
         metadataRow += ';';
       }
       
-      // Remove trailing semicolon and add newline
       metadataRow = metadataRow.slice(0, -1) + '\n';
       metadataContent += metadataRow;
       
@@ -366,7 +355,6 @@ export default function Art() {
       }
     }
 
-    // Add metadata file to ZIP
     zip.file("metadata.csv", metadataContent);
     
     const content = await zip.generateAsync({ type: 'blob' });
