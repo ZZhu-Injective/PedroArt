@@ -18,12 +18,15 @@ type Layer = {
   name: string;
   images: ImageLayer[];
   zIndex: number;
+  enabled: boolean;
+  layerRarity: number;
 };
 
 type Preview = {
   images: string[];
   layers: number[];
   id: string;
+  usedLayers: boolean[];
 };
 
 export default function Art() {
@@ -73,7 +76,9 @@ export default function Art() {
     const newLayer: Layer = {
       name: newLayerName.trim(),
       images: [],
-      zIndex: layers.length
+      zIndex: layers.length,
+      enabled: true,
+      layerRarity: 100 // Default to always enabled
     };
     
     setLayers([...layers, newLayer]);
@@ -94,11 +99,25 @@ export default function Art() {
     const newImages = files.map(file => ({
       file,
       preview: URL.createObjectURL(file),
-      rarity: 10,
+      rarity: Math.floor(100 / (updatedLayers[layerIndex].images.length + files.length + 1)),
       name: file.name.split('.')[0]
     }));
 
-    updatedLayers[layerIndex].images = [...updatedLayers[layerIndex].images, ...newImages];
+    // Adjust existing rarities to maintain total 100%
+    const totalImages = updatedLayers[layerIndex].images.length + newImages.length;
+    const equalRarity = Math.floor(100 / totalImages);
+    
+    updatedLayers[layerIndex].images = [
+      ...updatedLayers[layerIndex].images.map(img => ({
+        ...img,
+        rarity: equalRarity
+      })),
+      ...newImages.map(img => ({
+        ...img,
+        rarity: equalRarity
+      }))
+    ];
+    
     setLayers(updatedLayers);
   }, [layers]);
 
@@ -106,12 +125,58 @@ export default function Art() {
     const updatedLayers = [...layers];
     const numValue = parseInt(value) || 0;
     updatedLayers[layerIndex].images[imageIndex].rarity = Math.min(100, Math.max(0, numValue));
+    
+    // Normalize other rarities in this layer to maintain total 100%
+    const layer = updatedLayers[layerIndex];
+    const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
+    
+    if (totalRarity > 100) {
+      // If we exceeded 100%, scale down other rarities proportionally
+      const excess = totalRarity - 100;
+      const otherImages = layer.images.filter((_, i) => i !== imageIndex);
+      const totalOtherRarity = otherImages.reduce((sum, img) => sum + img.rarity, 0);
+      
+      if (totalOtherRarity > 0) {
+        const scaleFactor = (totalOtherRarity - excess) / totalOtherRarity;
+        layer.images.forEach((img, i) => {
+          if (i !== imageIndex) {
+            img.rarity = Math.max(0, Math.floor(img.rarity * scaleFactor));
+          }
+        });
+      } else {
+        // If all rarity is on this one image, cap it at 100
+        layer.images[imageIndex].rarity = 100;
+      }
+    }
+    
     setLayers(updatedLayers);
   }, [layers]);
 
   const removeImage = useCallback((layerIndex: number, imageIndex: number) => {
     const updatedLayers = [...layers];
     updatedLayers[layerIndex].images.splice(imageIndex, 1);
+    
+    // If there are remaining images, redistribute rarities
+    if (updatedLayers[layerIndex].images.length > 0) {
+      const equalRarity = Math.floor(100 / updatedLayers[layerIndex].images.length);
+      updatedLayers[layerIndex].images.forEach(img => {
+        img.rarity = equalRarity;
+      });
+    }
+    
+    setLayers(updatedLayers);
+  }, [layers]);
+
+  const updateLayerRarity = useCallback((layerIndex: number, value: string) => {
+    const updatedLayers = [...layers];
+    const numValue = parseInt(value) || 0;
+    updatedLayers[layerIndex].layerRarity = Math.min(100, Math.max(0, numValue));
+    setLayers(updatedLayers);
+  }, [layers]);
+
+  const toggleLayerEnabled = useCallback((layerIndex: number) => {
+    const updatedLayers = [...layers];
+    updatedLayers[layerIndex].enabled = !updatedLayers[layerIndex].enabled;
     setLayers(updatedLayers);
   }, [layers]);
 
@@ -127,21 +192,49 @@ export default function Art() {
       return;
     }
 
-    const shuffled = [...allCombinations].sort(() => 0.5 - Math.random());
-    const selectedCombinations = shuffled.slice(0, batchSize);
-
-    const newPreviews = selectedCombinations.map(comb => {
-      const selectedImages = comb.map((imgIdx, layerIdx) => 
-        layers[layerIdx].images[imgIdx].preview
-      );
+    const newPreviews: Preview[] = [];
+    
+    for (let i = 0; i < batchSize; i++) {
+      const usedLayers = layers.map(layer => {
+        if (!layer.enabled) return false;
+        return Math.random() * 100 < layer.layerRarity;
+      });
       
-      return {
-        images: selectedImages,
-        layers: comb.map((_, i) => i),
-        id: Date.now() + Math.random().toString(36).substr(2, 9)
-      };
-    });
-
+      const selectedImages: number[] = [];
+      const selectedImageUrls: string[] = [];
+      
+      layers.forEach((layer, layerIdx) => {
+        if (!usedLayers[layerIdx] || layer.images.length === 0) {
+          selectedImages.push(-1); // -1 indicates layer not used
+          return;
+        }
+        
+        // Calculate total rarity for this layer's images
+        const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
+        let random = Math.random() * totalRarity;
+        let cumulative = 0;
+        let selectedIndex = 0;
+        
+        for (let j = 0; j < layer.images.length; j++) {
+          cumulative += layer.images[j].rarity;
+          if (random <= cumulative) {
+            selectedIndex = j;
+            break;
+          }
+        }
+        
+        selectedImages.push(selectedIndex);
+        selectedImageUrls.push(layer.images[selectedIndex].preview);
+      });
+      
+      newPreviews.push({
+        images: selectedImageUrls.filter(url => url !== undefined),
+        layers: selectedImages.filter(idx => idx !== -1),
+        id: Date.now() + Math.random().toString(36).substr(2, 9),
+        usedLayers
+      });
+    }
+    
     setPreviews(newPreviews);
     setActiveTab('preview');
   }, [batchSize, layers, calculateAllCombinations]);
@@ -156,17 +249,17 @@ export default function Art() {
     if (!ctx) return;
     
     const layersToDraw = [...preview.layers]
-      .map((layerIdx, i) => ({ 
-        layerIdx, 
-        zIndex: layers[layerIdx]?.zIndex || 0, 
-        imgIndex: i 
+      .map((imgIdx, i) => ({ 
+        layerIdx: i,
+        imgIdx,
+        zIndex: layers[i]?.zIndex || 0
       }))
       .sort((a, b) => a.zIndex - b.zIndex);
     
     let imagesLoaded = 0;
     const totalImages = preview.images.length;
     
-    layersToDraw.forEach(({ imgIndex }) => {
+    layersToDraw.forEach(({ imgIdx }) => {
       const img = new window.Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
@@ -184,7 +277,7 @@ export default function Art() {
         console.error('Failed to load image for download');
         imagesLoaded++;
       };
-      img.src = preview.images[imgIndex];
+      img.src = preview.images[imgIdx];
     });
   }, [layers]);
 
@@ -194,6 +287,12 @@ export default function Art() {
     setIsGeneratingZip(true);
     const zip = new JSZip();
     const imgFolder = zip.folder("nfts");
+    
+    // Create metadata content
+    let metadataContent = 'image name;';
+    
+    // Add layer names to header
+    metadataContent += layers.map(layer => layer.name).join(';') + '\n';
     
     const canvas = document.createElement('canvas');
     canvas.width = 1000;
@@ -206,18 +305,33 @@ export default function Art() {
 
     for (let i = 0; i < previews.length; i++) {
       const preview = previews[i];
+      const fileName = `nft-${i + 1}.png`;
       
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      const layersToDraw = [...preview.layers]
-        .map((layerIdx, imgIdx) => ({ 
-          layerIdx, 
-          zIndex: layers[layerIdx]?.zIndex || 0, 
-          imgIndex: imgIdx 
+      const layersToDraw = preview.layers
+        .map((imgIdx, layerIdx) => ({ 
+          layerIdx,
+          imgIdx,
+          zIndex: layers[layerIdx]?.zIndex || 0
         }))
         .sort((a, b) => a.zIndex - b.zIndex);
       
-      for (const { imgIndex } of layersToDraw) {
+      // Prepare metadata row for this image
+      let metadataRow = `${fileName};`;
+      
+      for (let layerIdx = 0; layerIdx < layers.length; layerIdx++) {
+        if (!preview.usedLayers[layerIdx]) {
+          metadataRow += 'None;';
+          continue;
+        }
+        
+        const imgIdx = preview.layers[layerIdx];
+        if (imgIdx === -1 || !layers[layerIdx].images[imgIdx]) {
+          metadataRow += 'None;';
+          continue;
+        }
+        
         const img = new window.Image();
         img.crossOrigin = 'anonymous';
         await new Promise<void>((resolve) => {
@@ -229,9 +343,17 @@ export default function Art() {
             console.error('Failed to load image for ZIP');
             resolve();
           };
-          img.src = preview.images[imgIndex];
+          img.src = layers[layerIdx].images[imgIdx].preview;
         });
+        
+        // Add the image name for this layer to the metadata
+        metadataRow += layers[layerIdx].images[imgIdx]?.name || 'None';
+        metadataRow += ';';
       }
+      
+      // Remove trailing semicolon and add newline
+      metadataRow = metadataRow.slice(0, -1) + '\n';
+      metadataContent += metadataRow;
       
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((blob) => {
@@ -240,10 +362,13 @@ export default function Art() {
       });
       
       if (blob) {
-        imgFolder?.file(`nft-${i + 1}.png`, blob);
+        imgFolder?.file(fileName, blob);
       }
     }
 
+    // Add metadata file to ZIP
+    zip.file("metadata.csv", metadataContent);
+    
     const content = await zip.generateAsync({ type: 'blob' });
     saveAs(content, 'nft-collection.zip');
     setIsGeneratingZip(false);
@@ -311,7 +436,7 @@ export default function Art() {
                       <span className="font-medium">Upload Images</span> - Add variations for each layer
                     </li>
                     <li className="mb-2">
-                      <span className="font-medium">Set Rarity</span> - Adjust percentage chance for each image
+                      <span className="font-medium">Set Rarity</span> - Adjust percentage chance for each image + layer
                     </li>
                     <li>
                       <span className="font-medium">Generate NFTs</span> - Create random combinations
@@ -324,15 +449,19 @@ export default function Art() {
                   <ul className="space-y-3 text-white/80">
                     <li className="flex items-start">
                       <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                      <span><strong>Unique Combinations</strong> - No duplicates generated</span>
+                      <span><strong>Layer Rarity</strong> - Control how often each layer appears</span>
                     </li>
                     <li className="flex items-start">
                       <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                      <span><strong>ZIP Download</strong> - Download all NFTs in one click</span>
+                      <span><strong>Image Rarity</strong> - Set individual image probabilities</span>
                     </li>
                     <li className="flex items-start">
                       <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                      <span><strong>High Quality</strong> - 1000x1000 PNG exports</span>
+                      <span><strong>Complete Metadata</strong> - Includes "None" for unused layers</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
+                      <span><strong>Free</strong> - For now there is no cost till 10-05-2025!</span>
                     </li>
                   </ul>
                 </div>
@@ -386,23 +515,45 @@ export default function Art() {
                     {layers.map((layer, layerIndex) => (
                       <div key={layerIndex} className="bg-gray-800 bg-opacity-50 p-5 rounded-lg border border-gray-700">
                         <div className="flex justify-between items-center mb-4">
-                          <h3 className="text-xl font-semibold">{layer.name}</h3>
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="checkbox"
+                              checked={layer.enabled}
+                              onChange={() => toggleLayerEnabled(layerIndex)}
+                              className="h-5 w-5 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500"
+                            />
+                            <h3 className="text-xl font-semibold">{layer.name}</h3>
+                          </div>
                           <div className="flex space-x-2">
-                            <div className="flex items-center">
-                              <span className="text-xs mr-1 text-gray-400">Z:</span>
-                              <input
-                                type="number"
-                                min="0"
-                                max="1000"
-                                value={layer.zIndex}
-                                onChange={(e) => {
-                                  const updatedLayers = [...layers];
-                                  updatedLayers[layerIndex].zIndex = parseInt(e.target.value) || 0;
-                                  setLayers(updatedLayers);
-                                }}
-                                className="w-16 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-center text-sm"
-                                title="Z-Index (stacking order)"
-                              />
+                            <div className="flex items-center space-x-2">
+                              <div className="flex items-center">
+                                <span className="text-xs mr-1 text-gray-400">Z:</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="1000"
+                                  value={layer.zIndex}
+                                  onChange={(e) => {
+                                    const updatedLayers = [...layers];
+                                    updatedLayers[layerIndex].zIndex = parseInt(e.target.value) || 0;
+                                    setLayers(updatedLayers);
+                                  }}
+                                  className="w-16 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-center text-sm"
+                                  title="Z-Index (stacking order)"
+                                />
+                              </div>
+                              <div className="flex items-center">
+                                <span className="text-xs mr-1 text-gray-400">%:</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={layer.layerRarity}
+                                  onChange={(e) => updateLayerRarity(layerIndex, e.target.value)}
+                                  className="w-16 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-center text-sm"
+                                  title="Layer appearance chance"
+                                />
+                              </div>
                             </div>
                             <button
                               onClick={() => removeLayer(layerIndex)}
@@ -437,7 +588,7 @@ export default function Art() {
                           </button>
                           {layer.images.length > 0 && (
                             <span className="ml-3 text-sm text-gray-400">
-                              {layer.images.length} image{layer.images.length !== 1 ? 's' : ''}
+                              {layer.images.length} image{layer.images.length !== 1 ? 's' : ''} (Total rarity: {layer.images.reduce((sum, img) => sum + img.rarity, 0)}%)
                             </span>
                           )}
                         </div>
@@ -533,6 +684,10 @@ export default function Art() {
                           <span className="text-gray-400">Possible Unique Combinations:</span>
                           <span>{totalCombinations.toLocaleString()}</span>
                         </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Enabled Layers:</span>
+                          <span>{layers.filter(l => l.enabled).length}/{layers.length}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -552,7 +707,7 @@ export default function Art() {
                           disabled={previews.length >= totalCombinations}
                           className={`px-4 py-2 rounded transition-colors text-sm ${previews.length >= totalCombinations ? 'bg-gray-700 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
                         >
-                          Generate Random
+                          Generate More
                         </button>
                         <button
                           onClick={downloadAllAsZip}
