@@ -392,7 +392,7 @@ export default function NFTCreator() {
                     onClick={downloadNFT}
                     disabled={isDownloading || !imagesLoaded}
                     className="w-full md:w-1/2 py-3 text-lg font-bold bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
-                    label={isDownloading ? 'Downloading...' : 'Download Image'}
+                    label={isDownloading ? 'Downloading...' : 'DOWNLOAD IMAGE'}
                   />
                 </div>
               </div>

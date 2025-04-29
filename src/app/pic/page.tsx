@@ -412,7 +412,7 @@ export default function ImageEditor() {
                     </li>
                     <li className="flex items-start">
                       <span className="bg-red-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🎟️</span>
-                      <span>Max 2 entries per person</span>
+                      <span>Max 2 entries per person (MONTHLY)</span>
                     </li>
                     <li className="flex items-start">
                       <span className="bg-red-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🏆</span>

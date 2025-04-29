@@ -2,16 +2,39 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
 import Image from "next/image";
-import { useEffect, useState, useRef } from 'react';
+import Button from '@/components/basic_button';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+
+type ImageLayer = {
+  file: File;
+  preview: string;
+  rarity: number;
+  name: string;
+};
+
+type Layer = {
+  name: string;
+  images: ImageLayer[];
+  zIndex: number;
+};
+
+type Preview = {
+  images: string[];
+  layers: number[];
+  id: string;
+};
 
 export default function Art() {
-  const [layers, setLayers] = useState([]);
-  const [previews, setPreviews] = useState([]);
-  const [batchSize, setBatchSize] = useState(1);
-  const fileInputRefs = useRef({});
-  const [activeTab, setActiveTab] = useState('builder');
-  const [newLayerName, setNewLayerName] = useState('');
-  const [totalCombinations, setTotalCombinations] = useState(0);
+  const [layers, setLayers] = useState<Layer[]>([]);
+  const [previews, setPreviews] = useState<Preview[]>([]);
+  const [batchSize, setBatchSize] = useState<number>(1);
+  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [activeTab, setActiveTab] = useState<'builder' | 'preview'>('builder');
+  const [newLayerName, setNewLayerName] = useState<string>('');
+  const [totalCombinations, setTotalCombinations] = useState<number>(0);
+  const [isGeneratingZip, setIsGeneratingZip] = useState<boolean>(false);
 
   useEffect(() => {
     const combinations = layers.reduce((total, layer) => {
@@ -20,10 +43,34 @@ export default function Art() {
     setTotalCombinations(combinations);
   }, [layers]);
 
-  const addLayer = () => {
+  const calculateAllCombinations = useCallback(() => {
+    if (layers.length === 0) return [];
+    
+    const combinations: number[][] = [];
+    const layerIndices = layers.map(layer => 
+      layer.images.map((_, i) => i)
+    );
+
+    function generateCombinations(current: number[], layerIndex: number) {
+      if (layerIndex === layers.length) {
+        combinations.push([...current]);
+        return;
+      }
+      
+      for (let i = 0; i < layerIndices[layerIndex].length; i++) {
+        current[layerIndex] = i;
+        generateCombinations(current, layerIndex + 1);
+      }
+    }
+
+    generateCombinations([], 0);
+    return combinations;
+  }, [layers]);
+
+  const addLayer = useCallback(() => {
     if (!newLayerName.trim()) return;
     
-    const newLayer = {
+    const newLayer: Layer = {
       name: newLayerName.trim(),
       images: [],
       zIndex: layers.length
@@ -31,16 +78,16 @@ export default function Art() {
     
     setLayers([...layers, newLayer]);
     setNewLayerName('');
-  };
+  }, [newLayerName, layers]);
 
-  const removeLayer = (index) => {
+  const removeLayer = useCallback((index: number) => {
     const updatedLayers = [...layers];
     updatedLayers.splice(index, 1);
     setLayers(updatedLayers);
-  };
+  }, [layers]);
 
-  const handleImageUpload = (layerIndex, e) => {
-    const files = Array.from(e.target.files);
+  const handleImageUpload = useCallback((layerIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
     const updatedLayers = [...layers];
@@ -53,71 +100,67 @@ export default function Art() {
 
     updatedLayers[layerIndex].images = [...updatedLayers[layerIndex].images, ...newImages];
     setLayers(updatedLayers);
-  };
+  }, [layers]);
 
-  const updateRarity = (layerIndex, imageIndex, value) => {
+  const updateRarity = useCallback((layerIndex: number, imageIndex: number, value: string) => {
     const updatedLayers = [...layers];
-    updatedLayers[layerIndex].images[imageIndex].rarity = parseInt(value) || 0;
+    const numValue = parseInt(value) || 0;
+    updatedLayers[layerIndex].images[imageIndex].rarity = Math.min(100, Math.max(0, numValue));
     setLayers(updatedLayers);
-  };
+  }, [layers]);
 
-  const removeImage = (layerIndex, imageIndex) => {
+  const removeImage = useCallback((layerIndex: number, imageIndex: number) => {
     const updatedLayers = [...layers];
     updatedLayers[layerIndex].images.splice(imageIndex, 1);
     setLayers(updatedLayers);
-  };
+  }, [layers]);
 
-  const generateSinglePreview = () => {
-    if (layers.length === 0) return;
-
-    const selectedImages = [];
-    const selectedLayers = [];
-
-    layers.forEach((layer, layerIndex) => {
-      if (layer.images.length === 0) return;
-
-      const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
-      let random = Math.random() * totalRarity;
-      let currentSum = 0;
-
-      for (let i = 0; i < layer.images.length; i++) {
-        currentSum += layer.images[i].rarity;
-        if (random <= currentSum) {
-          selectedImages.push(layer.images[i].preview);
-          selectedLayers.push(layerIndex);
-          break;
-        }
-      }
-    });
-
-    return {
-      images: selectedImages,
-      layers: selectedLayers,
-      id: Date.now() + Math.random().toString(36).substr(2, 9)
-    };
-  };
-
-  const generateBatchPreviews = () => {
+  const generateBatchPreviews = useCallback(() => {
     if (layers.length === 0 || batchSize < 1) return;
 
-    const newPreviews = [];
-    for (let i = 0; i < batchSize; i++) {
-      newPreviews.push(generateSinglePreview());
+    const allCombinations = calculateAllCombinations();
+    const maxPossible = allCombinations.length;
+    
+    if (batchSize > maxPossible) {
+      alert(`You can only generate up to ${maxPossible} unique combinations.`);
+      setBatchSize(maxPossible);
+      return;
     }
+
+    const shuffled = [...allCombinations].sort(() => 0.5 - Math.random());
+    const selectedCombinations = shuffled.slice(0, batchSize);
+
+    const newPreviews = selectedCombinations.map(comb => {
+      const selectedImages = comb.map((imgIdx, layerIdx) => 
+        layers[layerIdx].images[imgIdx].preview
+      );
+      
+      return {
+        images: selectedImages,
+        layers: comb.map((_, i) => i),
+        id: Date.now() + Math.random().toString(36).substr(2, 9)
+      };
+    });
+
     setPreviews(newPreviews);
     setActiveTab('preview');
-  };
+  }, [batchSize, layers, calculateAllCombinations]);
 
-  const downloadPreview = (preview) => {
-    if (!preview) return;
+  const downloadPreview = useCallback((preview: Preview) => {
+    if (!preview || preview.images.length === 0) return;
     
     const canvas = document.createElement('canvas');
     canvas.width = 1000;
     canvas.height = 1000;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     
     const layersToDraw = [...preview.layers]
-      .map((layerIdx, i) => ({ layerIdx, zIndex: layers[layerIdx].zIndex, imgIndex: i }))
+      .map((layerIdx, i) => ({ 
+        layerIdx, 
+        zIndex: layers[layerIdx]?.zIndex || 0, 
+        imgIndex: i 
+      }))
       .sort((a, b) => a.zIndex - b.zIndex);
     
     let imagesLoaded = 0;
@@ -125,6 +168,7 @@ export default function Art() {
     
     layersToDraw.forEach(({ imgIndex }) => {
       const img = new window.Image();
+      img.crossOrigin = 'anonymous';
       img.onload = () => {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         imagesLoaded++;
@@ -136,15 +180,74 @@ export default function Art() {
           link.click();
         }
       };
+      img.onerror = () => {
+        console.error('Failed to load image for download');
+        imagesLoaded++;
+      };
       img.src = preview.images[imgIndex];
     });
-  };
+  }, [layers]);
 
-  const downloadAllPreviews = () => {
-    previews.forEach(preview => {
-      downloadPreview(preview);
-    });
-  };
+  const downloadAllAsZip = useCallback(async () => {
+    if (previews.length === 0) return;
+    
+    setIsGeneratingZip(true);
+    const zip = new JSZip();
+    const imgFolder = zip.folder("nfts");
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = 1000;
+    canvas.height = 1000;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      setIsGeneratingZip(false);
+      return;
+    }
+
+    for (let i = 0; i < previews.length; i++) {
+      const preview = previews[i];
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const layersToDraw = [...preview.layers]
+        .map((layerIdx, imgIdx) => ({ 
+          layerIdx, 
+          zIndex: layers[layerIdx]?.zIndex || 0, 
+          imgIndex: imgIdx 
+        }))
+        .sort((a, b) => a.zIndex - b.zIndex);
+      
+      for (const { imgIndex } of layersToDraw) {
+        const img = new window.Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise<void>((resolve) => {
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve();
+          };
+          img.onerror = () => {
+            console.error('Failed to load image for ZIP');
+            resolve();
+          };
+          img.src = preview.images[imgIndex];
+        });
+      }
+      
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((blob) => {
+          resolve(blob);
+        }, 'image/png');
+      });
+      
+      if (blob) {
+        imgFolder?.file(`nft-${i + 1}.png`, blob);
+      }
+    }
+
+    const content = await zip.generateAsync({ type: 'blob' });
+    saveAs(content, 'nft-collection.zip');
+    setIsGeneratingZip(false);
+  }, [previews, layers]);
 
   return (
     <>
@@ -193,64 +296,51 @@ export default function Art() {
             </motion.div>
           </section>
 
-          {/* How It Works Section */}
-          <section className="max-w-7xl mx-auto px-6 py-8 bg-black/50 rounded-xl border border-white/10 mb-8">
-            <h2 className="text-2xl font-bold mb-6 text-white">How It Works</h2>
-            
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white/5 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3 text-blue-400">Getting Started</h3>
-                <ol className="list-decimal list-inside space-y-3 text-white/80">
-                  <li className="mb-2">
-                    <span className="font-medium">Add Layers</span> - Create different layers for your NFT
-                  </li>
-                  <li className="mb-2">
-                    <span className="font-medium">Upload Images</span> - Add variations for each layer
-                  </li>
-                  <li className="mb-2">
-                    <span className="font-medium">Set Rarity</span> - Adjust percentage chance for each image
-                  </li>
-                  <li>
-                    <span className="font-medium">Generate NFTs</span> - Create random combinations
-                  </li>
-                </ol>
-              </div>
+          <div className='px-[10px] sm:px-0'>
+            <section className="max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:py-6 bg-black/50 rounded-xl border border-white/10 mb-4 sm:mb-5">
+              <h2 className="text-2xl font-bold mb-3 text-white">How It Works</h2>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white/5 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-3 text-blue-400">Getting Started</h3>
+                  <ol className="list-decimal list-inside space-y-3 text-white/80">
+                    <li className="mb-2">
+                      <span className="font-medium">Add Layers</span> - Create different layers for your NFT
+                    </li>
+                    <li className="mb-2">
+                      <span className="font-medium">Upload Images</span> - Add variations for each layer
+                    </li>
+                    <li className="mb-2">
+                      <span className="font-medium">Set Rarity</span> - Adjust percentage chance for each image
+                    </li>
+                    <li>
+                      <span className="font-medium">Generate NFTs</span> - Create random combinations
+                    </li>
+                  </ol>
+                </div>
 
-              <div className="bg-white/5 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3 text-blue-400">Key Features</h3>
-                <ul className="space-y-3 text-white/80">
-                  <li className="flex items-start">
-                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span><strong>Layer Management</strong> - Reorder with z-index</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span><strong>Batch Generation</strong> - Create up to 100 NFTs</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
-                    <span><strong>Combination Calculator</strong> - See possible unique NFTs</span>
-                  </li>
-                </ul>
+                <div className="bg-white/5 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-3 text-blue-400">Key Features</h3>
+                  <ul className="space-y-3 text-white/80">
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
+                      <span><strong>Unique Combinations</strong> - No duplicates generated</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
+                      <span><strong>ZIP Download</strong> - Download all NFTs in one click</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">✓</span>
+                      <span><strong>High Quality</strong> - 1000x1000 PNG exports</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
+            </section>
+          </div>
 
-              <div className="bg-white/5 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3 text-blue-400">Rarity System</h3>
-                <ul className="space-y-3 text-white/80">
-                  <li className="flex items-start">
-                    <span className="bg-purple-500/20 text-purple-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">%</span>
-                    <span>Set rarity percentage (0-100)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="bg-purple-500/20 text-purple-400 rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5">⚖️</span>
-                    <span>Higher percentage = more common</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          <div className="container mx-auto px-4 pb-20">
+          <div className="container max-w-7xl mx-auto px-4 pb-20">
             <div className="flex border-b border-gray-700 mb-6">
               <button
                 className={`px-4 py-2 font-medium ${activeTab === 'builder' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
@@ -261,6 +351,7 @@ export default function Art() {
               <button
                 className={`px-4 py-2 font-medium ${activeTab === 'preview' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
                 onClick={() => setActiveTab('preview')}
+                disabled={previews.length === 0 && layers.length === 0}
               >
                 Preview
               </button>
@@ -268,21 +359,21 @@ export default function Art() {
 
             {activeTab === 'builder' ? (
               <div className="space-y-8">
-                <div className="bg-gray-900 bg-opacity-50 p-6 rounded-xl border border-gray-700">
+                <div className="bg-black/50 bg-opacity-50 p-6 rounded-xl border border-gray-700">
                   <div className="flex items-center space-x-4 mb-6">
                     <input
                       type="text"
                       value={newLayerName}
                       onChange={(e) => setNewLayerName(e.target.value)}
                       placeholder="New layer name"
-                      className="bg-gray-800 border border-gray-700 rounded px-4 py-2 flex-1 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="bg-gray-800 border border-gray-700 rounded px-4 py-3 flex-1 text-white focus:outline-none focus:ring-2 focus:ring-white"
+                      onKeyDown={(e) => e.key === 'Enter' && addLayer()}
                     />
-                    <button
+                    <Button
                       onClick={addLayer}
-                      className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition-colors"
-                    >
-                      Add Layer
-                    </button>
+                      className="bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors" 
+                      label={"Add Layer"}
+                    />
                   </div>
 
                   {layers.length === 0 && (
@@ -297,19 +388,22 @@ export default function Art() {
                         <div className="flex justify-between items-center mb-4">
                           <h3 className="text-xl font-semibold">{layer.name}</h3>
                           <div className="flex space-x-2">
-                            <input
-                              type="number"
-                              min="0"
-                              max="1000"
-                              value={layer.zIndex}
-                              onChange={(e) => {
-                                const updatedLayers = [...layers];
-                                updatedLayers[layerIndex].zIndex = parseInt(e.target.value) || 0;
-                                setLayers(updatedLayers);
-                              }}
-                              className="w-16 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-center text-sm"
-                              title="Z-Index (stacking order)"
-                            />
+                            <div className="flex items-center">
+                              <span className="text-xs mr-1 text-gray-400">Z:</span>
+                              <input
+                                type="number"
+                                min="0"
+                                max="1000"
+                                value={layer.zIndex}
+                                onChange={(e) => {
+                                  const updatedLayers = [...layers];
+                                  updatedLayers[layerIndex].zIndex = parseInt(e.target.value) || 0;
+                                  setLayers(updatedLayers);
+                                }}
+                                className="w-16 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-center text-sm"
+                                title="Z-Index (stacking order)"
+                              />
+                            </div>
                             <button
                               onClick={() => removeLayer(layerIndex)}
                               className="text-red-400 hover:text-red-300 transition-colors"
@@ -325,18 +419,27 @@ export default function Art() {
                         <div className="mb-4">
                           <input
                             type="file"
-                            ref={el => fileInputRefs.current[layerIndex] = el}
+                            ref={(el: HTMLInputElement | null) => {
+                              if (el) {
+                                fileInputRefs.current[layerIndex] = el;
+                              }
+                            }}
                             onChange={(e) => handleImageUpload(layerIndex, e)}
                             multiple
                             accept="image/*"
                             className="hidden"
                           />
                           <button
-                            onClick={() => fileInputRefs.current[layerIndex].click()}
+                            onClick={() => fileInputRefs.current[layerIndex]?.click()}
                             className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors text-sm"
                           >
                             Add Images
                           </button>
+                          {layer.images.length > 0 && (
+                            <span className="ml-3 text-sm text-gray-400">
+                              {layer.images.length} image{layer.images.length !== 1 ? 's' : ''}
+                            </span>
+                          )}
                         </div>
 
                         {layer.images.length > 0 ? (
@@ -388,29 +491,31 @@ export default function Art() {
                   </div>
                 </div>
 
-                <div className="bg-gray-900 bg-opacity-50 p-6 rounded-xl border border-gray-700">
+                <div className="bg-black/50 bg-opacity-50 p-6 rounded-xl border border-gray-700">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <h3 className="text-lg font-semibold mb-4">Generate NFTs</h3>
                       <div className="flex items-center space-x-4">
                         <div className="flex-1">
-                          <label className="block text-sm text-gray-400 mb-1">Number to generate</label>
+                          <label className="block text-sm text-gray-400 mb-1">Number to generate (max {totalCombinations})</label>
                           <input
                             type="number"
                             min="1"
-                            max="100"
+                            max={totalCombinations}
                             value={batchSize}
-                            onChange={(e) => setBatchSize(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
-                            className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value) || 1;
+                              setBatchSize(Math.min(totalCombinations, Math.max(1, val)));
+                            }}
+                            className="w-full bg-gray-800 border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-white"
                           />
                         </div>
-                        <button
+                        <Button
                           onClick={generateBatchPreviews}
-                          disabled={layers.length === 0}
-                          className={`mt-6 px-6 py-2 rounded-lg font-medium ${layers.length === 0 ? 'bg-gray-700 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} transition-colors`}
-                        >
-                          Generate {batchSize} NFT{batchSize !== 1 ? 's' : ''}
-                        </button>
+                          disabled={layers.length === 0 || layers.some(layer => layer.images.length === 0)}
+                          className={`mt-6 px-6 py-2 rounded-lg font-medium ${layers.length === 0 || layers.some(layer => layer.images.length === 0) ? 'bg-gray-700 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} transition-colors`} 
+                          label={"Generate NFTs"}
+                        />
                       </div>
                     </div>
                     <div className="bg-gray-800 bg-opacity-50 p-4 rounded-lg border border-gray-700">
@@ -425,7 +530,7 @@ export default function Art() {
                           <span>{layers.reduce((sum, layer) => sum + layer.images.length, 0)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Possible Combinations:</span>
+                          <span className="text-gray-400">Possible Unique Combinations:</span>
                           <span>{totalCombinations.toLocaleString()}</span>
                         </div>
                       </div>
@@ -439,20 +544,22 @@ export default function Art() {
                   <div>
                     <div className="flex justify-between items-center mb-6">
                       <h2 className="text-xl font-semibold">
-                        Generated Previews ({previews.length})
+                        Generated Previews ({previews.length}/{totalCombinations})
                       </h2>
                       <div className="flex space-x-3">
                         <button
                           onClick={generateBatchPreviews}
-                          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition-colors text-sm"
+                          disabled={previews.length >= totalCombinations}
+                          className={`px-4 py-2 rounded transition-colors text-sm ${previews.length >= totalCombinations ? 'bg-gray-700 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
                         >
-                          Generate More
+                          Generate Random
                         </button>
                         <button
-                          onClick={downloadAllPreviews}
-                          className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors text-sm"
+                          onClick={downloadAllAsZip}
+                          disabled={isGeneratingZip}
+                          className={`px-4 py-2 rounded transition-colors text-sm ${isGeneratingZip ? 'bg-blue-700 cursor-wait' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
                         >
-                          Download All
+                          {isGeneratingZip ? 'Creating ZIP...' : 'Download All as ZIP'}
                         </button>
                       </div>
                     </div>
@@ -491,8 +598,8 @@ export default function Art() {
                         generateBatchPreviews();
                         setActiveTab('preview');
                       }}
-                      disabled={layers.length === 0}
-                      className={`px-6 py-2 rounded-lg ${layers.length === 0 ? 'bg-gray-700 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} transition-colors`}
+                      disabled={layers.length === 0 || layers.some(layer => layer.images.length === 0)}
+                      className={`px-6 py-2 rounded-lg ${layers.length === 0 || layers.some(layer => layer.images.length === 0) ? 'bg-gray-700 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} transition-colors`}
                     >
                       Generate Your First Batch
                     </button>
