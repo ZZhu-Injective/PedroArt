@@ -2,6 +2,8 @@
 import { useState, useRef, useEffect } from 'react';
 import Head from "next/head";
 import Image from "next/image";
+import Button from '@/components/basic_button';
+
 
 interface Layer {
   id: string;
@@ -17,7 +19,6 @@ interface Layer {
 }
 
 export default function ImageEditor() {
-  // State management
   const [layers, setLayers] = useState<Layer[]>([]);
   const [activeLayerId, setActiveLayerId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -33,7 +34,10 @@ export default function ImageEditor() {
   const stickers = [
     '/1.png', '/2.png', '/3.png', '/4.png', '/5.png', '/6.png',
     '/7.png', '/8.png', '/9.png', '/10.png', '/11.png', '/12.png',
-    '/13.png', '/14.png', '/15.png'
+    '/13.png', '/14.png', '/15.png', '/16.png', '/17.png', '/18.png', 
+    '/19.png', '/20.png', '/21.png', '/22.png', '/23.png', '/24.png', 
+    '/25.png', '/26.png', '/27.png', '/28.png', '/29.png', '/30.png', 
+    '/31.png', '/32.png', '/33.png', 
   ];
 
   const createLayer = (url: string, x: number, y: number, width?: number, isBackground = false) => {
@@ -367,7 +371,7 @@ export default function ImageEditor() {
             </div>
           </section>
 
-          <div className='p-4'>
+          <div className='px-[10px] sm:px-0'>
             <section className="max-w-7xl mx-auto px-4 sm:px-8 py-4 sm:py-6 bg-black/50 rounded-xl border border-white/10 mb-4 sm:mb-5">
               <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-white">How It Works</h2>
               
@@ -394,29 +398,29 @@ export default function ImageEditor() {
                     </li>
                     <li className="flex items-start">
                       <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
-                      <span><strong>Pedro:</strong> Be yourself and use a real photo!</span>
+                      <span><strong>Pedro:</strong> Be yourself and share your daily photo!</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="bg-purple-500/10 p-3 sm:p-4 rounded-lg border border-purple-500/30">
-                  <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 text-purple-400">🎁 Monthly Contest</h3>
+                <div className="bg-red-500/10 p-3 sm:p-4 rounded-lg border border-yellow-500/30">
+                  <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 text-yellow-400">🎁 Monthly Contest</h3>
                   <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-white/90">
                     <li className="flex items-start">
-                      <span className="bg-purple-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✨</span>
-                      <span>Post with <span className="font-mono bg-white/10 px-1 py-0.5 sm:px-1.5 rounded text-xs sm:text-sm">$INJ #Myself @injpedro</span></span>
+                      <span className="bg-red-500/20 text-red-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✨</span>
+                      <span>Post with "GInjective" + <span className="font-mono bg-white/10 px-1 py-0.5 sm:px-1.5 rounded text-xs sm:text-sm">$INJ #Myself @injpedro</span></span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-purple-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🎟️</span>
+                      <span className="bg-red-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🎟️</span>
                       <span>Max 2 entries per person</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-purple-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🏆</span>
+                      <span className="bg-red-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🏆</span>
                       <span>Prize: <span className="font-bold">1 $INJ + 100,000 $PEDRO</span></span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-purple-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🔄</span>
-                      <span>New winner every month!</span>
+                      <span className="bg-red-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🔄</span>
+                      <span>New (RANDOM) winner every month!</span>
                     </li>
                   </ul>
                 </div>
@@ -425,15 +429,92 @@ export default function ImageEditor() {
           </div>
           
 
-          <div className="max-w-7xl mx-auto p-4">
+          <div className="max-w-7xl mx-auto pb-10 px-[10px] sm:px-0">
             <div className="flex flex-col md:flex-row gap-4">
-              <div className="bg-black/50 p-4 rounded-xl border border-white/10 shadow-lg w-full md:w-20 lg:w-24 transition-all duration-200 backdrop-blur-sm">
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="text-center mb-2">
-                    <h2 className="text-xs font-semibold text-white/50 uppercase tracking-wider hidden md:block">Tools</h2>
+            <div className="bg-black/50 p-2 rounded-xl border border-white/10 shadow-lg w-full md:w-20 lg:w-24 transition-all duration-200 backdrop-blur-sm">
+              <div className="flex md:hidden items-center justify-between space-x-2 overflow-x-auto py-1">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="group p-2 rounded-lg flex flex-col items-center justify-center hover:bg-white/10 text-white transition-colors duration-200"
+                  title="Add Background"
+                >
+                  <div className="w-8 h-8 bg-white/10 rounded-md flex items-center justify-center group-hover:bg-white/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
                   </div>
-                  
-                  <button
+                </button>
+                
+                <button
+                  onClick={saveImage}
+                  disabled={layers.length === 0}
+                  className={`group p-2 rounded-lg flex flex-col items-center justify-center ${layers.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10 text-white'}`}
+                  title="Save"
+                >
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center ${layers.length === 0 ? 'bg-white/5' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                  </div>
+                </button>
+
+                <button
+                  onClick={deleteActiveLayer}
+                  disabled={!activeLayerId}
+                  className={`group p-2 rounded-lg flex flex-col items-center justify-center ${!activeLayerId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10 text-white'}`}
+                  title="Delete"
+                >
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center ${!activeLayerId ? 'bg-white/5' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => rotateLayer(15)}
+                  disabled={!activeLayerId}
+                  className={`group p-2 rounded-lg flex flex-col items-center justify-center ${!activeLayerId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10 text-white'}`}
+                  title="Rotate Right"
+                >
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center ${!activeLayerId ? 'bg-white/5' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setLayers([])}
+                  disabled={layers.length === 0}
+                  className={`group p-2 rounded-lg flex flex-col items-center justify-center ${layers.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10 text-white'}`}
+                  title="Delete All"
+                >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${layers.length === 0 ? 'bg-white/5' : 'bg-white/10 group-hover:bg-white/20'} transition-colors duration-200`}>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-5 w-5 text-white" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M6 18L18 6M6 6l12 12" 
+                    />
+                  </svg>
+                </div>
+                </button>
+              </div>
+
+              <div className="hidden md:flex flex-col items-center space-y-4">
+                <div className="text-center mb-2">
+                  <h2 className="text-xs font-semibold text-white/50 uppercase tracking-wider">Tools</h2>
+                </div>
+
+                <button
                     onClick={() => fileInputRef.current?.click()}
                     className="group p-3 rounded-xl flex flex-col items-center justify-center hover:bg-white/10 text-white transition-colors duration-200"
                     title="Add Background Image"
@@ -497,20 +578,6 @@ export default function ImageEditor() {
                     <span className="text-xs mt-1 hidden lg:block">Rotate</span>
                   </button>
 
-                  <button
-                    onClick={() => rotateLayer(-15)}
-                    disabled={!activeLayerId}
-                    className={`group p-3 rounded-xl flex flex-col items-center justify-center ${!activeLayerId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10 text-white'} transition-colors duration-200`}
-                    title="Rotate Left"
-                  >
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${!activeLayerId ? 'bg-white/5' : 'bg-white/10 group-hover:bg-white/20'} transition-colors duration-200`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 15v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m14 0h-4m4 0l-4-4m4 4l-4 4" />
-                      </svg>
-                    </div>
-                    <span className="text-xs mt-1 hidden lg:block">Rotate Left</span>
-                  </button>
-
                   <div className="border-t border-white/10 w-full my-2"></div>
 
                   <button
@@ -519,27 +586,38 @@ export default function ImageEditor() {
                     className={`group p-3 rounded-xl flex flex-col items-center justify-center ${layers.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10 text-white'} transition-colors duration-200`}
                     title="Clear All"
                   >
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${layers.length === 0 ? 'bg-white/5' : 'bg-white/10 group-hover:bg-white/20'} transition-colors duration-200`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </div>
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${layers.length === 0 ? 'bg-white/5' : 'bg-white/10 group-hover:bg-white/20'} transition-colors duration-200`}>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      className="h-5 w-5 text-white" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M6 18L18 6M6 6l12 12" 
+                      />
+                    </svg>
+                  </div>
                     <span className="text-xs mt-1 hidden lg:block">Clear All</span>
                   </button>
 
-                  <div className="flex-1"></div>
 
-                  <div className="text-center pt-4 border-t border-white/10 w-full">
-                    <span className="text-xs text-white/40">Picture Creator</span>
-                    <span className="block text-xs text-white/40">v1.2</span>
-                  </div>
+                <div className="flex-1"></div>
+                <div className="text-center pt-4 border-t border-white/10 w-full">
+                  <span className="text-xs text-white/40">Pedro Pic Creator</span>
+                  <span className="block text-xs text-white/40">v1.20</span>
                 </div>
               </div>
+            </div>
 
               <div className="flex-1 flex flex-col gap-4">
                 <div className="bg-black/50 p-3 rounded-xl border border-white/10 shadow-lg backdrop-blur-sm">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-lg font-semibold text-white">Canvas</h2>
+                    <h2 className="text-lg font-semibold text-white">PEDRO THE RACCOON</h2>
                     <div className="flex items-center space-x-2">
                       <button 
                         onClick={() => setZoom(prev => Math.min(prev + 10, 200))}
@@ -655,25 +733,6 @@ export default function ImageEditor() {
                   </div>
                 </div>
 
-                <div className="p-4 border-b border-white/10">
-                  <button
-                    onClick={() => stickerFileInputRef.current?.click()}
-                    className="w-full py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 flex items-center justify-center shadow-md transition-all duration-200"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Upload Custom Sticker
-                  </button>
-                  <input
-                    type="file"
-                    ref={stickerFileInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleStickerUpload}
-                  />
-                </div>
-
                 <div className="flex-1 overflow-y-auto p-4">
                   {showStickers ? (
                     <>
@@ -740,6 +799,18 @@ export default function ImageEditor() {
                       )}
                     </div>
                   )}
+                </div>
+                <div className="p-4 border-b border-white/10 text-center">
+                  <Button
+                    onClick={() => stickerFileInputRef.current?.click()}
+                    className="w-full py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 flex items-center justify-center shadow-md transition-all duration-200" label={'Upload Sticker'}                  />
+                  <input
+                    type="file"
+                    ref={stickerFileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleStickerUpload}
+                  />
                 </div>
               </div>
             </div>
