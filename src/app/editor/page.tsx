@@ -365,7 +365,7 @@ export default function ImageEditor() {
           <section className="flex items-center justify-center py-7 text-center relative overflow-hidden">
             <div className="px-6 max-w-4xl relative z-10">
               <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-white">
-                PEDRO EDIT
+                EDITOR PEDRO
               </h1>
               <div className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent" />
             </div>

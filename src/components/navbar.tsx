@@ -125,12 +125,12 @@ const Navbar = () => {
 
           <ul className="flex flex-col gap-4 mx-auto lg:gap-6 xl:gap-5 text-neutral-950 items-center mt-20 lg:mt-0 lg:flex-row">
             {[
-              { href: "/art", label: "ARTHUB" },
-              { href: "/meme", label: "MEMEHUB" },
-              { href: "/pedro", label: "MAKE-PEDRO" },
-              { href: "/pic", label: "PICTURE" },
-              { href: "/nft", label: "CREATE-NFT" },
-              { href: "https://pedroinjraccoon.online/", label: "PEDROMAIN" },
+              { href: "/artsy", label: "ARTSY" },
+              { href: "/memezone", label: "MEMEZONE" },
+              { href: "/factory", label: "FACTORY" },
+              { href: "/editor", label: "EDITOR" },
+              { href: "/nftgen", label: "NFTGEN" },
+              { href: "https://pedroinjraccoon.online/", label: "MAINPAGE" },
             ].map((item) => (
               <li
                 key={item.href}

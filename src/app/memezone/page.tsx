@@ -2,52 +2,34 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
 import Image from "next/image";
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Button from '@/components/basic_button';
 
 interface GalleryImage {
   url: string;
   title: string;
-  description: string;
   link: string;
 }
 
 interface CardProps {
   imageUrl: string;
   title: string;
-  description: string;
   link: string;
   index: number;
 }
 
 const images: GalleryImage[] = [
-  { url: 'fan28.jpg', title: 'Crazy Art2', description: 'Made By zar_batyshka', link: 'https://x.com/zar_batyshka' },
-  { url: 'fan27.jpg', title: 'Crazy Art', description: 'Made By zar_batyshka', link: 'https://x.com/zar_batyshka' },
-  { url: 'fan26.jpg', title: 'Pedro Skating', description: 'Made By the_crannberry', link: 'https://x.com/the_crannberry' },
-  { url: 'fan25.jpg', title: 'Pedro and Monad', description: 'Made By MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan24.jpg', title: 'Pedro The Rocket', description: 'Made By felixx_78', link: 'https://x.com/felixx_78' },
-  { url: 'fan23.jpg', title: 'Pedro Ninja', description: 'Made By OttyUbINJ', link: 'https://x.com/OttyUbINJ' },
-  { url: 'fan22.jpg', title: 'Pedro Family', description: 'Made By mimie_jayzz', link: 'https://x.com/mimie_jayzz' },
-  { url: 'fan21.jpg', title: 'Pedro Simple', description: 'Made By Mary_Inj', link: 'https://x.com/Mary_Inj' },
-  { url: 'fan20.jpg', title: 'Working for PEDRO', description: 'Made By pokoInj', link: 'https://x.com/Poko120141' },
-  { url: 'fan19.jpg', title: 'Pedro Hug Anons', description: 'Made By NomberFax.inj', link: 'https://x.com/NomberFax' },
-  { url: 'fan18.jpg', title: 'Pedro Touch', description: 'Made By Mary_Inj', link: 'https://x.com/Mary_Inj' },
-  { url: 'fan17.jpg', title: 'Big Party', description: 'Made By ShiviXBT', link: 'https://x.com/ShiviXBT' },
-  { url: 'fan16.jpg', title: 'Pedro & Pingu', description: 'Made By Adam42931', link: 'https://x.com/Adam42931' },
-  { url: 'fan15.jpg', title: 'Injective Family', description: 'Made By OttyUbINJ', link: 'https://x.com/OttyUbINJ' },
-  { url: 'fan14.jpg', title: 'Lovely', description: 'Made By Meowza', link: 'https://x.com/Meowzakie' },
-  { url: 'fan1.jpg', title: 'Fat Juicy & Wet', description: 'Made By OttyUbINJ', link: 'https://x.com/OttyUbINJ' },
-  { url: 'fan2.jpg', title: 'Swag Pedro on $INJ', description: 'Made By Amster', link: 'https://x.com/amstar_art' },
-  { url: 'fan3.jpg', title: 'Peacefull', description: 'Made By mimie_jayzz', link: 'https://x.com/mimie_jayzz' },
-  { url: 'fan4.jpg', title: 'I Love $INJ', description: 'Made By CryptoBrifif', link: 'https://x.com/CryptoBrifif' },
-  { url: 'fan5.jpg', title: 'Roses For You', description: 'Made By ShiviXBT', link: 'https://x.com/ShiviXBT' },
-  { url: 'fan6.jpg', title: 'Happy Raccoon', description: 'Made By ShiviXBT', link: 'https://x.com/ShiviXBT' },
-  { url: 'fan7.jpg', title: 'Beloved Raccoon', description: 'Made By MB Fourteen', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan8.jpg', title: 'Hi I am Pedro', description: 'Made By NomberFax.inj', link: 'https://x.com/NomberFax' },
-  { url: 'fan10.jpg', title: 'I am Gay', description: 'Made By Dragon Knight', link: 'https://x.com/AltamashKPRMR' },
-  { url: 'fan11.png', title: 'Scream Hard', description: 'Made By ProudlyMatthew', link: 'https://x.com/ProudlyMatthew' },
-  { url: 'fan12.png', title: 'Angry', description: 'Made By InjPanda', link: 'https://x.com/InjPanda' },
-  { url: 'fan13.png', title: 'Motherfucker', description: 'Made By Socrates122263', link: 'https://x.com/Socrates122263' },
+  { url: 'meme2.jpg', title: 'zar_batyshka', link: 'https://x.com/MahmoudH0110' },
+  { url: 'meme3.jpg', title: 'zar_batyshka',  link: 'https://x.com/felixx_78' },
+  { url: 'meme4.jpg', title: 'zar_batyshka', link: 'https://x.com/the_crannberry' },
+  { url: 'meme5.jpg', title: 'zar_batyshka', link: 'https://x.com/MahmoudH0110' },
+  { url: 'meme6.jpg', title: 'zar_batyshka', link: 'https://x.com/felixx_78' },
+  { url: 'meme7.jpg', title: 'zar_batyshka', link: 'https://x.com/the_crannberry' },
+  { url: 'meme8.jpg', title: 'zar_batyshka', link: 'https://x.com/MahmoudH0110' },
+  { url: 'meme9.jpg', title: 'zar_batyshka', link: 'https://x.com/felixx_78' },
+  { url: 'meme10.jpg', title: 'zar_batyshka', link: 'https://x.com/the_crannberry' },
+  { url: 'meme11.jpg', title: 'zar_batyshka',  link: 'https://x.com/MahmoudH0110' },
+  { url: 'meme12.jpg', title: 'zar_batyshka', link: 'https://x.com/felixx_78' },
 ];
 
 const containerVariants = {
@@ -65,23 +47,23 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80 } },
 };
 
-const Card = ({ imageUrl, title, description, link, index }: CardProps) => {
+const Card = ({ imageUrl, link, title, index }: CardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
 
   return (
     <motion.div
       ref={cardRef}
       variants={itemVariants}
-      initial={{ opacity: 0.6 }}
+      initial={{ opacity: 0.8 }}
       whileHover={{ 
         scale: 1.05, 
         zIndex: 10,
         opacity: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)'
+        backgroundColor: 'rgba(171, 170, 170, 0)'
       }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      className="group relative overflow-hidden rounded-lg bg-black/50 shadow-lg hover:shadow-xl hover:shadow-white/10 transition-all duration-300 backdrop-blur-sm"
+      className="group relative overflow-hidden rounded-lg bg-black/20 shadow-lg hover:shadow-xl hover:shadow-white/10 transition-all duration-300"
     >
       <div className="absolute inset-0 border-2 border-white/20 group-hover:border-white/50 transition-all duration-500 z-20 pointer-events-none rounded-lg" />
       <div className="relative w-full aspect-square overflow-hidden rounded-lg">
@@ -95,13 +77,13 @@ const Card = ({ imageUrl, title, description, link, index }: CardProps) => {
         />
       </div>
       
-      <div className="bg-gradient-to-t from-black/70 via-black/50 to-transparent p-4 rounded-b-lg">
+      <div className="bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4 rounded-b-lg">
         <h3 className="text-white text-lg font-bold mb-3 text-center">{title}</h3>
         <div className="flex justify-center">
-          <Button
+          <Button 
             onClick={() => window.open(link, '_blank')}
-            className="text-white bg-transparent hover:bg-white hover:text-black text-sm font-medium px-5 py-2 rounded-full border border-white/50 hover:border-white transition-all duration-300 shadow-md hover:shadow-white/20" 
-            label={"Follow Artist"}
+            className="text-white hover:text-black hover:bg-white text-sm font-medium px-4 py-2 rounded-full border border-white/30 hover:border-white transition-all"
+            label={"FOLLOW CREATOR"}
           />
         </div>
       </div>
@@ -138,9 +120,9 @@ export default function Art() {
   return (
     <>
       <Head>
-        <title>Pedro | Fan Art Gallery</title>
-        <meta name="description" content="Explore fan art from the Pedro community" />
-        <meta property="og:image" content="/pedro_logo4.png" />
+        <title>Pedro | Meme Gallery</title>
+        <meta name="description" content="Explore meme from the Pedro community" />
+        <meta property="og:image" content="/pedro-social-preview.jpg" />
       </Head>
 
       <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
@@ -171,7 +153,7 @@ export default function Art() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
               >
-                ARTS HEROES
+                MEME GALLERY
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}
@@ -182,19 +164,18 @@ export default function Art() {
             </motion.div>
           </section>
 
-          <section className="relative py-5 px-6 max-w-7xl mx-auto" ref={galleryRef}>
+          <section className="relative py-5 px-6 mx-auto" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="show"
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"
             >
               {images.map((image, index) => (
                 <Card 
                   key={index}
                   imageUrl={image.url} 
                   title={image.title} 
-                  description={image.description}
                   link={image.link}
                   index={index}
                 />
