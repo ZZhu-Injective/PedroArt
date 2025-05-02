@@ -601,7 +601,7 @@ export default function Art() {
                           />
                           <button
                             onClick={() => fileInputRefs.current[layerIndex]?.click()}
-                            className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm"
+                            className="bg-black hover:bg-white text-white hover: text-black px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm"
                           >
                             Add Images
                           </button>
