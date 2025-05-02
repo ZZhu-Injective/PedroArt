@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
 import Image from "next/image";
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Button from '@/components/basic_button';
 
 interface GalleryImage {
@@ -49,6 +49,18 @@ const itemVariants = {
 
 const Card = ({ imageUrl, link, title, index }: CardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      setMousePosition({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+    }
+  };
 
   return (
     <motion.div
@@ -59,14 +71,59 @@ const Card = ({ imageUrl, link, title, index }: CardProps) => {
         scale: 1.05, 
         zIndex: 10,
         opacity: 1,
-        backgroundColor: 'rgba(171, 170, 170, 0)'
       }}
-      whileTap={{ scale: 0.98 }}
+      whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      className="group relative overflow-hidden rounded-lg bg-black/20 shadow-lg hover:shadow-xl hover:shadow-white/10 transition-all duration-300"
+      className="group relative overflow-hidden rounded-xl bg-black/20 shadow-2xl hover:shadow-white/20 transition-all duration-500 border border-white/10 hover:border-white/30"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onMouseMove={handleMouseMove}
     >
-      <div className="absolute inset-0 border-2 border-white/20 group-hover:border-white/50 transition-all duration-500 z-20 pointer-events-none rounded-lg" />
-      <div className="relative w-full aspect-square overflow-hidden rounded-lg">
+      {/* Glow effect */}
+      <motion.div 
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        animate={{
+          background: isHovered 
+            ? `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.15), transparent 70%)`
+            : 'transparent'
+        }}
+      />
+      
+      {/* Floating particles */}
+      {isHovered && (
+        <div className="absolute inset-0 overflow-hidden rounded-xl pointer-events-none">
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute bg-white rounded-full"
+              initial={{
+                opacity: 0,
+                scale: 0,
+                x: Math.random() * 100,
+                y: Math.random() * 100,
+              }}
+              animate={{
+                opacity: [0, 0.8, 0],
+                scale: [0, 0.5 + Math.random() * 0.5, 0],
+                x: Math.random() * 100,
+                y: Math.random() * 100,
+              }}
+              transition={{
+                duration: 1.5 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 0.5,
+                ease: "easeOut"
+              }}
+              style={{
+                width: `${1 + Math.random() * 3}px`,
+                height: `${1 + Math.random() * 3}px`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+      
+      <div className="relative w-full aspect-square overflow-hidden rounded-t-xl">
         <Image 
           src={`/${imageUrl}`}
           alt={title}
@@ -75,21 +132,41 @@ const Card = ({ imageUrl, link, title, index }: CardProps) => {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={index < 6}
         />
+        
+        {/* Image overlay effect */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       </div>
       
-      <div className="bg-gradient-to-t from-black/90 via-black/70 to-transparent p-4 rounded-b-lg">
-        <h3 className="text-white text-lg font-bold mb-3 text-center">{title}</h3>
-        <div className="flex justify-center">
-          <Button 
-            onClick={() => window.open(link, '_blank')}
-            className="text-white hover:text-black hover:bg-white text-sm font-medium px-4 py-2 rounded-full border border-white/30 hover:border-white transition-all"
-            label={"FOLLOW CREATOR"}
-          />
+      <div className="bg-gradient-to-t from-black/95 via-black/70 to-transparent p-4 rounded-b-xl">
+        <motion.h3 
+          className="text-white text-lg font-bold text-center tracking-tight"
+          initial={{ y: 10, opacity: 0.9 }}
+          animate={{ 
+            y: isHovered ? 0 : 10,
+            opacity: isHovered ? 1 : 0.9
+          }}
+          transition={{ duration: 0.3 }}
+        >
+          {title}
+        </motion.h3>
+        
+        <div className="flex justify-center mt-3">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <Button
+              onClick={() => window.open(link, '_blank')}
+              className="text-white bg-transparent hover:bg-white hover:text-black text-sm font-medium px-5 py-2 rounded-full border border-white/50 hover:border-white transition-all duration-300 shadow-lg hover:shadow-white/30 relative overflow-hidden group" 
+              label={"FOLLOW CREATOR"}            
+            />
+          </motion.div>
         </div>
       </div>
     </motion.div>
   );
-};
+}
 
 export default function Art() {
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -121,7 +198,7 @@ export default function Art() {
     <>
       <Head>
         <title>Pedro | Meme Gallery</title>
-        <meta name="description" content="Explore meme from the Pedro community" />
+        <meta name="description" content="Explore memes from the Pedro community" />
         <meta property="og:image" content="/pedro-social-preview.jpg" />
       </Head>
 
@@ -140,7 +217,7 @@ export default function Art() {
         </div>
 
         <div className="relative z-10">
-          <section className="flex items-center justify-center py-7 text-center relative overflow-hidden">
+          <section className="flex items-center justify-center py-12 text-center relative overflow-hidden">
             <motion.div
               initial={{ opacity: 0, y: -50 }}
               animate={{ opacity: 1, y: 0 }}
@@ -148,7 +225,7 @@ export default function Art() {
               className="px-6 max-w-4xl relative z-10"
             >
               <motion.h1
-                className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-white"
+                className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
@@ -164,18 +241,18 @@ export default function Art() {
             </motion.div>
           </section>
 
-          <section className="relative py-5 px-6 mx-auto" ref={galleryRef}>
+          <section className="relative py-8 px-6 mx-auto max-w-7xl" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="show"
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
             >
               {images.map((image, index) => (
                 <Card 
                   key={index}
                   imageUrl={image.url} 
-                  title={image.title} 
+                  title={image.title}
                   link={image.link}
                   index={index}
                 />

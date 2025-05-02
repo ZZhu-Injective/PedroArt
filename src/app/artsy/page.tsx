@@ -8,46 +8,44 @@ import Button from '@/components/basic_button';
 interface GalleryImage {
   url: string;
   title: string;
-  description: string;
   link: string;
 }
 
 interface CardProps {
   imageUrl: string;
   title: string;
-  description: string;
   link: string;
   index: number;
 }
 
 const images: GalleryImage[] = [
-  { url: 'fan28.jpg', title: 'zar_batyshka', description: 'Made By zar_batyshka', link: 'https://x.com/zar_batyshka' },
-  { url: 'fan27.jpg', title: 'zar_batyshka', description: 'Made By zar_batyshka', link: 'https://x.com/zar_batyshka' },
-  { url: 'fan26.jpg', title: 'the_crannberry', description: 'Made By the_crannberry', link: 'https://x.com/the_crannberry' },
-  { url: 'fan25.jpg', title: 'MahmoudH0110', description: 'Made By MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan24.jpg', title: 'felixx_78', description: 'Made By felixx_78', link: 'https://x.com/felixx_78' },
-  { url: 'fan23.jpg', title: 'OttyUbINJ', description: 'Made By OttyUbINJ', link: 'https://x.com/OttyUbINJ' },
-  { url: 'fan22.jpg', title: 'mimie_jayzz', description: 'Made By mimie_jayzz', link: 'https://x.com/mimie_jayzz' },
-  { url: 'fan21.jpg', title: 'Mary_Inj', description: 'Made By Mary_Inj', link: 'https://x.com/Mary_Inj' },
-  { url: 'fan20.jpg', title: 'pokoInj', description: 'Made By pokoInj', link: 'https://x.com/Poko120141' },
-  { url: 'fan19.jpg', title: 'NomberFax.inj', description: 'Made By NomberFax.inj', link: 'https://x.com/NomberFax' },
-  { url: 'fan18.jpg', title: 'Mary_Inj', description: 'Made By Mary_Inj', link: 'https://x.com/Mary_Inj' },
-  { url: 'fan17.jpg', title: 'ShiviXBT', description: 'Made By ShiviXBT', link: 'https://x.com/ShiviXBT' },
-  { url: 'fan16.jpg', title: 'Adam42931', description: 'Made By Adam42931', link: 'https://x.com/Adam42931' },
-  { url: 'fan15.jpg', title: 'OttyUbINJ', description: 'Made By OttyUbINJ', link: 'https://x.com/OttyUbINJ' },
-  { url: 'fan14.jpg', title: 'Meowza', description: 'Made By Meowza', link: 'https://x.com/Meowzakie' },
-  { url: 'fan1.jpg', title: 'OttyUbINJ', description: 'Made By OttyUbINJ', link: 'https://x.com/OttyUbINJ' },
-  { url: 'fan2.jpg', title: 'Amster', description: 'Made By Amster', link: 'https://x.com/amstar_art' },
-  { url: 'fan3.jpg', title: 'mimie_jayzz', description: 'Made By mimie_jayzz', link: 'https://x.com/mimie_jayzz' },
-  { url: 'fan4.jpg', title: 'CryptoBrifif', description: 'Made By CryptoBrifif', link: 'https://x.com/CryptoBrifif' },
-  { url: 'fan5.jpg', title: 'ShiviXBT', description: 'Made By ShiviXBT', link: 'https://x.com/ShiviXBT' },
-  { url: 'fan6.jpg', title: 'ShiviXBT', description: 'Made By ShiviXBT', link: 'https://x.com/ShiviXBT' },
-  { url: 'fan7.jpg', title: 'MB Fourteen', description: 'Made By MB Fourteen', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan8.jpg', title: 'NomberFax.inj', description: 'Made By NomberFax.inj', link: 'https://x.com/NomberFax' },
-  { url: 'fan10.jpg', title: 'Dragon Knight', description: 'Made By Dragon Knight', link: 'https://x.com/AltamashKPRMR' },
-  { url: 'fan11.png', title: 'ProudlyMatthew', description: 'Made By ProudlyMatthew', link: 'https://x.com/ProudlyMatthew' },
-  { url: 'fan12.png', title: 'InjPanda', description: 'Made By InjPanda', link: 'https://x.com/InjPanda' },
-  { url: 'fan13.png', title: 'Socrates122263', description: 'Made By Socrates122263', link: 'https://x.com/Socrates122263' },
+  { url: 'fan28.jpg', title: 'zar_batyshka', link: 'https://x.com/zar_batyshka' },
+  { url: 'fan27.jpg', title: 'zar_batyshka', link: 'https://x.com/zar_batyshka' },
+  { url: 'fan26.jpg', title: 'the_crannberry', link: 'https://x.com/the_crannberry' },
+  { url: 'fan25.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
+  { url: 'fan24.jpg', title: 'felixx_78', link: 'https://x.com/felixx_78' },
+  { url: 'fan23.jpg', title: 'OttyUbINJ', link: 'https://x.com/OttyUbINJ' },
+  { url: 'fan22.jpg', title: 'mimie_jayzz', link: 'https://x.com/mimie_jayzz' },
+  { url: 'fan21.jpg', title: 'Mary_Inj', link: 'https://x.com/Mary_Inj' },
+  { url: 'fan20.jpg', title: 'pokoInj', link: 'https://x.com/Poko120141' },
+  { url: 'fan19.jpg', title: 'NomberFax.inj', link: 'https://x.com/NomberFax' },
+  { url: 'fan18.jpg', title: 'Mary_Inj', link: 'https://x.com/Mary_Inj' },
+  { url: 'fan17.jpg', title: 'ShiviXBT', link: 'https://x.com/ShiviXBT' },
+  { url: 'fan16.jpg', title: 'Adam42931', link: 'https://x.com/Adam42931' },
+  { url: 'fan15.jpg', title: 'OttyUbINJ', link: 'https://x.com/OttyUbINJ' },
+  { url: 'fan14.jpg', title: 'Meowza', link: 'https://x.com/Meowzakie' },
+  { url: 'fan1.jpg', title: 'OttyUbINJ', link: 'https://x.com/OttyUbINJ' },
+  { url: 'fan2.jpg', title: 'Amster', link: 'https://x.com/amstar_art' },
+  { url: 'fan3.jpg', title: 'mimie_jayzz', link: 'https://x.com/mimie_jayzz' },
+  { url: 'fan4.jpg', title: 'CryptoBrifif', link: 'https://x.com/CryptoBrifif' },
+  { url: 'fan5.jpg', title: 'ShiviXBT', link: 'https://x.com/ShiviXBT' },
+  { url: 'fan6.jpg', title: 'ShiviXBT', link: 'https://x.com/ShiviXBT' },
+  { url: 'fan7.jpg', title: 'MB Fourteen', link: 'https://x.com/MahmoudH0110' },
+  { url: 'fan8.jpg', title: 'NomberFax.inj', link: 'https://x.com/NomberFax' },
+  { url: 'fan10.jpg', title: 'Dragon Knight', link: 'https://x.com/AltamashKPRMR' },
+  { url: 'fan11.png', title: 'ProudlyMatthew', link: 'https://x.com/ProudlyMatthew' },
+  { url: 'fan12.png', title: 'InjPanda', link: 'https://x.com/InjPanda' },
+  { url: 'fan13.png', title: 'Socrates122263', link: 'https://x.com/Socrates122263' },
 ];
 
 const containerVariants = {
@@ -65,8 +63,20 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80 } },
 };
 
-const Card = ({ imageUrl, title, description, link, index }: CardProps) => {
+const Card = ({ imageUrl, title, link, index }: CardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      setMousePosition({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+    }
+  };
 
   return (
     <motion.div
@@ -74,17 +84,65 @@ const Card = ({ imageUrl, title, description, link, index }: CardProps) => {
       variants={itemVariants}
       initial={{ opacity: 0.6 }}
       whileHover={{ 
-        scale: 1.05, 
+        scale: 1.08,
         zIndex: 10,
         opacity: 1,
-        backgroundColor: 'rgba(171, 170, 170, 0)'
       }}
-      whileTap={{ scale: 0.98 }}
+      whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      className="group relative overflow-hidden rounded-lg bg-black/20 shadow-lg hover:shadow-xl hover:shadow-white/10 transition-all duration-300 backdrop-blur-sm"
+      className="group relative overflow-hidden rounded-2xl bg-black/20 shadow-2xl hover:shadow-white/20 transition-all duration-500 backdrop-blur-sm border border-white/10 hover:border-white/30"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onMouseMove={handleMouseMove}
     >
-      <div className="absolute inset-0 border-2 border-white/20 group-hover:border-white/50 transition-all duration-500 z-20 pointer-events-none rounded-lg" />
-      <div className="relative w-full aspect-square overflow-hidden rounded-lg">
+      {/* Glow effect */}
+      <motion.div 
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        animate={{
+          background: isHovered 
+            ? `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.15), transparent 70%)`
+            : 'transparent'
+        }}
+      />
+      
+      {/* Animated border */}
+      <div className="absolute inset-0 border-2 border-transparent group-hover:border-white/40 transition-all duration-500 z-20 pointer-events-none rounded-2xl" />
+      
+      {/* Floating particles */}
+      {isHovered && (
+        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+          {[...Array(12)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute bg-white rounded-full"
+              initial={{
+                opacity: 0,
+                scale: 0,
+                x: Math.random() * 100,
+                y: Math.random() * 100,
+              }}
+              animate={{
+                opacity: [0, 0.8, 0],
+                scale: [0, 0.5 + Math.random() * 0.5, 0],
+                x: Math.random() * 100,
+                y: Math.random() * 100,
+              }}
+              transition={{
+                duration: 1.5 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 0.5,
+                ease: "easeOut"
+              }}
+              style={{
+                width: `${1 + Math.random() * 4}px`,
+                height: `${1 + Math.random() * 4}px`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+      
+      <div className="relative w-full aspect-square overflow-hidden rounded-t-2xl">
         <Image 
           src={`/${imageUrl}`}
           alt={title}
@@ -93,18 +151,58 @@ const Card = ({ imageUrl, title, description, link, index }: CardProps) => {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={index < 6}
         />
+        
+        {/* Image overlay effect */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        
+        {/* Subtle scanlines effect */}
+        <div className="absolute inset-0 bg-[url('/scanlines.png')] opacity-5 mix-blend-overlay" />
       </div>
       
-      <div className="bg-gradient-to-t from-black/70 via-black/50 to-transparent p-4 rounded-b-lg">
-        <h3 className="text-white text-lg font-bold mb-3 text-center">{title}</h3>
-        <div className="flex justify-center">
-          <Button
-            onClick={() => window.open(link, '_blank')}
-            className="text-white bg-transparent hover:bg-white hover:text-black text-sm font-medium px-5 py-2 rounded-full border border-white/50 hover:border-white transition-all duration-300 shadow-md hover:shadow-white/20" 
-            label={"FOLLOW ARTIST"}
-          />
+      <div className="bg-gradient-to-t from-black/95 via-black/70 to-transparent p-5 rounded-b-2xl">
+        <motion.h3 
+          className="text-white text-xl font-bold text-center tracking-tight"
+          initial={{ y: 10, opacity: 0.9 }}
+          animate={{ 
+            y: isHovered ? 0 : 10,
+            opacity: isHovered ? 1 : 0.9
+          }}
+          transition={{ duration: 0.3 }}
+        >
+          {title}
+        </motion.h3>
+        
+        <div className="flex justify-center mt-4">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <Button
+              onClick={() => window.open(link, '_blank')}
+              className="text-white bg-transparent hover:bg-white hover:text-black text-sm font-medium px-6 py-2.5 rounded-full border border-white/50 hover:border-white transition-all duration-300 shadow-lg hover:shadow-white/30 relative overflow-hidden group" 
+              label={"FOLLOW ARTIST"}            
+            />
+          </motion.div>
         </div>
       </div>
+      
+      {/* Subtle parallax effect */}
+      <motion.div 
+        className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none"
+        animate={{
+          x: isHovered ? mousePosition.x * 0.03 : 0,
+          y: isHovered ? mousePosition.y * 0.03 : 0,
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      >
+        <Image 
+          src={`/${imageUrl}`}
+          alt={title}
+          fill
+          className="object-cover blur-[2px] opacity-0 group-hover:opacity-20 scale-110"
+        />
+      </motion.div>
     </motion.div>
   );
 };
@@ -158,7 +256,7 @@ export default function Art() {
         </div>
 
         <div className="relative z-10">
-          <section className="flex items-center justify-center py-7 text-center relative overflow-hidden">
+          <section className="flex items-center justify-center py-12 text-center relative overflow-hidden">
             <motion.div
               initial={{ opacity: 0, y: -50 }}
               animate={{ opacity: 1, y: 0 }}
@@ -166,7 +264,7 @@ export default function Art() {
               className="px-6 max-w-4xl relative z-10"
             >
               <motion.h1
-                className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-white"
+                className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
@@ -182,19 +280,18 @@ export default function Art() {
             </motion.div>
           </section>
 
-          <section className="relative py-5 px-6 mx-auto" ref={galleryRef}>
+          <section className="relative py-8 px-6 mx-auto max-w-7xl" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="show"
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
             >
               {images.map((image, index) => (
                 <Card 
                   key={index}
                   imageUrl={image.url} 
-                  title={image.title} 
-                  description={image.description}
+                  title={image.title}
                   link={image.link}
                   index={index}
                 />

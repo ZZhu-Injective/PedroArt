@@ -7,10 +7,13 @@ import { motion } from 'framer-motion';
 export default function AltHomePage() {
   const artImages = Array.from({ length: 12 }, (_, i) => `/Pedro${i + 1}.png`);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [typingComplete, setTypingComplete] = useState(false);
 
   const handleMouseMove = (e: { clientX: any; clientY: any; }) => {
     setMousePosition({ x: e.clientX, y: e.clientY });
   };
+
+  const textToType = "This is a sacred space where we celebrate our $PEDRO artists, meme creators, and NFT visionaries. A permanent digital gallery showcasing their work for all time. Together we'll light the creative spark and elevate each other's art to new heights.";
 
   return (
     <>
@@ -94,6 +97,48 @@ export default function AltHomePage() {
           </motion.div>
         </section>
 
+        <section className="relative py-64 px-6 max-w-4xl mx-auto z-10">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true, margin: "-100px" }}
+            className="mb-64"
+          >
+            <h2 className="text-3xl md:text-5xl text-center font-bold tracking-tighter mb-12">
+              <span className="text-white bg-clip-text bg-gradient-to-r">CREATOR SANCTUARY</span>
+            </h2>
+            
+            <motion.div 
+              className="text-xl md:text-2xl leading-relaxed text-center text-gray-300 font-light"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 1 }}
+              viewport={{ once: true }}
+            >
+              <TypingText 
+                text={textToType} 
+                speed={20} 
+                onComplete={() => setTypingComplete(true)}
+              />
+              
+              {typingComplete && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5, duration: 0.8 }}
+                  className="mt-12"
+                >
+                  <div className="h-px w-48 mx-auto bg-gradient-to-r from-transparent via-gray-500 to-transparent my-8" />
+                  <p className="text-lg italic opacity-70">
+                    Eternal recognition for creators
+                  </p>
+                </motion.div>
+              )}
+            </motion.div>
+          </motion.div>
+        </section>
+
         <section className="relative py-24 px-6 max-w-7xl mx-auto z-10">
           <motion.div
             initial={{ opacity: 0 }}
@@ -140,3 +185,35 @@ export default function AltHomePage() {
     </>
   );
 }
+
+// TypingText component for the typing animation
+const TypingText = ({ text, speed, onComplete }: { text: string; speed: number; onComplete: () => void }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (currentIndex < text.length) {
+      const timeout = setTimeout(() => {
+        setDisplayedText(prev => prev + text[currentIndex]);
+        setCurrentIndex(prev => prev + 1);
+      }, speed);
+
+      return () => clearTimeout(timeout);
+    } else {
+      onComplete();
+    }
+  }, [currentIndex, text, speed, onComplete]);
+
+  return (
+    <div className="typing-text">
+      {displayedText}
+      <motion.span
+        animate={{ opacity: [0, 1, 0] }}
+        transition={{ repeat: Infinity, duration: 0.8 }}
+        className="ml-1"
+      >
+        |
+      </motion.span>
+    </div>
+  );
+};
