@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
 import Image from "next/image";
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Button from '@/components/basic_button';
 
 interface GalleryImage {
@@ -19,17 +19,17 @@ interface CardProps {
 }
 
 const images: GalleryImage[] = [
-  { url: 'meme2.jpg', title: 'zar_batyshka', link: 'https://x.com/MahmoudH0110' },
-  { url: 'meme3.jpg', title: 'zar_batyshka',  link: 'https://x.com/felixx_78' },
-  { url: 'meme4.jpg', title: 'zar_batyshka', link: 'https://x.com/the_crannberry' },
-  { url: 'meme5.jpg', title: 'zar_batyshka', link: 'https://x.com/MahmoudH0110' },
-  { url: 'meme6.jpg', title: 'zar_batyshka', link: 'https://x.com/felixx_78' },
-  { url: 'meme7.jpg', title: 'zar_batyshka', link: 'https://x.com/the_crannberry' },
-  { url: 'meme8.jpg', title: 'zar_batyshka', link: 'https://x.com/MahmoudH0110' },
-  { url: 'meme9.jpg', title: 'zar_batyshka', link: 'https://x.com/felixx_78' },
-  { url: 'meme10.jpg', title: 'zar_batyshka', link: 'https://x.com/the_crannberry' },
-  { url: 'meme11.jpg', title: 'zar_batyshka',  link: 'https://x.com/MahmoudH0110' },
-  { url: 'meme12.jpg', title: 'zar_batyshka', link: 'https://x.com/felixx_78' },
+  { url: 'meme2.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
+  { url: 'meme3.jpg', title: 'felixx_78', link: 'https://x.com/felixx_78' },
+  { url: 'meme4.jpg', title: 'the_crannberry', link: 'https://x.com/the_crannberry' },
+  { url: 'meme5.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
+  { url: 'meme6.jpg', title: 'felixx_78', link: 'https://x.com/felixx_78' },
+  { url: 'meme7.jpg', title: 'the_crannberry', link: 'https://x.com/the_crannberry' },
+  { url: 'meme8.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
+  { url: 'meme9.jpg', title: 'felixx_78', link: 'https://x.com/felixx_78' },
+  { url: 'meme10.jpg', title: 'the_crannberry', link: 'https://x.com/the_crannberry' },
+  { url: 'meme11.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
+  { url: 'meme12.jpg', title: 'felixx_78', link: 'https://x.com/felixx_78' },
 ];
 
 const containerVariants = {
@@ -47,7 +47,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80 } },
 };
 
-const Card = ({ imageUrl, link, title, index }: CardProps) => {
+const Card = ({ imageUrl, title, link, index }: CardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -66,15 +66,15 @@ const Card = ({ imageUrl, link, title, index }: CardProps) => {
     <motion.div
       ref={cardRef}
       variants={itemVariants}
-      initial={{ opacity: 0.8 }}
+      initial={{ opacity: 0.6 }}
       whileHover={{ 
-        scale: 1.05, 
+        scale: 1.08,
         zIndex: 10,
         opacity: 1,
       }}
       whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      className="group relative overflow-hidden rounded-xl bg-black/20 shadow-2xl hover:shadow-white/20 transition-all duration-500 border border-white/10 hover:border-white/30"
+      className="group relative overflow-hidden rounded-2xl bg-black/20 shadow-2xl hover:shadow-white/20 transition-all duration-500 backdrop-blur-sm border border-white/10 hover:border-white/30 w-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onMouseMove={handleMouseMove}
@@ -89,13 +89,16 @@ const Card = ({ imageUrl, link, title, index }: CardProps) => {
         }}
       />
       
-      {/* Floating particles */}
+      {/* Animated border */}
+      <div className="absolute inset-0 border-2 border-transparent group-hover:border-white/40 transition-all duration-500 z-20 pointer-events-none rounded-2xl" />
+      
+      {/* Floating emoji particles */}
       {isHovered && (
-        <div className="absolute inset-0 overflow-hidden rounded-xl pointer-events-none">
-          {[...Array(8)].map((_, i) => (
+        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+          {['😂', '🤣', '😭', '💀', '👀', '🔥', '🎉', '🤡', '👑', '🍿'].map((emoji, i) => (
             <motion.div
               key={i}
-              className="absolute bg-white rounded-full"
+              className="absolute text-xl"
               initial={{
                 opacity: 0,
                 scale: 0,
@@ -114,16 +117,14 @@ const Card = ({ imageUrl, link, title, index }: CardProps) => {
                 delay: Math.random() * 0.5,
                 ease: "easeOut"
               }}
-              style={{
-                width: `${1 + Math.random() * 3}px`,
-                height: `${1 + Math.random() * 3}px`,
-              }}
-            />
+            >
+              {emoji}
+            </motion.div>
           ))}
         </div>
       )}
       
-      <div className="relative w-full aspect-square overflow-hidden rounded-t-xl">
+      <div className="relative w-full aspect-square overflow-hidden rounded-t-2xl">
         <Image 
           src={`/${imageUrl}`}
           alt={title}
@@ -135,11 +136,14 @@ const Card = ({ imageUrl, link, title, index }: CardProps) => {
         
         {/* Image overlay effect */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        
+        {/* Subtle scanlines effect */}
+        <div className="absolute inset-0 bg-[url('/scanlines.png')] opacity-5 mix-blend-overlay" />
       </div>
       
-      <div className="bg-gradient-to-t from-black/95 via-black/70 to-transparent p-4 rounded-b-xl">
+      <div className="bg-gradient-to-t from-black/95 via-black/70 to-transparent p-5 rounded-b-2xl">
         <motion.h3 
-          className="text-white text-lg font-bold text-center tracking-tight"
+          className="text-white text-xl font-bold text-center tracking-tight"
           initial={{ y: 10, opacity: 0.9 }}
           animate={{ 
             y: isHovered ? 0 : 10,
@@ -150,7 +154,7 @@ const Card = ({ imageUrl, link, title, index }: CardProps) => {
           {title}
         </motion.h3>
         
-        <div className="flex justify-center mt-3">
+        <div className="flex justify-center mt-4">
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -158,17 +162,34 @@ const Card = ({ imageUrl, link, title, index }: CardProps) => {
           >
             <Button
               onClick={() => window.open(link, '_blank')}
-              className="text-white bg-transparent hover:bg-white hover:text-black text-sm font-medium px-5 py-2 rounded-full border border-white/50 hover:border-white transition-all duration-300 shadow-lg hover:shadow-white/30 relative overflow-hidden group" 
+              className="text-white bg-transparent hover:bg-white hover:text-black text-sm font-medium px-6 py-2.5 rounded-full border border-white/50 hover:border-white transition-all duration-300 shadow-lg hover:shadow-white/30 relative overflow-hidden group" 
               label={"FOLLOW CREATOR"}            
             />
           </motion.div>
         </div>
       </div>
+      
+      {/* Subtle parallax effect */}
+      <motion.div 
+        className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none"
+        animate={{
+          x: isHovered ? mousePosition.x * 0.03 : 0,
+          y: isHovered ? mousePosition.y * 0.03 : 0,
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      >
+        <Image 
+          src={`/${imageUrl}`}
+          alt={title}
+          fill
+          className="object-cover blur-[2px] opacity-0 group-hover:opacity-20 scale-110"
+        />
+      </motion.div>
     </motion.div>
   );
-}
+};
 
-export default function Art() {
+export default function MemeGallery() {
   const galleryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -198,8 +219,8 @@ export default function Art() {
     <>
       <Head>
         <title>Pedro | Meme Gallery</title>
-        <meta name="description" content="Explore memes from the Pedro community" />
-        <meta property="og:image" content="/pedro-social-preview.jpg" />
+        <meta name="description" content="Explore hilarious memes from the Pedro community" />
+        <meta property="og:image" content="/pedro_logo4.png" />
       </Head>
 
       <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
@@ -241,12 +262,12 @@ export default function Art() {
             </motion.div>
           </section>
 
-          <section className="relative py-8 px-6 mx-auto max-w-7xl" ref={galleryRef}>
+          <section className="relative py-8 px-6 mx-auto max-w-[1800px]" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="show"
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-4"
             >
               {images.map((image, index) => (
                 <Card 

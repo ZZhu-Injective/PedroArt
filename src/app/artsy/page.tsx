@@ -90,7 +90,7 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
       }}
       whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      className="group relative overflow-hidden rounded-2xl bg-black/20 shadow-2xl hover:shadow-white/20 transition-all duration-500 backdrop-blur-sm border border-white/10 hover:border-white/30"
+      className="group relative overflow-hidden rounded-2xl bg-black/20 shadow-2xl hover:shadow-white/20 transition-all duration-500 backdrop-blur-sm border border-white/10 hover:border-white/30 w-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onMouseMove={handleMouseMove}
@@ -142,7 +142,7 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
         </div>
       )}
       
-      <div className="relative w-full aspect-square overflow-hidden rounded-t-2xl">
+      <div className="relative w-full aspect-[4/3] overflow-hidden rounded-t-2xl">
         <Image 
           src={`/${imageUrl}`}
           alt={title}
@@ -280,12 +280,12 @@ export default function Art() {
             </motion.div>
           </section>
 
-          <section className="relative py-8 px-6 mx-auto max-w-7xl" ref={galleryRef}>
+          <section className="relative py-8 px-6 mx-auto max-w-[1800px]" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="show"
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-4"
             >
               {images.map((image, index) => (
                 <Card 
