@@ -449,7 +449,7 @@ export default function ImageEditor() {
                   onClick={saveImage}
                   disabled={layers.length === 0}
                   className={`group p-2 rounded-lg flex flex-col items-center justify-center ${layers.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10 text-white'}`}
-                  title="Save"
+                  title="Download"
                 >
                   <div className={`w-8 h-8 rounded-md flex items-center justify-center ${layers.length === 0 ? 'bg-white/5' : 'bg-white/10 group-hover:bg-white/20'}`}>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" viewBox="0 0 24 24" stroke="currentColor">
@@ -538,14 +538,14 @@ export default function ImageEditor() {
                     onClick={saveImage}
                     disabled={layers.length === 0}
                     className={`group p-3 rounded-xl flex flex-col items-center justify-center ${layers.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10 text-white'} transition-colors duration-200`}
-                    title="Save"
+                    title="Download"
                   >
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${layers.length === 0 ? 'bg-white/5' : 'bg-white/10 group-hover:bg-white/20'} transition-colors duration-200`}>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                       </svg>
                     </div>
-                    <span className="text-xs mt-1 hidden lg:block">Save</span>
+                    <span className="text-xs mt-1 hidden lg:block">Download</span>
                   </button>
 
                   <button

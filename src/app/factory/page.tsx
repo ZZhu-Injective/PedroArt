@@ -162,6 +162,21 @@ export default function NFTCreator() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [imagesLoaded, setImagesLoaded] = useState(false);
 
+  const generateRandomCombination = () => {
+    return {
+      eyes: Math.floor(Math.random() * (elements.eyes.length - 1)) + 1,
+      outfit: Math.floor(Math.random() * (elements.outfit.length - 1)) + 1,
+      hat: Math.floor(Math.random() * (elements.hat.length - 1)) + 1,
+      accessory: Math.floor(Math.random() * (elements.accessory.length - 1)) + 1,
+      mouth: Math.floor(Math.random() * (elements.mouth.length - 1)) + 1,
+      backgroundColor: Math.floor(Math.random() * backgroundColors.length)
+    };
+  };
+
+  const [randomCombinations, setRandomCombinations] = useState(() => 
+    Array(10).fill(0).map(() => generateRandomCombination())
+  );
+
   useEffect(() => {
     const preloadImages = async () => {
       const imageUrls = [
@@ -296,7 +311,7 @@ export default function NFTCreator() {
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}
                 animate={{ opacity: 1, scaleX: 1 }}
-                transition={{ delay: 0.6, duration: 1.2, ease: "circOut" }}
+                transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
                 className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent"
               />
             </motion.div>
@@ -305,6 +320,24 @@ export default function NFTCreator() {
           <div className="max-w-7xl mx-auto p-4 md:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="flex flex-col gap-4 order-1 lg:order-none">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-black/70 backdrop-blur-sm p-4 rounded-lg border border-white/20 shadow-lg"
+                >
+                  <h3 className="text-lg font-bold text-white mb-2">How This Works</h3>
+                  <div className="space-y-2 text-sm text-white/80">
+                    <p>1. Select a category (Background, Eyes, Outfit, etc.)</p>
+                    <p>2. Choose from the available options</p>
+                    <p>3. Mix and match different elements</p>
+                    <p>4. Click "Download Image" when ready</p>
+                    <p className="pt-2 text-xs text-white/50">
+                      All images are free to use for personal use.
+                    </p>
+                  </div>
+                </motion.div>
+
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -482,6 +515,52 @@ export default function NFTCreator() {
                       </div>
                     </>
                   )}
+
+                  <div className="mt-6">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-lg font-semibold text-white">Combinations</h3>
+                      <button
+                        onClick={() => {
+                          const newCombinations = Array(10).fill(0).map(() => generateRandomCombination());
+                          setRandomCombinations(newCombinations);
+                        }}
+                        className="px-3 py-1 text-sm text-black hover:text-white bg-white hover:bg-black rounded-full"
+                      >
+                        Random
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                      {randomCombinations.map((combo, index) => (
+                        <div 
+                          key={index}
+                          className="relative group cursor-pointer"
+                          onClick={() => setSelectedElements(combo)}
+                        >
+                          <div 
+                            className="aspect-square rounded-lg overflow-hidden border-2 border-white/20"
+                            style={{
+                              backgroundColor: backgroundColors[combo.backgroundColor].value.startsWith('linear-gradient') 
+                                ? '#00000000'
+                                : backgroundColors[combo.backgroundColor].value,
+                              backgroundImage: backgroundColors[combo.backgroundColor].value.startsWith('linear-gradient') 
+                                ? backgroundColors[combo.backgroundColor].value
+                                : undefined
+                            }}
+                          >
+                            <div className="absolute inset-0">
+                              <img src="/raccoon/Raccoon.png" className="w-full h-full object-contain" />
+                            </div>
+                            {combo.eyes > 0 && <img src={elements.eyes[combo.eyes].image} className="absolute inset-0 w-full h-full object-contain" />}
+                            {combo.outfit > 0 && <img src={elements.outfit[combo.outfit].image} className="absolute inset-0 w-full h-full object-contain" />}
+                            {combo.hat > 0 && <img src={elements.hat[combo.hat].image} className="absolute inset-0 w-full h-full object-contain" />}
+                            {combo.accessory > 0 && <img src={elements.accessory[combo.accessory].image} className="absolute inset-0 w-full h-full object-contain" />}
+                            {combo.mouth > 0 && <img src={elements.mouth[combo.mouth].image} className="absolute inset-0 w-full h-full object-contain" />}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </motion.div>
 
                 <div className="lg:hidden flex justify-center items-center p-10">

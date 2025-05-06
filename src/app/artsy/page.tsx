@@ -274,7 +274,7 @@ export default function Art() {
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}
                 animate={{ opacity: 1, scaleX: 1 }}
-                transition={{ delay: 0.6, duration: 1.2, ease: "circOut" }}
+                transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
                 className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent"
               />
             </motion.div>
