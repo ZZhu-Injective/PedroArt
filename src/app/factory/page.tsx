@@ -326,7 +326,7 @@ export default function NFTCreator() {
                   transition={{ delay: 0.2 }}
                   className="bg-black/70 backdrop-blur-sm p-4 rounded-lg border border-white/20 shadow-lg"
                 >
-                  <h3 className="text-lg font-bold text-white mb-2">How This Works</h3>
+                  <h3 className="ttext-xl sm:text-2xl font-bold mb-4 sm:mb-8 text-white text-center">HOW IT WORKS</h3>
                   <div className="space-y-2 text-sm text-white/80">
                     <p>1. Select a category (Background, Eyes, Outfit, etc.)</p>
                     <p>2. Choose from the available options</p>

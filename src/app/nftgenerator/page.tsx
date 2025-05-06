@@ -442,7 +442,7 @@ export default function Art() {
 
           <div className='px-2 sm:px-0'>
             <section className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-5 bg-black/50 rounded-xl border border-white/10 mb-3 sm:mb-5">
-              <h2 className="text-xl sm:text-2xl font-bold text-center mb-2 sm:mb-3 text-white">How It Works</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-10 text-white">HOW IT WORKS</h2>
               
               <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="bg-white/5 p-3 sm:p-4 rounded-lg">
