@@ -130,7 +130,7 @@ const Navbar = () => {
               { href: "/factory", label: "CREATE" },
               { href: "/editor", label: "EDIT" },
               { href: "/nftgenerator", label: "NFT" },
-              { href: "https://pedroinjraccoon.online/", label: "MAINPAGE" },
+              { href: "https://pedroinjraccoon.online/", label: "MAIN" },
             ].map((item) => (
               <li
                 key={item.href}

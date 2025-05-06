@@ -91,13 +91,13 @@ export default function AltHomePage() {
           </motion.div>
         </section>
 
-        <section className="relative py-64 px-6 max-w-4xl mx-auto z-10">
+        <section className="relative py-32 px-6 max-w-4xl mx-auto z-10">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true, margin: "-100px" }}
-            className="mb-64"
+            className="mb-32"
           >
             <h2 className="text-3xl md:text-5xl text-center font-bold tracking-tighter mb-12">
               <span className="text-white bg-clip-text bg-gradient-to-r">CREATOR SANCTUARY</span>
@@ -133,7 +133,7 @@ export default function AltHomePage() {
           </motion.div>
         </section>
 
-        <section className="relative py-64 px-6 max-w-7xl mx-auto z-10">
+        <section className="relative py-32 px-6 max-w-7xl mx-auto z-10">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -141,10 +141,10 @@ export default function AltHomePage() {
             viewport={{ once: true, margin: "-100px" }}
             className="mb-16"
           >
-            <h2 className="text-4xl md:text-6xl text-center font-bold tracking-tighter">
-              NFT <span className="text-white bg-clip-text bg-gradient-to-r">GALLERY</span>
+            <h2 className="text-3xl md:text-5xl text-center font-bold tracking-tighter mb-6">
+              <span className="text-white bg-clip-text bg-gradient-to-r">NFT TREASURY</span>
             </h2>
-            <div className="h-px w-24 mx-auto bg-gradient-to-r from-transparent via-gray-500 to-transparent mt-6" />
+            <div className="h-px w-48 mx-auto bg-gradient-to-r from-transparent via-gray-500 to-transparent" />
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
@@ -156,7 +156,7 @@ export default function AltHomePage() {
                 whileHover={{ scale: 1.03, zIndex: 10 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 viewport={{ once: true, margin: "0px 0px -100px 0px" }}
-                className="group relative overflow-hidden rounded-none" 
+                className="group relative overflow-hidden rounded-none aspect-square"
               >
                 <div className="absolute inset-0 border border-gray-600 opacity-40 group-hover:border-gray-300 group-hover:opacity-70 transition-all duration-300 z-20 pointer-events-none" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80 z-10" />
@@ -165,7 +165,7 @@ export default function AltHomePage() {
                   alt={`Pedro Art ${index + 1}`}
                   width={600}
                   height={600}
-                  className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105 relative z-0"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 relative z-0"
                   priority={index < 4}
                 />
                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30">
@@ -176,7 +176,7 @@ export default function AltHomePage() {
           </div>
         </section>
 
-        <section className="relative py-64 px-6 max-w-4xl mx-auto z-10">
+        <section className="relative py-16 md:py-32 px-4 sm:px-6 max-w-4xl mx-auto z-10">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -184,12 +184,12 @@ export default function AltHomePage() {
             viewport={{ once: true, margin: "-100px" }}
             className="text-center"
           >
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-8">
-              JOIN THE <span className="text-white bg-clip-text bg-gradient-to-r">PEDRO MOVEMENT</span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter mb-6 md:mb-8">
+              JOIN TODAY <span className="text-white bg-clip-text bg-gradient-to-r">PEDRO MOVEMENT</span>
             </h2>
             
             <motion.p 
-              className="text-xl md:text-2xl opacity-80 mb-12 leading-relaxed"
+              className="text-lg sm:text-xl md:text-2xl opacity-80 mb-8 md:mb-12 leading-relaxed"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 0.8 }}
               transition={{ delay: 0.2, duration: 0.8 }}
@@ -197,9 +197,11 @@ export default function AltHomePage() {
             >
               Become part of our growing community on Injective.
             </motion.p>
-            
+
+            <div className="h-px w-48 mx-auto bg-gradient-to-r from-transparent via-gray-500 to-transparent my-8" />
+
             <motion.div
-              className="flex flex-col sm:flex-row justify-center gap-4"
+              className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
@@ -213,7 +215,7 @@ export default function AltHomePage() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <button className="px-8 py-3 border-2 border-gray-400 bg-transparent text-gray-300 text-lg font-mono hover:bg-white hover:text-black hover:border-white transition-all duration-300 w-full sm:w-auto">
+                <button className="px-6 sm:px-8 py-2 sm:py-3 border-2 border-gray-400 bg-transparent text-gray-300 text-base sm:text-lg font-mono hover:bg-white hover:text-black hover:border-white transition-all duration-300">
                   BUY NFT
                 </button>
               </motion.a>
