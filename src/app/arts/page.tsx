@@ -19,6 +19,8 @@ interface CardProps {
 }
 
 const images: GalleryImage[] = [
+  { url: 'fan31.jpg', title: 'Adam42931', link: 'https://x.com/Adam42931' },
+  { url: 'fan29.jpg', title: 'Adam42931', link: 'https://x.com/Adam42931' },
   { url: 'fan28.jpg', title: 'zar_batyshka', link: 'https://x.com/zar_batyshka' },
   { url: 'fan27.jpg', title: 'zar_batyshka', link: 'https://x.com/zar_batyshka' },
   { url: 'fan26.jpg', title: 'the_crannberry', link: 'https://x.com/the_crannberry' },
@@ -95,7 +97,6 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
       onMouseLeave={() => setIsHovered(false)}
       onMouseMove={handleMouseMove}
     >
-      {/* Glow effect */}
       <motion.div 
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         animate={{
@@ -105,10 +106,8 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
         }}
       />
       
-      {/* Animated border */}
       <div className="absolute inset-0 border-2 border-transparent group-hover:border-white/40 transition-all duration-500 z-20 pointer-events-none rounded-2xl" />
       
-      {/* Floating particles */}
       {isHovered && (
         <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
           {[...Array(12)].map((_, i) => (
@@ -152,11 +151,7 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
           priority={index < 6}
         />
         
-        {/* Image overlay effect */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        
-        {/* Subtle scanlines effect */}
-        <div className="absolute inset-0 bg-[url('/scanlines.png')] opacity-5 mix-blend-overlay" />
       </div>
       
       <div className="bg-gradient-to-t from-black/95 via-black/70 to-transparent p-5 rounded-b-2xl">
@@ -187,7 +182,6 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
         </div>
       </div>
       
-      {/* Subtle parallax effect */}
       <motion.div 
         className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none"
         animate={{

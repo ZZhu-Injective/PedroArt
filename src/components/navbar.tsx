@@ -125,11 +125,11 @@ const Navbar = () => {
 
           <ul className="flex flex-col gap-4 mx-auto lg:gap-6 xl:gap-5 text-neutral-950 items-center mt-20 lg:mt-0 lg:flex-row">
             {[
-              { href: "/artsy", label: "ART" },
-              { href: "/memezone", label: "MEME" },
-              { href: "/factory", label: "FACTORY" },
+              { href: "/arts", label: "ART" },
+              { href: "/meme", label: "MEME" },
+              { href: "/factory", label: "CREATE" },
               { href: "/editor", label: "EDIT" },
-              { href: "/nftgen", label: "NFT" },
+              { href: "/nftgenerator", label: "NFT" },
               { href: "https://pedroinjraccoon.online/", label: "MAINPAGE" },
             ].map((item) => (
               <li

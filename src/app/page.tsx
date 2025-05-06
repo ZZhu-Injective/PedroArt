@@ -6,12 +6,7 @@ import { motion } from 'framer-motion';
 
 export default function AltHomePage() {
   const artImages = Array.from({ length: 12 }, (_, i) => `/Pedro${i + 1}.png`);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [typingComplete, setTypingComplete] = useState(false);
-
-  const handleMouseMove = (e: { clientX: any; clientY: any; }) => {
-    setMousePosition({ x: e.clientX, y: e.clientY });
-  };
 
   const textToType = "This is a sacred space where we celebrate our $PEDRO artists, meme creators, and NFT visionaries. A permanent digital gallery showcasing their work for all time. Together we'll light the creative spark and elevate each other's art to new heights.";
 
@@ -24,7 +19,6 @@ export default function AltHomePage() {
 
       <div 
         className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black"
-        onMouseMove={handleMouseMove}
       >
         <div className="fixed inset-0 overflow-hidden">
           <div className="absolute inset-0 bg-black opacity-10" />
@@ -139,7 +133,7 @@ export default function AltHomePage() {
           </motion.div>
         </section>
 
-        <section className="relative py-24 px-6 max-w-7xl mx-auto z-10">
+        <section className="relative py-64 px-6 max-w-7xl mx-auto z-10">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -181,12 +175,56 @@ export default function AltHomePage() {
             ))}
           </div>
         </section>
+
+        <section className="relative py-64 px-6 max-w-4xl mx-auto z-10">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true, margin: "-100px" }}
+            className="text-center"
+          >
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-8">
+              JOIN THE <span className="text-white bg-clip-text bg-gradient-to-r">PEDRO MOVEMENT</span>
+            </h2>
+            
+            <motion.p 
+              className="text-xl md:text-2xl opacity-80 mb-12 leading-relaxed"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 0.8 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              Become part of our growing community on Injective.
+            </motion.p>
+            
+            <motion.div
+              className="flex flex-col sm:flex-row justify-center gap-4"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              viewport={{ once: true }}
+            >
+              <motion.a
+                href="https://injective.talis.art/collection/67abd09e5bb1ebd34c3f2585"
+                className="inline-block"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <button className="px-8 py-3 border-2 border-gray-400 bg-transparent text-gray-300 text-lg font-mono hover:bg-white hover:text-black hover:border-white transition-all duration-300 w-full sm:w-auto">
+                  BUY NFT
+                </button>
+              </motion.a>
+            </motion.div>
+          </motion.div>
+        </section>
       </div>
     </>
   );
 }
 
-// TypingText component for the typing animation
 const TypingText = ({ text, speed, onComplete }: { text: string; speed: number; onComplete: () => void }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
