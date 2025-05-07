@@ -465,7 +465,7 @@ export default function ImageEditor() {
                 className="px-6 max-w-4xl relative z-10"
               >
                 <motion.h1
-                  className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
+                  className="text-5xl md:text-7xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.8 }}
@@ -481,8 +481,8 @@ export default function ImageEditor() {
               </motion.div>
           </section>
 
-          <div className='px-2 sm:px-0'>
-            <section className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-5 bg-black/50 rounded-xl border border-white/10 mb-3 sm:mb-5">
+          <div className='py-12 mx-auto max-w-[1800px] px-6'>
+            <section className="px-3 sm:px-6 py-3 sm:py-5 bg-black/50 rounded-xl border border-white/10 mb-3 sm:mb-5">
               <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-10 text-white">HOW IT WORKS</h2>
               
               <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
@@ -537,7 +537,7 @@ export default function ImageEditor() {
             </section>
           </div>
           
-          <div className="max-w-7xl mx-auto pb-10 px-[10px] sm:px-0">
+          <div className="max-w-[1800px] mx-auto pb-10 px-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="bg-black/50 p-2 rounded-xl border border-white/10 shadow-lg w-full md:w-20 lg:w-24 transition-all duration-200 backdrop-blur-sm">
                 <div className="flex md:hidden items-center justify-between space-x-2 overflow-x-auto py-1">
