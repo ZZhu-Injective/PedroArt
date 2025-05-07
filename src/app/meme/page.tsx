@@ -92,10 +92,10 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
       
       {isHovered && (
         <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-          {['😂', '🤣', '😭', '💀', '👀', '🔥', '🎉', '🤡', '👑', '🍿'].map((emoji, i) => (
+          {[...Array(12)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute text-xl"
+              className="absolute bg-white rounded-full"
               initial={{
                 opacity: 0,
                 scale: 0,
@@ -114,14 +114,16 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
                 delay: Math.random() * 0.5,
                 ease: "easeOut"
               }}
-            >
-              {emoji}
-            </motion.div>
+              style={{
+                width: `${1 + Math.random() * 4}px`,
+                height: `${1 + Math.random() * 4}px`,
+              }}
+            />
           ))}
         </div>
       )}
       
-      <div className="relative w-full aspect-square overflow-hidden rounded-t-2xl">
+      <div className="relative w-full aspect-[4/3] overflow-hidden rounded-t-2xl">
         <Image 
           src={`/${imageUrl}`}
           alt={title}
@@ -238,7 +240,7 @@ export default function MemeGallery() {
               className="px-6 max-w-4xl relative z-10"
             >
               <motion.h1
-                className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
+                className="text-5xl md:text-7xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
@@ -254,7 +256,7 @@ export default function MemeGallery() {
             </motion.div>
           </section>
 
-          <section className="relative py-8 px-6 mx-auto max-w-[1800px]" ref={galleryRef}>
+          <section className="relative py-12 px-6 mx-auto max-w-[1800px]" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
               initial="hidden"

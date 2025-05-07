@@ -174,7 +174,7 @@ export default function NFTCreator() {
   };
 
   const [randomCombinations, setRandomCombinations] = useState(() => 
-    Array(10).fill(0).map(() => generateRandomCombination())
+    Array(6).fill(0).map(() => generateRandomCombination())
   );
 
   useEffect(() => {
@@ -305,7 +305,7 @@ export default function NFTCreator() {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="px-6 max-w-4xl relative z-10"
             >
-              <motion.h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-white">
+              <motion.h1 className="text-4xl md:text-6xl font-bold mb-12 bg-clip-text text-white">
                 CREATE PEDRO
               </motion.h1>
               <motion.div
@@ -317,7 +317,7 @@ export default function NFTCreator() {
             </motion.div>
           </section>
 
-          <div className="max-w-7xl mx-auto p-4 md:p-8">
+          <div className="py-12 px-6 mx-auto max-w-[1800px]">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="flex flex-col gap-4 order-1 lg:order-none">
                 <motion.div
@@ -327,15 +327,24 @@ export default function NFTCreator() {
                   className="bg-black/70 backdrop-blur-sm p-4 rounded-lg border border-white/20 shadow-lg"
                 >
                   <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-10 text-white">HOW IT WORKS</h2>
-                  <div className="space-y-2 text-sm text-white/80">
-                    <p>1. Select a category (Background, Eyes, Outfit, etc.)</p>
-                    <p>2. Choose from the available options</p>
-                    <p>3. Mix and match different elements</p>
-                    <p>4. Click "Download Image" when ready</p>
-                    <p className="pt-2 text-xs text-white/50">
-                      All images are free to use for personal use.
-                    </p>
-                  </div>
+                  <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-white/80">
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span><strong>Category</strong> - Select a Background, Eyes, etc.</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span><strong>Mix and Match</strong> - Mix and Match Pedro The Raccoon</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span><strong>Download</strong> - Click "Download Image" when ready</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span><strong>Important</strong> - Pedro are free to use for personal use</span>
+                    </li>
+                  </ul>
                 </motion.div>
 
                 <motion.div 
@@ -521,7 +530,7 @@ export default function NFTCreator() {
                       <h3 className="text-lg font-semibold text-white">Combinations</h3>
                       <button
                         onClick={() => {
-                          const newCombinations = Array(10).fill(0).map(() => generateRandomCombination());
+                          const newCombinations = Array(6).fill(0).map(() => generateRandomCombination());
                           setRandomCombinations(newCombinations);
                         }}
                         className="px-3 py-1 text-sm text-black hover:text-white bg-white hover:bg-black rounded-full"
@@ -530,7 +539,7 @@ export default function NFTCreator() {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                       {randomCombinations.map((combo, index) => (
                         <div 
                           key={index}
