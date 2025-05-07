@@ -305,7 +305,7 @@ export default function NFTCreator() {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="px-6 max-w-4xl relative z-10"
             >
-              <motion.h1 className="text-4xl md:text-6xl font-bold mb-12 bg-clip-text text-white">
+              <motion.h1 className="text-4xl md:text-7xl font-bold mb-12 bg-clip-text text-white">
                 CREATE PEDRO
               </motion.h1>
               <motion.div
@@ -317,14 +317,14 @@ export default function NFTCreator() {
             </motion.div>
           </section>
 
-          <div className="py-12 px-6 mx-auto max-w-[1800px]">
+          <div className="py-12 px-6 mx-auto max-w-[1500px]">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="flex flex-col gap-4 order-1 lg:order-none">
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-black/70 backdrop-blur-sm p-4 rounded-lg border border-white/20 shadow-lg"
+                  className="bg-black/70 backdrop-blur-sm p-7 rounded-lg border border-white/20 shadow-lg"
                 >
                   <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-10 text-white">HOW IT WORKS</h2>
                   <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-white/80">
@@ -417,7 +417,7 @@ export default function NFTCreator() {
                   )}
                 </motion.div>
 
-                <div className="hidden lg:flex justify-center items-center p-20">
+                <div className="hidden lg:flex justify-center items-center p-8">
                   <Button
                     onClick={downloadNFT}
                     disabled={isDownloading || !imagesLoaded}

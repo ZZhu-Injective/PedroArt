@@ -185,7 +185,7 @@ export default function AltHomePage() {
             className="text-center"
           >
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter mb-6 md:mb-8">
-              JOIN TODAY <span className="text-white bg-clip-text bg-gradient-to-r">PEDRO MOVEMENT</span>
+              JOIN TODAY <span className="text-white bg-clip-text bg-gradient-to-r">PEDRO</span>
             </h2>
             
             <motion.p 

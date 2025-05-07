@@ -465,7 +465,7 @@ export default function ImageEditor() {
                 className="px-6 max-w-4xl relative z-10"
               >
                 <motion.h1
-                  className="text-5xl md:text-7xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
+                  className="text-4xl md:text-7xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.8 }}
@@ -481,7 +481,7 @@ export default function ImageEditor() {
               </motion.div>
           </section>
 
-          <div className='py-12 mx-auto max-w-[1800px] px-6'>
+          <div className='py-12 mx-auto max-w-[1500px] px-6'>
             <section className="px-3 sm:px-6 py-3 sm:py-5 bg-black/50 rounded-xl border border-white/10 mb-3 sm:mb-5">
               <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-10 text-white">HOW IT WORKS</h2>
               
@@ -513,7 +513,7 @@ export default function ImageEditor() {
                 </div>
 
                 <div className="bg-red-500/10 p-3 sm:p-4 rounded-lg border border-yellow-500/30">
-                  <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 text-yellow-400">🎁 Monthly Contest</h3>
+                  <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 text-yellow-400">Monthly Contest</h3>
                   <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-white/90">
                     <li className="flex items-start">
                       <span className="bg-red-500/20 text-red-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✨</span>
@@ -537,7 +537,7 @@ export default function ImageEditor() {
             </section>
           </div>
           
-          <div className="max-w-[1800px] mx-auto pb-10 px-6">
+          <div className="max-w-[1500px] mx-auto pb-10 px-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="bg-black/50 p-2 rounded-xl border border-white/10 shadow-lg w-full md:w-20 lg:w-24 transition-all duration-200 backdrop-blur-sm">
                 <div className="flex md:hidden items-center justify-between space-x-2 overflow-x-auto py-1">

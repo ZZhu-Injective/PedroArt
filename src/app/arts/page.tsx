@@ -258,7 +258,7 @@ export default function Art() {
               className="px-6 max-w-4xl relative z-10"
             >
               <motion.h1
-                className="text-5xl md:text-7xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
+                className="text-4xl md:text-7xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
@@ -274,7 +274,7 @@ export default function Art() {
             </motion.div>
           </section>
 
-          <section className="relative py-12 px-6 mx-auto max-w-[1800px]" ref={galleryRef}>
+          <section className="relative py-12 px-6 mx-auto max-w-[1500px]" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
               initial="hidden"
