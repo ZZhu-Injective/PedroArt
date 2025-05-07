@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 export default function AltHomePage() {
-  const artImages = Array.from({ length: 12 }, (_, i) => `/Pedro${i + 1}.png`);
+  const artImages = Array.from({ length: 8 }, (_, i) => `/Pedro${i + 1}.png`);
   const [typingComplete, setTypingComplete] = useState(false);
 
   const textToType = "This is a sacred space where we celebrate our $PEDRO artists, meme creators, and NFT visionaries. A permanent digital gallery showcasing their work for all time. Together we'll light the creative spark and elevate each other's art to new heights.";
@@ -125,7 +125,7 @@ export default function AltHomePage() {
                 >
                   <div className="h-px w-48 mx-auto bg-gradient-to-r from-transparent via-gray-500 to-transparent my-8" />
                   <p className="text-lg italic opacity-70">
-                    Eternal recognition for creators
+                    Recognition for creators
                   </p>
                 </motion.div>
               )}
@@ -133,7 +133,7 @@ export default function AltHomePage() {
           </motion.div>
         </section>
 
-        <section className="relative py-32 px-6 max-w-7xl mx-auto z-10">
+        <section className="relative py-64 px-6 max-w-7xl mx-auto z-10">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -176,7 +176,7 @@ export default function AltHomePage() {
           </div>
         </section>
 
-        <section className="relative py-16 md:py-32 px-4 sm:px-6 max-w-4xl mx-auto z-10">
+        <section className="relative py-16 md:py-64 px-4 sm:px-6 max-w-4xl mx-auto z-10">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
