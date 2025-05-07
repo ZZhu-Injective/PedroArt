@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import Head from "next/head";
 import Image from "next/image";
 import Button from '@/components/basic_button';
+import { motion } from "framer-motion";
 
 interface Layer {
   id: string;
@@ -457,12 +458,27 @@ export default function ImageEditor() {
 
         <div className="relative z-10">
           <section className="flex items-center justify-center py-7 text-center relative overflow-hidden">
-            <div className="px-6 max-w-4xl relative z-10">
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-white">
-                EDITOR PEDRO
-              </h1>
-              <div className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent" />
-            </div>
+            <motion.div
+                initial={{ opacity: 0, y: -50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="px-6 max-w-4xl relative z-10"
+              >
+                <motion.h1
+                  className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.8 }}
+                >
+                  EDITOR GALLERY
+                </motion.h1>
+                <motion.div
+                  initial={{ opacity: 0, scaleX: 0 }}
+                  animate={{ opacity: 1, scaleX: 1 }}
+                  transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
+                  className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent"
+                />
+              </motion.div>
           </section>
 
           <div className='px-2 sm:px-0'>
