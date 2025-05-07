@@ -324,7 +324,7 @@ export default function NFTCreator() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-black/70 backdrop-blur-sm p-7 rounded-lg border border-white/20 shadow-lg"
+                  className="bg-black/50 backdrop-blur-sm p-7 rounded-lg border border-white/20 shadow-lg"
                 >
                   <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-10 text-white">HOW IT WORKS</h2>
                   <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-white/80">

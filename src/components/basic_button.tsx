@@ -1,10 +1,10 @@
 'use client';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import styled from 'styled-components';
 
 type ButtonProps = {
   onClick?: (e: React.MouseEvent) => void;
-  label: string;
+  label: ReactNode;
   className?: string;
   disabled?: boolean;
   variant?: 'flat' | 'bordered' | 'minimal';
