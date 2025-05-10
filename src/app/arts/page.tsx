@@ -154,20 +154,14 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       </div>
       
-      <div className="bg-gradient-to-t from-black/95 via-black/70 to-transparent p-5 rounded-b-2xl">
+      <div className="bg-gradient-to-t from-black/95 via-black/70 p-5 to-transparent rounded-b-2xl">
         <motion.h3 
-          className="text-white text-xl font-bold text-center tracking-tight"
-          initial={{ y: 10, opacity: 0.9 }}
-          animate={{ 
-            y: isHovered ? 0 : 10,
-            opacity: isHovered ? 1 : 0.9
-          }}
-          transition={{ duration: 0.3 }}
+          className="text-white text-xl font-bold text-center py-5 tracking-tight"
         >
           {title}
         </motion.h3>
         
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-center">
           <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -175,7 +169,7 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
           >
             <Button
               onClick={() => window.open(link, '_blank')}
-              className="text-white bg-transparent hover:bg-white hover:text-black text-sm font-medium px-6 py-2.5 rounded-full border border-white/50 hover:border-white transition-all duration-300 shadow-lg hover:shadow-white/30 relative overflow-hidden group" 
+              className="text-white bg-transparent hover:bg-white hover:text-black text-sm font-medium px-6 py-2.5 rounded-full border border-white/50 hover:border-white transition-all duration-300 relative overflow-hidden group" 
               label={"FOLLOW ARTIST"}            
             />
           </motion.div>
@@ -258,12 +252,12 @@ export default function Art() {
               className="px-6 max-w-4xl relative z-10"
             >
               <motion.h1
-                className="text-4xl md:text-7xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
+                className="text-4xl md:text-7xl font-bold mb-5 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
               >
-                ART GALLERY
+                PEDRO ART
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}
@@ -274,7 +268,7 @@ export default function Art() {
             </motion.div>
           </section>
 
-          <section className="relative py-12 px-6 mx-auto max-w-[1500px]" ref={galleryRef}>
+          <section className="relative sm:py-8 py-2 px-6 mx-auto max-w-[1500px]" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
               initial="hidden"

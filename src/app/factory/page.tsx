@@ -298,15 +298,15 @@ export default function NFTCreator() {
         </div>
 
         <div className="relative z-10">
-          <section className="flex items-center justify-center py-7 text-center relative overflow-hidden">
+          <section className="flex items-center justify-center py-12 text-center relative overflow-hidden">
             <motion.div
               initial={{ opacity: 0, y: -50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="px-6 max-w-4xl relative z-10"
             >
-              <motion.h1 className="text-4xl md:text-7xl font-bold mb-12 bg-clip-text text-white">
-                CREATE PEDRO
+              <motion.h1 className="text-4xl md:text-7xl font-bold mb-5 bg-clip-text text-white">
+                PEDRO CREATE
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}
@@ -317,7 +317,7 @@ export default function NFTCreator() {
             </motion.div>
           </section>
 
-          <div className="py-12 px-6 mx-auto max-w-[1500px]">
+          <div className="sm:py-8 py-2 px-6 mx-auto max-w-[1500px]">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="flex flex-col gap-4 order-1 lg:order-none">
                 <motion.div
