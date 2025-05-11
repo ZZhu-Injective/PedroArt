@@ -228,7 +228,7 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
                   transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
                 >
                   <h2 className="text-2xl font-bold mb-6 text-center text-white">Connect Wallet</h2>
-                  <div className="space-y-4 mb-6">
+                  <div className="space-y-4">
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}

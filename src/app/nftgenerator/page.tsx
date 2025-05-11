@@ -7,6 +7,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import WalletAuthGuard from "@/components/WalletAuthGuard";
+import { useWalletAuth } from "@/components/WalletAuthGuard";
 
 type ImageLayer = {
   file: File;
@@ -31,6 +32,7 @@ type Preview = {
 };
 
 export default function Art() {
+  const { logout, walletAddress } = useWalletAuth();
   const [layers, setLayers] = useState<Layer[]>([]);
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [batchSize, setBatchSize] = useState<number>(1);
@@ -40,6 +42,22 @@ export default function Art() {
   const [totalCombinations, setTotalCombinations] = useState<number>(0);
   const [isGeneratingZip, setIsGeneratingZip] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
+
+
+    // Enhanced logout function
+  const handleLogout = useCallback(() => {
+    // Clear local storage
+    localStorage.removeItem("connectedWalletType");
+    localStorage.removeItem("connectedWalletAddress");
+    
+    // Call context logout
+    if (logout) {
+      logout();
+    }
+    
+    // Force reload to reset all state
+    window.location.href = '/';
+  }, [logout]);
 
   useEffect(() => {
     const combinations = layers.reduce((total, layer) => {
@@ -418,21 +436,23 @@ export default function Art() {
           </div>
 
           <div className="relative z-10">
-            <section className="flex items-center justify-center py-4 sm:py-7 text-center relative overflow-hidden px-2">
+             <section className="flex items-center justify-center py-4 sm:py-7 text-center relative overflow-hidden px-2">
               <motion.div
                 initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className="px-4 sm:px-6 max-w-4xl relative z-10"
               >
-                <motion.h1
-                  className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 bg-clip-text text-white"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2, duration: 0.8 }}
-                >
-                  NFT GENERATOR
-                </motion.h1>
+                <div className="flex flex-col items-center mb-2">
+                  <motion.h1
+                    className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 bg-clip-text text-white"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 0.8 }}
+                  >
+                    NFT GENERATOR
+                  </motion.h1>
+                </div>
                 <motion.div
                   initial={{ opacity: 0, scaleX: 0 }}
                   animate={{ opacity: 1, scaleX: 1 }}
@@ -441,6 +461,36 @@ export default function Art() {
                 />
               </motion.div>
             </section>
+
+
+            <div className="flex items-center space-x-4">
+                    {walletAddress && (
+                      <span className="text-xs sm:text-sm text-gray-400 truncate max-w-[120px] sm:max-w-[200px]">
+                        {walletAddress}
+                      </span>
+                    )}
+                    <button
+                      onClick={handleLogout}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm sm:text-base transition-colors flex items-center"
+                      title="Disconnect wallet"
+                    >
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-4 w-4 mr-1" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" 
+                        />
+                      </svg>
+                      Disconnect
+                    </button>
+                  </div>
 
             <div className='px-2 sm:px-0'>
               <section className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-5 bg-black/50 rounded-xl border border-white/10 mb-3 sm:mb-5">
