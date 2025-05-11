@@ -43,20 +43,16 @@ export default function Art() {
   const [isGeneratingZip, setIsGeneratingZip] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
 
-
-    // Enhanced logout function
   const handleLogout = useCallback(() => {
-    // Clear local storage
+
     localStorage.removeItem("connectedWalletType");
     localStorage.removeItem("connectedWalletAddress");
     
-    // Call context logout
     if (logout) {
       logout();
     }
     
-    // Force reload to reset all state
-    window.location.href = '/';
+    window.location.href = '/nftgenerator';
   }, [logout]);
 
   useEffect(() => {
