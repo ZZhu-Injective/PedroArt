@@ -420,6 +420,57 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
               </div>
             </div>
           </section>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isModalOpen ? 1 : 0 }}
+            transition={{ duration: 0.2 }}
+            className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isModalOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+          >
+            {isModalOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.7 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 bg-black"
+                onClick={() => setIsModalOpen(false)}
+              />
+            )}
+
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={isModalOpen ? { scale: 1, opacity: 1, y: 0 } : { scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 400 }}
+              className="relative z-10 w-full max-w-md bg-gradient-to-br from-black to-gray-900 rounded-2xl overflow-hidden border border-white/10 shadow-xl"
+            >
+              <div className="p-6">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
+                    <span className="text-2xl">⚠️</span>
+                  </div>
+                </div>
+                
+                <h3 className="text-xl font-bold text-center text-white mb-2">Notice</h3>
+                <p className="text-gray-300 text-center mb-6">{modalMessage}</p>
+                
+                <div className="flex justify-center">
+                  <Button
+                    onClick={() => setIsModalOpen(false)}
+                    width="50%"
+                    className="rounded-lg bg-white text-black hover:bg-gray-200 font-medium transition-all duration-300"
+                    label="Got it"
+                  />
+                </div>
+              </div>
+              
+              <motion.div 
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white to-transparent"
+              />
+            </motion.div>
+          </motion.div>
         </div>
       </div>
 
@@ -450,6 +501,24 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
         @keyframes scroll {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
+        }
+
+        .modal-enter {
+          opacity: 0;
+          transform: scale(0.9) translateY(20px);
+        }
+        .modal-enter-active {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+          transition: opacity 300ms, transform 300ms;
+        }
+        .modal-exit {
+          opacity: 1;
+        }
+        .modal-exit-active {
+          opacity: 0;
+          transform: scale(0.9) translateY(20px);
+          transition: opacity 300ms, transform 300ms;
         }
       `}</style>
     </>
