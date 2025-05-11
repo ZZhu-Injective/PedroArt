@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, createContext, useContext, useRef } from "react";
 import { Window as KeplrWindow } from "@keplr-wallet/types";
-import Modal from "@/components/modal";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Button from '@/components/basic_button';
@@ -12,7 +11,6 @@ declare global {
   interface Window extends KeplrWindow {}
 }
 
-// Custom mobile detection hook
 function useMobileDetect() {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -22,14 +20,11 @@ function useMobileDetect() {
       setIsMobile(mobileQuery.matches);
     };
 
-    // Initial check
     checkIfMobile();
 
-    // Listener for changes
     const listener = () => checkIfMobile();
     window.addEventListener('resize', listener);
 
-    // Cleanup
     return () => window.removeEventListener('resize', listener);
   }, []);
 
@@ -206,9 +201,8 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </motion.div>
           </section>
 
-          <section className="relative py-16 px-6 mx-auto max-w-4xl">
+          <section className="relative sm:py-8 py-2 px-6 mx-auto max-w-7xl">
             <div className="flex items-center gap-8">
-              {/* Left decorative element */}
               <div className="hidden md:block flex-1">
                 <motion.div 
                   initial={{ opacity: 0, x: -50 }}
@@ -225,7 +219,6 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 </motion.div>
               </div>
 
-              {/* Connect Wallet Card */}
               <div className="flex-1">
                 <motion.div
                   ref={cardRef}
@@ -271,7 +264,7 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
                         onClick={() => connectWallet("leap")}
                         disabled={isLoading && activeWalletType !== "leap"}
                         width="100%"
-                        className="w-full rounded-lg text-white bg-black/50 hover:bg-white hover:text-black text-sm font-medium border border-white/50 hover:border-white transition-all duration-300 shadow-lg hover:shadow-white/30"
+                        className="w-full rounded-lg text-white bg-black/50 hover:bg-white hover:text-black text-sm font-medium border border-white/50 hover:border-white transition-all duration-300"
                         label={
                           isLoading && activeWalletType === "leap" ? (
                             <span className="flex items-center justify-center">
@@ -291,7 +284,6 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 </motion.div>
               </div>
 
-              {/* Right decorative element */}
               <div className="hidden md:block flex-1">
                 <motion.div 
                   initial={{ opacity: 0, x: 50 }}
@@ -310,7 +302,7 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </div>
           </section>
 
-          <section className="relative py-16 px-6 mx-auto max-w-6xl">
+          <section className="relative py-16 px-6 mx-auto max-w-[1500px]">
             <motion.div
               variants={containerVariants}
               initial="hidden"
@@ -429,24 +421,6 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </div>
           </section>
         </div>
-
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-          <div className="p-6 text-center max-w-md">
-            <div className="bg-black/50 backdrop-blur-sm rounded-2xl p-6 border border-white/10 shadow-2xl">
-              <h3 className="text-xl font-bold mb-4 text-white">{modalMessage}</h3>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-2.5 rounded-lg text-white bg-black/50 hover:bg-white hover:text-black text-sm font-medium border border-white/50 hover:border-white transition-all duration-300 shadow-lg hover:shadow-white/30 w-full"
-                  label="UNDERSTOOD"
-                />
-              </motion.div>
-            </div>
-          </div>
-        </Modal>
       </div>
 
       <style jsx global>{`
