@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect, createContext, useContext, useRef } from "react";
 import { Window as KeplrWindow } from "@keplr-wallet/types";
 import { motion } from "framer-motion";
@@ -74,7 +73,6 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
     localStorage.removeItem("connectedWalletAddress");
     setIsAuthenticated(false);
     setWalletAddress(null);
-    window.location.reload();
   };
 
   useEffect(() => {
@@ -92,6 +90,16 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
     try {
       await wallet.enable(chainId);
+      
+      const offlineSigner = wallet.getOfflineSigner(chainId);
+      const accounts = await offlineSigner.getAccounts();
+      const currentAddress = accounts[0].address;
+      
+      if (address !== currentAddress) {
+        logout();
+        return false;
+      }
+
       const response = await fetch(`https://api.pedroinjraccoon.online/check/${address}/`);
       const result = await response.text();
       
@@ -124,7 +132,12 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
       const offlineSigner = wallet.getOfflineSigner(chainId);
       const accounts = await offlineSigner.getAccounts();
       const address = accounts[0].address;
-  
+
+      const storedAddress = localStorage.getItem("connectedWalletAddress");
+      if (storedAddress && storedAddress !== address) {
+        return;
+      }
+
       const message = "Welcome to Pedro's NFT Generator!";
       await wallet.signArbitrary(chainId, address, message);
   

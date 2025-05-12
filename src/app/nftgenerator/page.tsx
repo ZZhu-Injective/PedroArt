@@ -43,6 +43,8 @@ export default function Art() {
   const [isGeneratingZip, setIsGeneratingZip] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
 
+  console.log(localStorage)
+
   const handleLogout = useCallback(() => {
 
     localStorage.removeItem("connectedWalletType");
