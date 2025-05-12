@@ -11,7 +11,6 @@ import { useWalletAuth } from "@/components/WalletAuthGuard";
 import { ChainId } from '@injectivelabs/ts-types';
 import { BaseAccount, BroadcastModeKeplr, ChainRestAuthApi, ChainRestTendermintApi, CosmosTxV1Beta1Tx, createTransaction, getTxRawFromTxRawOrDirectSignResponse, IndexerGrpcAccountPortfolioApi, MsgMultiSend, MsgSend, TxRaw, TxRestApi} from '@injectivelabs/sdk-ts';
 import { BigNumberInBase, DEFAULT_BLOCK_TIMEOUT_HEIGHT, getStdFee } from '@injectivelabs/utils';
-import { getNetworkEndpoints, Network } from '@injectivelabs/networks';
 import { TransactionException } from '@injectivelabs/exceptions';
 
 type ImageLayer = {
@@ -124,7 +123,7 @@ export default function Art() {
 
       const msg = MsgSend.fromJSON({
         amount: {
-          amount: "10000000000000000",
+          amount: "10000000000000000000000",
           denom: "factory/inj14ejqjyq8um4p3xfqj74yld5waqljf88f9eneuk/inj1c6lxety9hqn9q4khwqvjcfa24c2qeqvvfsg4fm",
         },
         srcInjectiveAddress: walletAddress,
