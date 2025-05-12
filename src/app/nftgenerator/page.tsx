@@ -833,7 +833,7 @@ export default function Art() {
                     <div>
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
                         <h2 className="text-lg sm:text-xl font-semibold">
-                          Generated Previews ({previews.length}/{totalCombinations})
+                          Generated Previews ({previews.length})
                         </h2>
                         <div className="flex space-x-2 sm:space-x-3">
                           <button
