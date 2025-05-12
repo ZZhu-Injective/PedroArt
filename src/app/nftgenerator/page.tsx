@@ -632,7 +632,7 @@ export default function Art() {
 
                     <div className="space-y-4 sm:space-y-6">
                       {layers.map((layer, layerIndex) => (
-                        <div key={layerIndex} className="bg-gray-800 bg-opacity-50 p-3 sm:p-5 rounded-lg border border-gray-700">
+                        <div key={layerIndex} className="bg-black/30 bg-opacity-50 p-3 sm:p-5 rounded-lg border border-gray-700">
                           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
                             <div className="flex items-center space-x-2 sm:space-x-3">
                               <input
@@ -646,7 +646,7 @@ export default function Art() {
                             <div className="flex space-x-2">
                               <div className="flex items-center space-x-2">
                                 <div className="flex items-center">
-                                  <span className="text-xs mr-1 text-gray-400">Z:</span>
+                                  <span className="text-xs mr-1 text-gray-400">Layers Z:</span>
                                   <input
                                     type="number"
                                     min="0"
@@ -662,7 +662,7 @@ export default function Art() {
                                   />
                                 </div>
                                 <div className="flex items-center">
-                                  <span className="text-xs mr-1 text-gray-400">%:</span>
+                                  <span className="text-xs mr-1 text-gray-400">Unique %:</span>
                                   <input
                                     type="number"
                                     min="0"
@@ -701,7 +701,7 @@ export default function Art() {
                             />
                             <button
                               onClick={() => fileInputRefs.current[layerIndex]?.click()}
-                              className="bg-black hover:bg-white text-white hover: text-black px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm"
+                              className="bg-black hover:bg-white text-white hover:text-black px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm"
                             >
                               Add Images
                             </button>
@@ -715,8 +715,8 @@ export default function Art() {
                           {layer.images.length > 0 ? (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
                               {layer.images.map((image, imageIndex) => (
-                                <div key={imageIndex} className="relative group bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
-                                  <div className="aspect-square bg-gray-800 flex items-center justify-center">
+                                <div key={imageIndex} className="relative group bg-black/40 rounded-lg overflow-hidden border border-gray-700">
+                                  <div className="aspect-square bg-black/40 flex items-center justify-center">
                                     <img
                                       src={image.preview}
                                       alt={image.name}
@@ -788,7 +788,7 @@ export default function Art() {
                           />
                         </div>
                       </div>
-                      <div className="bg-gray-800 bg-opacity-50 p-3 sm:p-4 rounded-lg border border-gray-700">
+                      <div className="bg-black/30 bg-opacity-50 p-3 sm:p-4 rounded-lg border border-gray-700">
                         <h3 className="text-lg font-semibold mb-2 sm:mb-3">Statistics</h3>
                         <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
                           <div className="flex justify-between">
@@ -813,7 +813,7 @@ export default function Art() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-gray-900 bg-opacity-50 p-4 sm:p-6 rounded-xl border border-gray-700">
+                <div className="bg-black/30 bg-opacity-50 p-4 sm:p-6 rounded-xl border border-gray-700">
                   {previews.length > 0 ? (
                     <div>
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
@@ -840,8 +840,8 @@ export default function Art() {
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                         {previews.map((preview) => (
-                          <div key={preview.id} className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
-                            <div className="relative aspect-square bg-gray-900">
+                          <div key={preview.id} className="bg-black/30 rounded-lg overflow-hidden border border-gray-700">
+                            <div className="relative aspect-square bg-black/30">
                               {preview.images.map((img, i) => (
                                 <img
                                   key={i}
