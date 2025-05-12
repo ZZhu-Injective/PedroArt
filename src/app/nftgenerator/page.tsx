@@ -33,9 +33,9 @@ type Preview = {
 
 export default function Art() {
   const {logout, walletAddress } = useWalletAuth();
+  const [batchSize, setBatchSize] = useState<number>(1);
   const [layers, setLayers] = useState<Layer[]>([]);
   const [previews, setPreviews] = useState<Preview[]>([]);
-  const [batchSize, setBatchSize] = useState<number>(1);
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [activeTab, setActiveTab] = useState<'builder' | 'preview'>('builder');
   const [newLayerName, setNewLayerName] = useState<string>('');
@@ -214,12 +214,11 @@ export default function Art() {
   const generateBatchPreviews = useCallback(() => {
     if (layers.length === 0 || batchSize < 1) return;
 
-    const allCombinations = calculateAllCombinations();
-    const maxPossible = allCombinations.length;
+    const maxAllowed = Math.min(5000, totalCombinations);
     
-    if (batchSize > maxPossible) {
-      alert(`You can only generate up to ${maxPossible} unique combinations.`);
-      setBatchSize(maxPossible);
+    if (batchSize > maxAllowed) {
+      alert(`You can only generate up to ${maxAllowed} NFTs at once.`);
+      setBatchSize(maxAllowed);
       return;
     }
 
@@ -791,11 +790,11 @@ export default function Art() {
                         <h3 className="text-lg font-semibold mb-3 sm:mb-4">Generate NFTs</h3>
                         <div className="flex flex-col sm:flex-row items-center sm:items-end space-y-3 sm:space-y-0 sm:space-x-4">
                           <div className="w-full">
-                            <label className="block text-xs sm:text-sm text-gray-400 mb-1">Number to generate (max {totalCombinations})</label>
+                            <label className="block text-xs sm:text-sm text-gray-400 mb-1">  Number to generate (max {Math.min(5000, totalCombinations)})</label>
                             <input
                               type="number"
                               min="1"
-                              max={totalCombinations}
+                              max={Math.min(5000, totalCombinations)}
                               value={batchSize}
                               onChange={(e) => {
                                 const val = parseInt(e.target.value) || 1;
@@ -825,7 +824,7 @@ export default function Art() {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-400">Unique Combinations:</span>
-                            <span>{totalCombinations.toLocaleString()}</span>
+                            <span>{Math.min(5000, totalCombinations).toLocaleString()} (max 5000)</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-400">Enabled Layers:</span>
