@@ -841,14 +841,14 @@ export default function Art() {
                             disabled={previews.length >= totalCombinations}
                             className={`px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm ${previews.length >= totalCombinations ? 'bg-gray-700 cursor-not-allowed' : 'bg-black hover:bg-white text-white hover:text-black'}`}
                           >
-                            Generate More
+                            Generate Random
                           </button>
                           <button
                             onClick={downloadAllAsZip}
                             disabled={isGeneratingZip}
                             className={`px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm ${isGeneratingZip ? 'bg-blue-700 cursor-wait' : 'bg-black hover:bg-white text-white hover:text-black'}`}
                           >
-                            {isGeneratingZip ? 'Processing...' : 'Download All'}
+                            {isGeneratingZip ? 'Processing...' : 'Download'}
                           </button>
                         </div>
                       </div>
