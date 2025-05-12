@@ -392,7 +392,7 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
                     transition={{ delay: i * 0.05, duration: 0.5 }}
                   >
                     <Image
-                      src={`/pedro${i+1}.png`}
+                      src={`/Pedro${i+1}.png`}
                       alt={`Pedro ${i+1}`}
                       width={200}
                       height={200}
@@ -409,7 +409,7 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
                     transition={{ delay: i * 0.05, duration: 0.5 }}
                   >
                     <Image
-                      src={`/pedro${i+1}.png`}
+                      src={`/Pedro${i+1}.png`}
                       alt={`Pedro ${i+1}`}
                       width={100}
                       height={100}
