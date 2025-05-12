@@ -53,6 +53,8 @@ export default function Art() {
   const [paymentAddress] = useState("inj14rmguhlul3p30ntsnjph48nd5y2pqx2qwwf4u9");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [hasPaid, setHasPaid] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem("connectedWalletType");
@@ -84,7 +86,12 @@ export default function Art() {
   }, 1); 
   
   setTotalCombinations(combinations);
-}, [layers]);
+  }, [layers]);
+
+  const handleDownloadWithPayment = () => {
+    setModalMessage("Downloading requires a payment of 0.1 INJ. Proceed to payment?");
+    setIsPaymentModalOpen(true);
+  };
 
   const handlePayment = useCallback(async () => {
     if (!walletAddress) return;
@@ -968,15 +975,7 @@ export default function Art() {
                             Generate Random
                           </button>
                           <button
-                            onClick={() => {
-                              if (!hasPaid) {
-                                if (confirm("Downloading requires a payment of 0.1 INJ. Proceed to payment?")) {
-                                  handlePayment();
-                                }
-                                return;
-                              }
-                              downloadAllAsZip();
-                            }}
+                            onClick={handleDownloadWithPayment}
                             disabled={isGeneratingZip || isProcessingPayment}
                             className={`px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm ${
                               isGeneratingZip || isProcessingPayment 
@@ -1028,6 +1027,53 @@ export default function Art() {
               )}
             </div>
           </div>
+
+          {isPaymentModalOpen && (
+            <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 400 }}
+                className="relative z-10 w-full max-w-md bg-gradient-to-br from-black to-gray-900 rounded-2xl overflow-hidden border border-white/10 shadow-xl"
+              >
+                <div className="p-6">
+                  <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
+                      <span className="text-2xl">⚠️</span>
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-center text-white mb-2">Notice</h3>
+                  <p className="text-gray-300 text-center mb-6">{modalMessage}</p>
+                  
+                  <div className="flex justify-center space-x-4">
+                    <Button
+                      onClick={() => setIsPaymentModalOpen(false)}
+                      width="40%"
+                      className="rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-medium transition-all duration-300"
+                      label="Cancel"
+                    />
+                    <Button
+                      onClick={() => {
+                        setIsPaymentModalOpen(false);
+                        handlePayment();
+                      }}
+                      width="40%"
+                      className="rounded-lg bg-white text-black hover:bg-gray-200 font-medium transition-all duration-300"
+                      label="Proceed"
+                    />
+                  </div>
+                </div>
+                
+                <motion.div 
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                  className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white to-transparent"
+                />
+              </motion.div>
+            </div>
+          )}
         </div>
       </>
     </WalletAuthGuard>
