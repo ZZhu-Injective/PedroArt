@@ -405,6 +405,13 @@ export default function Art() {
     setDownloadProgress(0);
   }, [previews, layers]);
 
+
+  const updateImageName = useCallback((layerIndex: number, imageIndex: number, newName: string) => {
+    const updatedLayers = [...layers];
+    updatedLayers[layerIndex].images[imageIndex].name = newName;
+    setLayers(updatedLayers);
+  }, [layers]);
+
   return (
     <WalletAuthGuard>
       <>
@@ -716,36 +723,44 @@ export default function Art() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
                               {layer.images.map((image, imageIndex) => (
                                 <div key={imageIndex} className="relative group bg-black/40 rounded-lg overflow-hidden border border-gray-700">
-                                  <div className="aspect-square bg-black/40 flex items-center justify-center">
-                                    <img
-                                      src={image.preview}
-                                      alt={image.name}
-                                      className="object-contain max-h-full max-w-full"
-                                    />
-                                  </div>
-                                  <div className="p-1 sm:p-2">
-                                    <div className="flex items-center justify-between mb-1">
-                                      <span className="text-xs truncate">{image.name}</span>
-                                      <button
-                                        onClick={() => removeImage(layerIndex, imageIndex)}
-                                        className="text-red-400 hover:text-red-300 transition-colors opacity-0 group-hover:opacity-100"
-                                        title="Remove image"
-                                      >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="currentColor">
-                                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                        </svg>
-                                      </button>
-                                    </div>
-                                    <div className="flex items-center space-x-1 sm:space-x-2">
-                                      <input
-                                        type="range"
-                                        min="0"
-                                        max="100"
-                                        value={image.rarity}
-                                        onChange={(e) => updateRarity(layerIndex, imageIndex, e.target.value)}
-                                        className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                 <div key={imageIndex} className="relative group bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
+                                    <div className="aspect-square bg-gray-800 flex items-center justify-center">
+                                      <img
+                                        src={image.preview}
+                                        alt={image.name}
+                                        className="object-contain max-h-full max-w-full"
                                       />
-                                      <span className="text-xs w-6 sm:w-8 text-right">{image.rarity}%</span>
+                                    </div>
+                                    <div className="p-1 sm:p-2">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <input
+                                          type="text"
+                                          value={image.name}
+                                          onChange={(e) => updateImageName(layerIndex, imageIndex, e.target.value)}
+                                          className="text-xs bg-gray-800 border border-gray-700 rounded px-1 w-full mr-2 h-8 py-1"
+                                          onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <button
+                                          onClick={() => removeImage(layerIndex, imageIndex)}
+                                          className="text-red-400 hover:text-red-300 transition-colors opacity-0 group-hover:opacity-100"
+                                          title="Remove image"
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                          </svg>
+                                        </button>
+                                      </div>
+                                      <div className="flex items-center space-x-1 sm:space-x-2">
+                                        <input
+                                          type="range"
+                                          min="0"
+                                          max="100"
+                                          value={image.rarity}
+                                          onChange={(e) => updateRarity(layerIndex, imageIndex, e.target.value)}
+                                          className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                        />
+                                        <span className="text-xs w-6 sm:w-8 text-right">{image.rarity}%</span>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -865,7 +880,7 @@ export default function Art() {
                           setActiveTab('preview');
                         }}
                         disabled={layers.length === 0 || layers.some(layer => layer.images.length === 0)}
-                        className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg text-sm sm:text-base ${layers.length === 0 || layers.some(layer => layer.images.length === 0) ? 'bg-gray-700 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} transition-colors`}
+                        className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg text-sm sm:text-base ${layers.length === 0 || layers.some(layer => layer.images.length === 0) ? 'bg-gray-700 cursor-not-allowed' : 'bg-black text-white hover:bg-white hover:text-black'} transition-colors`}
                       >
                         Generate Your First Batch
                       </button>
