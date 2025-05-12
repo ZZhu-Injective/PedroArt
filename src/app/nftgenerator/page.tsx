@@ -8,6 +8,11 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import WalletAuthGuard from "@/components/WalletAuthGuard";
 import { useWalletAuth } from "@/components/WalletAuthGuard";
+import { ChainId } from '@injectivelabs/ts-types';
+import { BaseAccount, BroadcastModeKeplr, ChainRestAuthApi, ChainRestTendermintApi, CosmosTxV1Beta1Tx, createTransaction, getTxRawFromTxRawOrDirectSignResponse, IndexerGrpcAccountPortfolioApi, MsgMultiSend, MsgSend, TxRaw, TxRestApi} from '@injectivelabs/sdk-ts';
+import { BigNumberInBase, DEFAULT_BLOCK_TIMEOUT_HEIGHT, getStdFee } from '@injectivelabs/utils';
+import { getNetworkEndpoints, Network } from '@injectivelabs/networks';
+import { TransactionException } from '@injectivelabs/exceptions';
 
 type ImageLayer = {
   file: File;
@@ -32,7 +37,7 @@ type Preview = {
 };
 
 export default function Art() {
-  const {logout} = useWalletAuth();
+  const { logout } = useWalletAuth();
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [batchSize, setBatchSize] = useState<number>(1);
   const [layers, setLayers] = useState<Layer[]>([]);
@@ -45,6 +50,9 @@ export default function Art() {
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const [pedroTokens, setPedroTokens] = useState<number>(0);
   const [pedroNfts, setPedroNfts] = useState<number>(0);
+  const [paymentAddress] = useState("inj14rmguhlul3p30ntsnjph48nd5y2pqx2qwwf4u9");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [hasPaid, setHasPaid] = useState(false);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem("connectedWalletType");
@@ -52,7 +60,6 @@ export default function Art() {
     if (logout) {
       logout();
     }
-    
     window.location.href = '/nftgenerator';
   }, [logout]);
 
@@ -71,11 +78,126 @@ export default function Art() {
   }, [walletAddress]);
 
   useEffect(() => {
-    const combinations = layers.reduce((total, layer) => {
-      return total * (layer.images.length || 1);
-    }, 1);
-    setTotalCombinations(combinations);
-  }, [layers]);
+  const combinations = layers.reduce((total, layer) => {
+    if (!layer.enabled || layer.images.length === 0) return total;
+    return total * layer.images.length;
+  }, 1); 
+  
+  setTotalCombinations(combinations);
+}, [layers]);
+
+  const handlePayment = useCallback(async () => {
+    if (!walletAddress) return;
+
+    try {
+      setIsProcessingPayment(true);
+      const walletType = localStorage.getItem("connectedWalletType")
+      const wallet = walletType === 'leap' ? window.leap : window.keplr;
+      if (!wallet) {
+        throw new Error(`${walletType} extension not installed`);
+      }
+
+      const chainId = ChainId.Mainnet;
+      await wallet.enable(chainId);
+      const [account] = await wallet.getOfflineSigner(chainId).getAccounts();
+      const injectiveAddress = account.address;
+  
+      const restEndpoint = "https://sentry.lcd.injective.network:443";
+      const chainRestAuthApi = new ChainRestAuthApi(restEndpoint);
+      const accountDetailsResponse = await chainRestAuthApi.fetchAccount(injectiveAddress);
+      if (!accountDetailsResponse) {
+        throw new Error("Failed to fetch account details");
+      }
+      const baseAccount = BaseAccount.fromRestApi(accountDetailsResponse);
+  
+      const chainRestTendermintApi = new ChainRestTendermintApi(restEndpoint);
+      const latestBlock = await chainRestTendermintApi.fetchLatestBlock();
+      const latestHeight = latestBlock.header.height;
+      const timeoutHeight = new BigNumberInBase(latestHeight).plus(DEFAULT_BLOCK_TIMEOUT_HEIGHT);
+
+      const msg = MsgSend.fromJSON({
+        amount: {
+          amount: "10000000000000000",
+          denom: "factory/inj14ejqjyq8um4p3xfqj74yld5waqljf88f9eneuk/inj1c6lxety9hqn9q4khwqvjcfa24c2qeqvvfsg4fm",
+        },
+        srcInjectiveAddress: walletAddress,
+        dstInjectiveAddress: "inj1x6u08aa3plhk3utjk7wpyjkurtwnwp6dhudh0j",
+      });
+
+      const pubKey = await wallet.getKey(chainId);
+      if (!pubKey || !pubKey.pubKey) {
+        throw new Error("Failed to retrieve public key from wallet");
+      }
+  
+      const { txRaw: simulatedTxRaw } = createTransaction({
+        pubKey: Buffer.from(pubKey.pubKey).toString('base64'),
+        chainId,
+        fee: getStdFee({ gas: "0" }),
+        message: msg,
+        sequence: baseAccount.sequence,
+        timeoutHeight: timeoutHeight.toNumber(),
+        accountNumber: baseAccount.accountNumber,
+        memo: "Multisend to different wallets",
+      });
+  
+      const simulateTransaction = async (txRaw: TxRaw) => {
+        const txRestApi = new TxRestApi(restEndpoint);
+        try {
+          const simulationResponse = await txRestApi.simulate(txRaw);
+          return simulationResponse.gasInfo?.gasUsed || "0";
+        } catch (error) {
+          throw new Error('Failed to simulate transaction');
+        }
+      };
+  
+      const estimatedGasUsed = await simulateTransaction(simulatedTxRaw);
+      const gasLimit = new BigNumberInBase(estimatedGasUsed).multipliedBy(1.3).toFixed(0);
+  
+      const { txRaw: finalTxRaw, signDoc } = createTransaction({
+        pubKey: Buffer.from(pubKey.pubKey).toString('base64'),
+        chainId,
+        fee: getStdFee({ gas: gasLimit }),
+        message: msg,
+        sequence: baseAccount.sequence,
+        timeoutHeight: timeoutHeight.toNumber(),
+        accountNumber: baseAccount.accountNumber,
+        memo: "Multisend to different wallets",
+      });
+  
+      const offlineSigner = wallet.getOfflineSigner(chainId);
+      const directSignResponse = await offlineSigner.signDirect(injectiveAddress, signDoc);
+  
+      const txRawSigned = getTxRawFromTxRawOrDirectSignResponse(directSignResponse);
+  
+      const broadcastTx = async (chainId: string, txRaw: TxRaw) => {
+        const result = await wallet.sendTx(
+          chainId,
+          CosmosTxV1Beta1Tx.TxRaw.encode(txRaw).finish(),
+          BroadcastModeKeplr.Sync,
+        );
+  
+        if (!result || result.length === 0) {
+          throw new TransactionException(
+            new Error('Transaction failed to be broadcasted'),
+            { contextModule: 'Wallet' },
+          );
+        }
+  
+        return Buffer.from(result).toString('hex');
+      };
+  
+      const txHash = await broadcastTx(ChainId.Mainnet, txRawSigned);
+
+      if (txHash) {
+        setHasPaid(true);
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      alert("Payment failed. Please try again.");
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  }, [walletAddress, paymentAddress]);
 
   const calculateAllCombinations = useCallback(() => {
     if (layers.length === 0) return [];
@@ -587,7 +709,7 @@ export default function Art() {
                       </li>
                       <li className="flex items-start">
                         <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
-                        <span><strong>Free</strong> - For now there is no cost till 10-05-2025!</span>
+                        <span><strong>Usable</strong> - Ready to use on Talis Protocol!</span>
                       </li>
                     </ul>
                   </div>
@@ -606,8 +728,10 @@ export default function Art() {
                 <button
                   className={`px-3 py-1 sm:px-4 sm:py-2 text-sm sm:text-base font-medium ${activeTab === 'preview' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
                   onClick={() => setActiveTab('preview')}
-                  disabled={previews.length === 0 && layers.length === 0}
-                >
+                  disabled={
+                    previews.length >= totalCombinations || 
+                    layers.filter(l => l.enabled && l.images.length > 0).length === 0
+                  }                >
                   Preview
                 </button>
               </div>
@@ -844,11 +968,25 @@ export default function Art() {
                             Generate Random
                           </button>
                           <button
-                            onClick={downloadAllAsZip}
-                            disabled={isGeneratingZip}
-                            className={`px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm ${isGeneratingZip ? 'bg-blue-700 cursor-wait' : 'bg-black hover:bg-white text-white hover:text-black'}`}
+                            onClick={() => {
+                              if (!hasPaid) {
+                                if (confirm("Downloading requires a payment of 0.1 INJ. Proceed to payment?")) {
+                                  handlePayment();
+                                }
+                                return;
+                              }
+                              downloadAllAsZip();
+                            }}
+                            disabled={isGeneratingZip || isProcessingPayment}
+                            className={`px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm ${
+                              isGeneratingZip || isProcessingPayment 
+                                ? 'bg-blue-700 cursor-wait' 
+                                : 'bg-black hover:bg-white text-white hover:text-black'
+                            }`}
                           >
-                            {isGeneratingZip ? 'Processing...' : 'Download'}
+                            {isProcessingPayment ? 'Processing Payment...' : 
+                            isGeneratingZip ? 'Generating ZIP...' : 
+                            hasPaid ? 'Download All' : 'Download'}
                           </button>
                         </div>
                       </div>
