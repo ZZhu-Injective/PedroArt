@@ -32,7 +32,8 @@ type Preview = {
 };
 
 export default function Art() {
-  const {logout, walletAddress } = useWalletAuth();
+  const {logout} = useWalletAuth();
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [batchSize, setBatchSize] = useState<number>(1);
   const [layers, setLayers] = useState<Layer[]>([]);
   const [previews, setPreviews] = useState<Preview[]>([]);
@@ -55,23 +56,17 @@ export default function Art() {
     window.location.href = '/nftgenerator';
   }, [logout]);
 
-  // Fetch user data when wallet connects
+  useEffect(() => {
+    const storedAddress = localStorage.getItem("connectedWalletAddress");
+    if (storedAddress) {
+      setWalletAddress(storedAddress);
+    }
+  }, []);
+
   useEffect(() => {
     if (walletAddress) {
-      // In a real app, you would fetch these from your API
-      // For demo purposes, we're using mock values
       setPedroTokens(100);
       setPedroNfts(1);
-      
-      // Example of how you might fetch real data:
-      /*
-      fetch(`/api/user/${walletAddress}`)
-        .then(res => res.json())
-        .then(data => {
-          setPedroTokens(data.tokens);
-          setPedroNfts(data.nfts);
-        });
-      */
     }
   }, [walletAddress]);
 
@@ -856,14 +851,6 @@ export default function Art() {
                                   style={{ zIndex: layers[preview.layers[i]]?.zIndex || i }}
                                 />
                               ))}
-                            </div>
-                            <div className="p-2 sm:p-3">
-                              <button
-                                onClick={() => downloadPreview(preview)}
-                                className="w-full bg-gray-700 hover:bg-gray-600 text-white py-1 sm:py-2 rounded transition-colors text-xs sm:text-sm"
-                              >
-                                Download
-                              </button>
                             </div>
                           </div>
                         ))}

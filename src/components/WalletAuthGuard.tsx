@@ -116,7 +116,7 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   const connectWallet = async (walletType: "keplr" | "leap") => {
     setActiveWalletType(walletType);
-    const wallet = walletType === "keplr" ? window.keplr : window.leap;
+    const wallet = walletType === "leap" ? window.leap : window.keplr;
   
     if (!wallet) {
       setModalMessage(`Please install the ${walletType} extension!`);
