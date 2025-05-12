@@ -9,7 +9,7 @@ import { saveAs } from 'file-saver';
 import WalletAuthGuard from "@/components/WalletAuthGuard";
 import { useWalletAuth } from "@/components/WalletAuthGuard";
 import { ChainId } from '@injectivelabs/ts-types';
-import { BaseAccount, BroadcastModeKeplr, ChainRestAuthApi, ChainRestTendermintApi, CosmosTxV1Beta1Tx, createTransaction, getTxRawFromTxRawOrDirectSignResponse, IndexerGrpcAccountPortfolioApi, MsgMultiSend, MsgSend, TxRaw, TxRestApi} from '@injectivelabs/sdk-ts';
+import { BaseAccount, BroadcastModeKeplr, ChainRestAuthApi, ChainRestTendermintApi, CosmosTxV1Beta1Tx, createTransaction, getTxRawFromTxRawOrDirectSignResponse, MsgSend, TxRaw, TxRestApi} from '@injectivelabs/sdk-ts';
 import { BigNumberInBase, DEFAULT_BLOCK_TIMEOUT_HEIGHT, getStdFee } from '@injectivelabs/utils';
 import { TransactionException } from '@injectivelabs/exceptions';
 
@@ -88,15 +88,20 @@ export default function Art() {
   }, [layers]);
 
   const handleDownloadWithPayment = () => {
-    setModalMessage("Downloading requires a payment of 100.000 $PEDRO. Proceed to payment?");
+
+    const displayAmount = pedroNfts ? "1" : "100,000";
+
+    setModalMessage(`Downloading requires a payment of ${displayAmount} $PEDRO. Proceed to payment?`);
     setIsPaymentModalOpen(true);
   };
 
   const handlePayment = useCallback(async () => {
     if (!walletAddress) return;
+    const amount = pedroNfts ? "1000000000000000000" : "100000000000000000000000";
 
     try {
       setIsProcessingPayment(true);
+
       const walletType = localStorage.getItem("connectedWalletType")
       const wallet = walletType === 'leap' ? window.leap : window.keplr;
       if (!wallet) {
@@ -123,7 +128,7 @@ export default function Art() {
 
       const msg = MsgSend.fromJSON({
         amount: {
-          amount: "10000000000000000000000",
+          amount: amount,
           denom: "factory/inj14ejqjyq8um4p3xfqj74yld5waqljf88f9eneuk/inj1c6lxety9hqn9q4khwqvjcfa24c2qeqvvfsg4fm",
         },
         srcInjectiveAddress: walletAddress,
@@ -199,7 +204,7 @@ export default function Art() {
       }
     } catch (error) {
       console.error("Payment error:", error);
-      alert("Payment failed. Please try again.");
+      setModalMessage("Payment failed. Please try again.");
     } finally {
       setIsProcessingPayment(false);
     }
