@@ -89,7 +89,7 @@ export default function Art() {
   }, [layers]);
 
   const handleDownloadWithPayment = () => {
-    setModalMessage("Downloading requires a payment of 0.1 INJ. Proceed to payment?");
+    setModalMessage("Downloading requires a payment of 100.000 $PEDRO. Proceed to payment?");
     setIsPaymentModalOpen(true);
   };
 
