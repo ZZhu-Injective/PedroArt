@@ -504,7 +504,7 @@ export default function Art() {
                   className="bg-black/50 p-4 rounded-lg border border-white/10 flex flex-col items-center justify-center"
                 >
                   <div className="text-center">
-                    <h3 className="text-sm font-medium text-gray-400 mb-1">$PEDRO Tokens</h3>
+                    <h3 className="text-sm font-medium text-gray-400 mb-1">PEDRO Tokens</h3>
                     <div className="flex items-center justify-center space-x-2">
                       <p className="text-xl font-bold text-white">{pedroTokens.toLocaleString()}</p>
                     </div>
