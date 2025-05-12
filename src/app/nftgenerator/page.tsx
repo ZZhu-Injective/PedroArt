@@ -32,7 +32,7 @@ type Preview = {
 };
 
 export default function Art() {
-  const { logout, walletAddress } = useWalletAuth();
+  const {logout, walletAddress } = useWalletAuth();
   const [layers, setLayers] = useState<Layer[]>([]);
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [batchSize, setBatchSize] = useState<number>(1);
@@ -42,20 +42,38 @@ export default function Art() {
   const [totalCombinations, setTotalCombinations] = useState<number>(0);
   const [isGeneratingZip, setIsGeneratingZip] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
-
-  console.log(localStorage)
+  const [pedroTokens, setPedroTokens] = useState<number>(0);
+  const [pedroNfts, setPedroNfts] = useState<number>(0);
 
   const handleLogout = useCallback(() => {
-
     localStorage.removeItem("connectedWalletType");
     localStorage.removeItem("connectedWalletAddress");
-    
     if (logout) {
       logout();
     }
     
     window.location.href = '/nftgenerator';
   }, [logout]);
+
+  // Fetch user data when wallet connects
+  useEffect(() => {
+    if (walletAddress) {
+      // In a real app, you would fetch these from your API
+      // For demo purposes, we're using mock values
+      setPedroTokens(100);
+      setPedroNfts(1);
+      
+      // Example of how you might fetch real data:
+      /*
+      fetch(`/api/user/${walletAddress}`)
+        .then(res => res.json())
+        .then(data => {
+          setPedroTokens(data.tokens);
+          setPedroNfts(data.nfts);
+        });
+      */
+    }
+  }, [walletAddress]);
 
   useEffect(() => {
     const combinations = layers.reduce((total, layer) => {
@@ -434,16 +452,16 @@ export default function Art() {
           </div>
 
           <div className="relative z-10">
-             <section className="flex items-center justify-center py-4 sm:py-7 text-center relative overflow-hidden px-2">
+            <section className="flex items-center justify-center py-12 text-center relative overflow-hidden px-2">
               <motion.div
                 initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="px-4 sm:px-6 max-w-4xl relative z-10"
+                className="px-6 max-w-4xl relative z-10"
               >
-                <div className="flex flex-col items-center mb-2">
+                <div className="flex flex-col items-center mb-5">
                   <motion.h1
-                    className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 bg-clip-text text-white"
+                    className="text-4xl md:text-7xl font-bold mb-5 bg-clip-text text-white"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.8 }}
@@ -460,38 +478,94 @@ export default function Art() {
               </motion.div>
             </section>
 
+            <div className="relative px-2 py-3 sm:py-5 mx-auto max-w-[1500px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                  className="bg-black/50 p-4 rounded-lg border border-white/10"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-400">Wallet Address</h3>
+                      <p className="text-xs text-white truncate" title={walletAddress || ''}>
+                        {walletAddress || 'Not connected'}
+                      </p>
+                    </div>
+                    <div className="bg-blue-500/20 p-2 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                    </div>
+                  </div>
+                </motion.div>
 
-            <div className="flex items-center space-x-4">
-                    {walletAddress && (
-                      <span className="text-xs sm:text-sm text-gray-400 truncate max-w-[120px] sm:max-w-[200px]">
-                        {walletAddress}
-                      </span>
-                    )}
-                    <button
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                  className="bg-black/50 p-4 rounded-lg border border-white/10"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-400">$PEDRO Tokens</h3>
+                      <p className="text-lg font-semibold text-white">{pedroTokens.toLocaleString()}</p>
+                    </div>
+                    <div className="bg-purple-500/20 p-2 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.3 }}
+                  className="bg-black/50 p-4 rounded-lg border border-white/10"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-400">Pedro NFTs</h3>
+                      <p className="text-lg font-semibold text-white">{pedroNfts}</p>
+                    </div>
+                    <div className="bg-green-500/20 p-2 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.4 }}
+                  className="bg-black/50 p-4 rounded-lg border border-white/10"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-400">Wallet</h3>
+                      <p className="text-xs text-white">Disconnect wallet</p>
+                    </div>
+                    <button 
                       onClick={handleLogout}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm sm:text-base transition-colors flex items-center"
+                      className="bg-red-500/20 p-2 rounded-full hover:bg-red-500/30 transition-colors"
                       title="Disconnect wallet"
                     >
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-4 w-4 mr-1" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth={2} 
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" 
-                        />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                       </svg>
-                      Disconnect
                     </button>
                   </div>
+                </motion.div>
+              </div>
+            </div>
 
-            <div className='px-2 sm:px-0'>
-              <section className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-5 bg-black/50 rounded-xl border border-white/10 mb-3 sm:mb-5">
+            <div className='px-2'>
+              <section className="max-w-[1500px] mx-auto px-2 sm:px-6 py-3 sm:py-5 bg-black/50 rounded-xl border border-white/10 mb-3 sm:mb-5">
                 <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-10 text-white">HOW IT WORKS</h2>
                 
                 <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
@@ -538,7 +612,7 @@ export default function Art() {
               </section>
             </div>
 
-            <div className="container max-w-7xl mx-auto px-3 sm:px-4 pb-16 sm:pb-20">
+            <div className="container max-w-[1500px] mx-auto px-2 pb-16 sm:pb-20">
               <div className="flex border-b border-gray-700 mb-4 sm:mb-6 overflow-x-auto">
                 <button
                   className={`px-3 py-1 sm:px-4 sm:py-2 text-sm sm:text-base font-medium ${activeTab === 'builder' ? 'text-white border-b-2 border-white' : 'text-gray-400'}`}
