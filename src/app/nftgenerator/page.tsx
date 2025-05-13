@@ -40,8 +40,7 @@ type PaymentState = 'idle' | 'processing' | 'success' | 'failed';
 
 export default function Art() {
   const { logout } = useWalletAuth();
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [batchSize, setBatchSize] = useState<number>(1);
+  const [batchSize, setBatchSize] = useState<number>(0);
   const [layers, setLayers] = useState<Layer[]>([]);
   const [previews, setPreviews] = useState<Preview[]>([]);
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -59,11 +58,27 @@ export default function Art() {
   const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [paymentState, setPaymentState] = useState<PaymentState>('idle');
+  const [storedAddress, setStoredAddress] = useState<string>('None');
+  const [walletType, setStoredWallet] = useState<string>('None');
 
+
+  useEffect(() => {
+    const checkAddress = () => {
+      const currentAddress = localStorage.getItem("connectedWalletAddress");
+      const currentWalletType = localStorage.getItem("connectedWalletType");
+      if (currentAddress && currentAddress !== storedAddress) {
+        setStoredAddress(currentAddress);
+      }
+      if (currentWalletType && currentWalletType !== walletType) {
+        setStoredWallet(currentWalletType);
+      }
+    };
+
+    const interval = setInterval(checkAddress, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = useCallback(() => {
-    localStorage.removeItem("connectedWalletType");
-    localStorage.removeItem("connectedWalletAddress");
     if (logout) {
       logout();
     }
@@ -71,18 +86,11 @@ export default function Art() {
   }, [logout]);
 
   useEffect(() => {
-    const storedAddress = localStorage.getItem("connectedWalletAddress");
     if (storedAddress) {
-      setWalletAddress(storedAddress);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (walletAddress) {
       setPedroTokens(100);
       setPedroNfts(1);
     }
-  }, [walletAddress]);
+  }, [storedAddress]);
 
   useEffect(() => {
   const combinations = layers.reduce((total, layer) => {
@@ -93,9 +101,10 @@ export default function Art() {
   setTotalCombinations(combinations);
   }, [layers]);
 
-  const baseAmount = pedroNfts ? "1" : "100.000";
+  const baseAmount = pedroNfts ? "1" : "100000";
 
   const handleDownloadWithPayment = () => {
+
     console.log(baseAmount)
 
     if (hasPaid) {
@@ -107,7 +116,8 @@ export default function Art() {
   };
 
   const handlePayment = useCallback(async () => {
-    if (!walletAddress) return;
+    if (!storedAddress) return;
+
     console.log(baseAmount)
 
     setPaymentState('processing');
@@ -115,7 +125,6 @@ export default function Art() {
     try {
       setIsProcessingPayment(true);
 
-      const walletType = localStorage.getItem("connectedWalletType")
       const wallet = walletType === 'leap' ? window.leap : window.keplr;
       if (!wallet) {
         throw new Error(`${walletType} extension not installed`);
@@ -138,13 +147,13 @@ export default function Art() {
       const latestBlock = await chainRestTendermintApi.fetchLatestBlock();
       const latestHeight = latestBlock.header.height;
       const timeoutHeight = new BigNumberInBase(latestHeight).plus(DEFAULT_BLOCK_TIMEOUT_HEIGHT);
-
+      
       const msg = MsgSend.fromJSON({
         amount: {
           amount: new BigNumberInBase(baseAmount).times(new BigNumberInBase(10).pow(18)).toFixed(),
           denom: "factory/inj14ejqjyq8um4p3xfqj74yld5waqljf88f9eneuk/inj1c6lxety9hqn9q4khwqvjcfa24c2qeqvvfsg4fm",
         },
-        srcInjectiveAddress: walletAddress,
+        srcInjectiveAddress: storedAddress,
         dstInjectiveAddress: "inj1x6u08aa3plhk3utjk7wpyjkurtwnwp6dhudh0j",
       });
 
@@ -161,7 +170,7 @@ export default function Art() {
         sequence: baseAccount.sequence,
         timeoutHeight: timeoutHeight.toNumber(),
         accountNumber: baseAccount.accountNumber,
-        memo: "Multisend to different wallets",
+        memo: "Send to burn wallet",
       });
   
       const offlineSigner = wallet.getOfflineSigner(chainId);
@@ -199,7 +208,7 @@ export default function Art() {
       setModalMessage("Payment failed. Please try again.");
       setIsWarningModalOpen(true)
     }
-  }, [walletAddress, paymentAddress]);
+  }, [storedAddress, paymentAddress]);
 
   const calculateAllCombinations = useCallback(() => {
     if (layers.length === 0) return [];
@@ -614,8 +623,8 @@ export default function Art() {
                   <div className="flex items-center justify-between w-full">
                     <div className="text-center w-full">
                       <h3 className="text-sm font-medium text-gray-400 mb-1">Wallet Address</h3>
-                      <p className="text-sm font-mono text-white truncate px-2" title={walletAddress || ''}>
-                        {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : 'Not connected'}
+                      <p className="text-xl font-mono text-white truncate px-2" title={storedAddress || ''}>
+                        {storedAddress ? `${storedAddress.slice(0, 6)}...${storedAddress.slice(-4)}` : 'Not connected'}
                       </p>
                     </div>
                   </div>
@@ -659,7 +668,7 @@ export default function Art() {
                     <h3 className="text-sm font-medium text-gray-400 mb-2">Wallet Disconnect</h3>
                     <button 
                       onClick={handleLogout}
-                      className="flex items-center justify-center space-x-2 bg-red-500/20 hover:bg-red-500/30 px-4 py-2 rounded-full transition-colors w-full mx-auto max-w-[180px]"
+                      className="flex items-center justify-center space-x-2 text-black bg-white hover:bg-black hover:text-white px-4 py-2 rounded-full transition-colors w-full mx-auto max-w-[180px]"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -790,7 +799,7 @@ export default function Art() {
                                       updatedLayers[layerIndex].zIndex = parseInt(e.target.value) || 0;
                                       setLayers(updatedLayers);
                                     }}
-                                    className="w-12 sm:w-16 bg-gray-700 border border-gray-600 rounded px-1 sm:px-2 py-1 text-center text-xs sm:text-sm"
+                                    className="w-12 sm:w-16 bg-black/20 border border-gray-600 rounded px-1 sm:px-2 py-1 text-center text-xs sm:text-sm"
                                     title="Z-Index (stacking order)"
                                   />
                                 </div>
@@ -802,7 +811,7 @@ export default function Art() {
                                     max="100"
                                     value={layer.layerRarity}
                                     onChange={(e) => updateLayerRarity(layerIndex, e.target.value)}
-                                    className="w-12 sm:w-16 bg-gray-700 border border-gray-600 rounded px-1 sm:px-2 py-1 text-center text-xs sm:text-sm"
+                                    className="w-12 sm:w-16 bg-black/20 border border-gray-600 rounded px-1 sm:px-2 py-1 text-center text-xs sm:text-sm"
                                     title="Layer appearance chance"
                                   />
                                 </div>
@@ -834,7 +843,7 @@ export default function Art() {
                             />
                             <button
                               onClick={() => fileInputRefs.current[layerIndex]?.click()}
-                              className="bg-gray-500 hover:bg-white text-white hover:text-black px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm"
+                              className="bg-white hover:bg-black text-black hover:text-white hover:text-white px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm"
                             >
                               Add Images
                             </button>
@@ -849,8 +858,8 @@ export default function Art() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
                               {layer.images.map((image, imageIndex) => (
                                 <div key={imageIndex} className="relative group bg-black/40 rounded-lg overflow-hidden border border-gray-700">
-                                 <div key={imageIndex} className="relative group bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
-                                    <div className="aspect-square bg-gray-800 flex items-center justify-center">
+                                 <div key={imageIndex} className="relative group bg-black rounded-lg overflow-hidden border border-gray-700">
+                                    <div className="aspect-square bg-black flex items-center justify-center">
                                       <img
                                         src={image.preview}
                                         alt={image.name}
@@ -863,7 +872,7 @@ export default function Art() {
                                           type="text"
                                           value={image.name}
                                           onChange={(e) => updateImageName(layerIndex, imageIndex, e.target.value)}
-                                          className="text-xs bg-gray-800 border border-gray-700 rounded px-1 w-full mr-2 h-8 py-1"
+                                          className="text-xs bg-black text-center border border-gray-700 rounded px-1 w-full mr-2 h-8 py-1"
                                           onClick={(e) => e.stopPropagation()}
                                         />
                                         <button
@@ -965,7 +974,7 @@ export default function Art() {
                           <button
                             onClick={generateBatchPreviews}
                             disabled={previews.length >= totalCombinations}
-                            className={`px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm ${previews.length >= totalCombinations ? 'bg-gray-700 cursor-not-allowed' : 'bg-black hover:bg-white text-white hover:text-black'}`}
+                            className={`px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm ${previews.length >= totalCombinations ? 'bg-gray-700 cursor-not-allowed' : 'bg-white hover:bg-black text-black hover:text-white'}`}
                           >
                             Generate Random
                           </button>
@@ -974,12 +983,12 @@ export default function Art() {
                             disabled={isGeneratingZip || paymentState === 'processing'}
                             className={`px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm ${
                               isGeneratingZip 
-                                ? 'bg-blue-700 cursor-wait' 
+                                ? 'bg-white text-black cursor-wait' 
                                 : paymentState === 'processing'
-                                  ? 'bg-purple-700 cursor-wait'
+                                  ? 'bg-white text-black cursor-wait'
                                   : hasPaid
-                                    ? 'bg-green-600 hover:bg-green-700'
-                                    : 'bg-black hover:bg-white text-white hover:text-black'
+                                    ? 'bg-white text-black'
+                                    : 'bg-white hover:bg-black text-black hover:text-white'
                             }`}
                           >
                             {isGeneratingZip 

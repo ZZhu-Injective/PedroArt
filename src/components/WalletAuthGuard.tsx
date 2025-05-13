@@ -68,16 +68,11 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
   };
 
   const logout = () => {
-    localStorage.removeItem("connectedWalletType");
-    localStorage.removeItem("connectedWalletAddress");
     setIsAuthenticated(false);
     setWalletAddress(null);
   };
 
   const connectWallet = async (walletType: "keplr" | "leap") => {
-    localStorage.removeItem("connectedWalletType");
-    localStorage.removeItem("connectedWalletAddress");
-
     setActiveWalletType(walletType);
     const wallet = walletType === "leap" ? window.leap : window.keplr;
   
@@ -96,22 +91,21 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
       const accounts = await offlineSigner.getAccounts();
       const address = accounts[0].address;
 
-      const storedAddress = localStorage.getItem("connectedWalletAddress");
-      if (storedAddress && storedAddress !== address) {
-        return;
-      }
-
       const message = "Welcome to Pedro's NFT Generator!";
       await wallet.signArbitrary(chainId, address, message);
-  
+
+      localStorage.setItem("connectedWalletType", walletType);
+      localStorage.setItem("connectedWalletAddress", address);
+      setWalletAddress(address);
+
+      console.log("updated address:", address)
+      
       const response = await fetch(`https://api.pedroinjraccoon.online/check/${address}/`);
       const result = await response.text();
-  
+
+
       if (result.trim() === '"yes"') {
-        localStorage.setItem("connectedWalletType", walletType);
-        localStorage.setItem("connectedWalletAddress", address);
         setIsAuthenticated(true);
-        setWalletAddress(address);
       } else {
         setModalMessage("Not enough $PEDRO or any Pedro NFT");
         setIsModalOpen(true);
