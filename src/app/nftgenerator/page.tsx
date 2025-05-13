@@ -35,6 +35,9 @@ type Preview = {
   usedLayers: boolean[];
 };
 
+type PaymentState = 'idle' | 'processing' | 'success' | 'failed';
+
+
 export default function Art() {
   const { logout } = useWalletAuth();
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -53,7 +56,10 @@ export default function Art() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [hasPaid, setHasPaid] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const [paymentState, setPaymentState] = useState<PaymentState>('idle');
+
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem("connectedWalletType");
@@ -87,17 +93,26 @@ export default function Art() {
   setTotalCombinations(combinations);
   }, [layers]);
 
+  const baseAmount = pedroNfts ? "1" : "100,000";
+
   const handleDownloadWithPayment = () => {
-
-    const displayAmount = pedroNfts ? "1" : "100,000";
-
-    setModalMessage(`Downloading requires a payment of ${displayAmount} $PEDRO. Proceed to payment?`);
-    setIsPaymentModalOpen(true);
+    if (hasPaid) {
+      downloadAllAsZip();
+    } else {
+      setModalMessage(`Downloading requires a payment of ${baseAmount} $PEDRO. Proceed to payment?`);
+      setIsPaymentModalOpen(true);
+    }
   };
 
   const handlePayment = useCallback(async () => {
     if (!walletAddress) return;
-    const amount = pedroNfts ? "1000000000000000000" : "100000000000000000000000";
+    
+    setPaymentState('processing');
+    setModalMessage("Processing payment...");
+
+    const amount = new BigNumberInBase(baseAmount)
+                  .times(new BigNumberInBase(10).pow(18))
+                  .toFixed();
 
     try {
       setIsProcessingPayment(true);
@@ -140,34 +155,10 @@ export default function Art() {
         throw new Error("Failed to retrieve public key from wallet");
       }
   
-      const { txRaw: simulatedTxRaw } = createTransaction({
-        pubKey: Buffer.from(pubKey.pubKey).toString('base64'),
-        chainId,
-        fee: getStdFee({ gas: "0" }),
-        message: msg,
-        sequence: baseAccount.sequence,
-        timeoutHeight: timeoutHeight.toNumber(),
-        accountNumber: baseAccount.accountNumber,
-        memo: "Multisend to different wallets",
-      });
-  
-      const simulateTransaction = async (txRaw: TxRaw) => {
-        const txRestApi = new TxRestApi(restEndpoint);
-        try {
-          const simulationResponse = await txRestApi.simulate(txRaw);
-          return simulationResponse.gasInfo?.gasUsed || "0";
-        } catch (error) {
-          throw new Error('Failed to simulate transaction');
-        }
-      };
-  
-      const estimatedGasUsed = await simulateTransaction(simulatedTxRaw);
-      const gasLimit = new BigNumberInBase(estimatedGasUsed).multipliedBy(1.3).toFixed(0);
-  
       const { txRaw: finalTxRaw, signDoc } = createTransaction({
         pubKey: Buffer.from(pubKey.pubKey).toString('base64'),
         chainId,
-        fee: getStdFee({ gas: gasLimit }),
+        fee: getStdFee(),
         message: msg,
         sequence: baseAccount.sequence,
         timeoutHeight: timeoutHeight.toNumber(),
@@ -200,13 +191,16 @@ export default function Art() {
       const txHash = await broadcastTx(ChainId.Mainnet, txRawSigned);
 
       if (txHash) {
+        setPaymentState('success');
         setHasPaid(true);
+        setModalMessage("Payment successful! You can now download your NFTs.");
+        setIsWarningModalOpen(true)
       }
     } catch (error) {
       console.error("Payment error:", error);
+      setPaymentState('failed');
       setModalMessage("Payment failed. Please try again.");
-    } finally {
-      setIsProcessingPayment(false);
+      setIsWarningModalOpen(true)
     }
   }, [walletAddress, paymentAddress]);
 
@@ -980,16 +974,24 @@ export default function Art() {
                           </button>
                           <button
                             onClick={handleDownloadWithPayment}
-                            disabled={isGeneratingZip || isProcessingPayment}
+                            disabled={isGeneratingZip || paymentState === 'processing'}
                             className={`px-3 py-1 sm:px-4 sm:py-2 rounded transition-colors text-xs sm:text-sm ${
-                              isGeneratingZip || isProcessingPayment 
+                              isGeneratingZip 
                                 ? 'bg-blue-700 cursor-wait' 
-                                : 'bg-black hover:bg-white text-white hover:text-black'
+                                : paymentState === 'processing'
+                                  ? 'bg-purple-700 cursor-wait'
+                                  : hasPaid
+                                    ? 'bg-green-600 hover:bg-green-700'
+                                    : 'bg-black hover:bg-white text-white hover:text-black'
                             }`}
                           >
-                            {isProcessingPayment ? 'Processing Payment...' : 
-                            isGeneratingZip ? 'Generating ZIP...' : 
-                            hasPaid ? 'Download All' : 'Download'}
+                            {isGeneratingZip 
+                              ? 'Generating ZIP...' 
+                              : paymentState === 'processing'
+                                ? 'Processing Payment...'
+                                : hasPaid
+                                  ? 'Download All'
+                                  : 'Download'}
                           </button>
                         </div>
                       </div>
@@ -1076,6 +1078,55 @@ export default function Art() {
                   className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white to-transparent"
                 />
               </motion.div>
+            </div>
+          )}
+
+
+          {isWarningModalOpen && (
+            <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+              <div className="relative z-10 w-full max-w-md bg-gradient-to-br from-black to-gray-900 rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+                <div className="p-6">
+                  {paymentState === 'processing' ? (
+                    <div className="flex justify-center mb-4">
+                      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-500"></div>
+                    </div>
+                  ) : (
+                    <div className="flex justify-center mb-4">
+                      <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
+                        {paymentState === 'success' ? '✅' : paymentState === 'failed' ? '❌' : '⚠️'}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <h3 className="text-xl font-bold text-center text-white mb-2">
+                    {paymentState === 'processing' ? 'Processing Payment' : 
+                    paymentState === 'success' ? 'Payment Successful' :
+                    paymentState === 'failed' ? 'Payment Failed' : 'Notice'}
+                  </h3>
+                  
+                  <p className="text-gray-300 text-center mb-6">{modalMessage}</p>
+                  
+                  <div className="flex justify-center space-x-4">
+                    {paymentState !== 'processing' && (
+                      <Button
+                        onClick={() => {
+                          setIsWarningModalOpen(false);
+                          if (paymentState === 'success') {
+                            downloadAllAsZip();
+                          }
+                        }}
+                        width="100%"
+                        className={`rounded-lg ${
+                          paymentState === 'success' 
+                            ? 'bg-green-600 hover:bg-green-700' 
+                            : 'bg-white hover:bg-gray-200 text-black'
+                        } font-medium transition-all duration-300`}
+                        label={paymentState === 'success' ? 'Download Now' : 'Try Again'}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
