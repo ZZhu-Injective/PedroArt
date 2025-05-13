@@ -348,7 +348,7 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
                   </div>
                   <h3 className="text-xl font-bold mb-3 text-white">Easy to Use</h3>
                   <p className="text-gray-300 text-sm">
-                    <span className="block mb-1">• PNG layers support</span>
+                    <span className="block mb-1">• PNG/JPEG layers support</span>
                     <span className="block">• Full metadata for Talis Protocol</span>
                   </p>
                 </div>
