@@ -441,104 +441,107 @@ export default function Art() {
   }, [layers]);
 
   const downloadAllAsZip = useCallback(async () => {
-    if (previews.length === 0) return;
-    
-    setIsGeneratingZip(true);
-    setDownloadProgress(0);
-    const zip = new JSZip();
-    const imgFolder = zip.folder("nfts");
-    
-    let metadataContent = 'Filename;';
-    metadataContent += layers.map(layer => layer.name).join(';') + '\n';
-    
-    const canvas = document.createElement('canvas');
-    canvas.width = 1000;
-    canvas.height = 1000;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      setIsGeneratingZip(false);
-      return;
-    }
+      if (previews.length === 0) return;
+      
+      setIsGeneratingZip(true);
+      setDownloadProgress(0);
+      const zip = new JSZip();
+      const imgFolder = zip.folder("nfts");
+      
+      let metadataContent = 'Filename;Title;Description;NbCopies;';
+      metadataContent += layers.map(layer => layer.name).join(';') + '\n';
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = 1000;
+      canvas.height = 1000;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        setIsGeneratingZip(false);
+        return;
+      }
 
-    const totalItems = previews.length;
-    let processedItems = 0;
+      const totalItems = previews.length;
+      let processedItems = 0;
 
-    for (let i = 0; i < previews.length; i++) {
-      const preview = previews[i];
-      const fileName = `nft-${i + 1}.png`;
-      
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      const layersToDraw = preview.layers
-        .map((imgIdx, layerIdx) => ({ 
-          layerIdx,
-          imgIdx,
-          zIndex: layers[layerIdx]?.zIndex || 0
-        }))
-        .sort((a, b) => a.zIndex - b.zIndex);
-      
-      let metadataRow = `${fileName};`;
-      
-      for (let layerIdx = 0; layerIdx < layers.length; layerIdx++) {
-        if (!preview.usedLayers[layerIdx]) {
-          metadataRow += 'None;';
-          continue;
+      for (let i = 0; i < previews.length; i++) {
+        const preview = previews[i];
+        const fileName = `nft-${i + 1}.png`;
+        const title = `NFT #${i + 1}`;
+        const description = 'NFT Art';
+        const nbCopies = '1';
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const layersToDraw = preview.layers
+          .map((imgIdx, layerIdx) => ({ 
+            layerIdx,
+            imgIdx,
+            zIndex: layers[layerIdx]?.zIndex || 0
+          }))
+          .sort((a, b) => a.zIndex - b.zIndex);
+        
+        let metadataRow = `${fileName};${title};${description};${nbCopies};`;
+        
+        for (let layerIdx = 0; layerIdx < layers.length; layerIdx++) {
+          if (!preview.usedLayers[layerIdx]) {
+            metadataRow += 'None;';
+            continue;
+          }
+          
+          const imgIdx = preview.layers[layerIdx];
+          if (imgIdx === -1 || !layers[layerIdx].images[imgIdx]) {
+            metadataRow += 'None;';
+            continue;
+          }
+          
+          const img = new window.Image();
+          img.crossOrigin = 'anonymous';
+          await new Promise<void>((resolve) => {
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              resolve();
+            };
+            img.onerror = () => {
+              console.error('Failed to load image for ZIP');
+              resolve();
+            };
+            img.src = layers[layerIdx].images[imgIdx].preview;
+          });
+          
+          metadataRow += layers[layerIdx].images[imgIdx]?.name || 'None';
+          metadataRow += ';';
         }
         
-        const imgIdx = preview.layers[layerIdx];
-        if (imgIdx === -1 || !layers[layerIdx].images[imgIdx]) {
-          metadataRow += 'None;';
-          continue;
-        }
+        metadataRow = metadataRow.slice(0, -1) + '\n';
+        metadataContent += metadataRow;
         
-        const img = new window.Image();
-        img.crossOrigin = 'anonymous';
-        await new Promise<void>((resolve) => {
-          img.onload = () => {
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve();
-          };
-          img.onerror = () => {
-            console.error('Failed to load image for ZIP');
-            resolve();
-          };
-          img.src = layers[layerIdx].images[imgIdx].preview;
+        const blob = await new Promise<Blob | null>((resolve) => {
+          canvas.toBlob((blob) => {
+            resolve(blob);
+          }, 'image/png');
         });
         
-        metadataRow += layers[layerIdx].images[imgIdx]?.name || 'None';
-        metadataRow += ';';
+        if (blob) {
+          imgFolder?.file(fileName, blob);
+        }
+
+        processedItems++;
+        setDownloadProgress(Math.round((processedItems / totalItems) * 100));
       }
+
+      zip.file("metadata.csv", metadataContent);
       
-      metadataRow = metadataRow.slice(0, -1) + '\n';
-      metadataContent += metadataRow;
-      
-      const blob = await new Promise<Blob | null>((resolve) => {
-        canvas.toBlob((blob) => {
-          resolve(blob);
-        }, 'image/png');
+      const content = await zip.generateAsync({ 
+        type: 'blob',
+        streamFiles: true,
+      }, (metadata) => {
+        setDownloadProgress(metadata.percent);
       });
       
-      if (blob) {
-        imgFolder?.file(fileName, blob);
-      }
-
-      processedItems++;
-      setDownloadProgress(Math.round((processedItems / totalItems) * 100));
-    }
-
-    zip.file("metadata.csv", metadataContent);
-    
-    const content = await zip.generateAsync({ 
-      type: 'blob',
-      streamFiles: true,
-    }, (metadata) => {
-      setDownloadProgress(metadata.percent);
-    });
-    
-    saveAs(content, 'nft-collection.zip');
-    setIsGeneratingZip(false);
-    setDownloadProgress(0);
-  }, [previews, layers]);
+      saveAs(content, 'nft-collection.zip');
+      setIsGeneratingZip(false);
+      setDownloadProgress(0);
+    }, [previews, layers]);
 
 
   const updateImageName = useCallback((layerIndex: number, imageIndex: number, newName: string) => {
