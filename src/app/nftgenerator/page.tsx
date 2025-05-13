@@ -148,6 +148,8 @@ export default function Art() {
       const latestHeight = latestBlock.header.height;
       const timeoutHeight = new BigNumberInBase(latestHeight).plus(DEFAULT_BLOCK_TIMEOUT_HEIGHT);
       
+      console.log(new BigNumberInBase(baseAmount).times(new BigNumberInBase(10).pow(18)).toFixed())
+
       const msg = MsgSend.fromJSON({
         amount: {
           amount: new BigNumberInBase(baseAmount).times(new BigNumberInBase(10).pow(18)).toFixed(),
@@ -557,9 +559,9 @@ export default function Art() {
         <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
           {isGeneratingZip && (
             <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-              <div className="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4">
+              <div className="bg-black/300 p-6 rounded-lg max-w-md w-full mx-4">
                 <h3 className="text-lg font-medium mb-4">Downloading...</h3>
-                <div className="w-full bg-gray-700 rounded-full h-2.5">
+                <div className="w-full bg-black/500 rounded-full h-2.5">
                   <div 
                     className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" 
                     style={{ width: `${downloadProgress}%` }}
