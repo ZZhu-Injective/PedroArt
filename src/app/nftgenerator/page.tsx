@@ -161,7 +161,7 @@ export default function Art() {
           denom: "factory/inj14ejqjyq8um4p3xfqj74yld5waqljf88f9eneuk/inj1c6lxety9hqn9q4khwqvjcfa24c2qeqvvfsg4fm",
         },
         srcInjectiveAddress: storedAddress,
-        dstInjectiveAddress: "inj1x6u08aa3plhk3utjk7wpyjkurtwnwp6dhudh0j",
+        dstInjectiveAddress: "inj1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqe2hm49",
       });
 
       const pubKey = await wallet.getKey(chainId);
