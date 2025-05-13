@@ -610,7 +610,7 @@ export default function Art() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.8 }}
                   >
-                    NFT GENERATOR
+                    GENERATOR V1.0
                   </motion.h1>
                 </div>
                 <motion.div
