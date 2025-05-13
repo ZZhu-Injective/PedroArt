@@ -93,9 +93,11 @@ export default function Art() {
   setTotalCombinations(combinations);
   }, [layers]);
 
-  const baseAmount = pedroNfts ? "1" : "100,000";
+  const baseAmount = pedroNfts ? "1" : "100.000";
 
   const handleDownloadWithPayment = () => {
+    console.log(baseAmount)
+
     if (hasPaid) {
       downloadAllAsZip();
     } else {
@@ -106,13 +108,9 @@ export default function Art() {
 
   const handlePayment = useCallback(async () => {
     if (!walletAddress) return;
-    
-    setPaymentState('processing');
-    setModalMessage("Processing payment...");
+    console.log(baseAmount)
 
-    const amount = new BigNumberInBase(baseAmount)
-                  .times(new BigNumberInBase(10).pow(18))
-                  .toFixed();
+    setPaymentState('processing');
 
     try {
       setIsProcessingPayment(true);
@@ -143,7 +141,7 @@ export default function Art() {
 
       const msg = MsgSend.fromJSON({
         amount: {
-          amount: amount,
+          amount: new BigNumberInBase(baseAmount).times(new BigNumberInBase(10).pow(18)).toFixed(),
           denom: "factory/inj14ejqjyq8um4p3xfqj74yld5waqljf88f9eneuk/inj1c6lxety9hqn9q4khwqvjcfa24c2qeqvvfsg4fm",
         },
         srcInjectiveAddress: walletAddress,
@@ -197,7 +195,6 @@ export default function Art() {
         setIsWarningModalOpen(true)
       }
     } catch (error) {
-      console.error("Payment error:", error);
       setPaymentState('failed');
       setModalMessage("Payment failed. Please try again.");
       setIsWarningModalOpen(true)

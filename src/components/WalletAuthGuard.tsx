@@ -51,7 +51,6 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const [activeWalletType, setActiveWalletType] = useState<"keplr" | "leap" | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const isMobile = useMobileDetect();
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -75,46 +74,10 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
     setWalletAddress(null);
   };
 
-  useEffect(() => {
-    const savedWalletType = localStorage.getItem("connectedWalletType");
-    const savedWalletAddress = localStorage.getItem("connectedWalletAddress");
-    
-    if (savedWalletType && savedWalletAddress) {
-      checkWalletAuth(savedWalletType as "keplr" | "leap", savedWalletAddress);
-    }
-  }, []);
-
-  const checkWalletAuth = async (walletType: "keplr" | "leap", address: string) => {
-    const wallet = walletType === "keplr" ? window.keplr : window.leap;
-    if (!wallet) return false;
-
-    try {
-      await wallet.enable(chainId);
-      
-      const offlineSigner = wallet.getOfflineSigner(chainId);
-      const accounts = await offlineSigner.getAccounts();
-      const currentAddress = accounts[0].address;
-      
-      if (address !== currentAddress) {
-        logout();
-        return false;
-      }
-
-      const response = await fetch(`https://api.pedroinjraccoon.online/check/${address}/`);
-      const result = await response.text();
-      
-      if (result.trim() === '"yes"') {
-        setIsAuthenticated(true);
-        setWalletAddress(address);
-        return true;
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
-    }
-    return false;
-  };
-
   const connectWallet = async (walletType: "keplr" | "leap") => {
+    localStorage.removeItem("connectedWalletType");
+    localStorage.removeItem("connectedWalletAddress");
+
     setActiveWalletType(walletType);
     const wallet = walletType === "leap" ? window.leap : window.keplr;
   
