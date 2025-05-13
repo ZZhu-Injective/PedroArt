@@ -49,8 +49,6 @@ export default function Art() {
   const [totalCombinations, setTotalCombinations] = useState<number>(0);
   const [isGeneratingZip, setIsGeneratingZip] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
-  const [pedroTokens, setPedroTokens] = useState<number>(0);
-  const [pedroNfts, setPedroNfts] = useState<number>(0);
   const [paymentAddress] = useState("inj14rmguhlul3p30ntsnjph48nd5y2pqx2qwwf4u9");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [hasPaid, setHasPaid] = useState(false);
@@ -60,17 +58,31 @@ export default function Art() {
   const [paymentState, setPaymentState] = useState<PaymentState>('idle');
   const [storedAddress, setStoredAddress] = useState<string>('None');
   const [walletType, setStoredWallet] = useState<string>('None');
+  const [nft_hold, setNftHold] = useState<string>('None');
+  const [token_hold, setTokenHold] = useState<string>('None');
 
 
   useEffect(() => {
     const checkAddress = () => {
       const currentAddress = localStorage.getItem("connectedWalletAddress");
       const currentWalletType = localStorage.getItem("connectedWalletType");
+      const currentNFT_Hold = localStorage.getItem("nft_hold")
+      const currentToken_Hold = localStorage.getItem("token_hold")
+
       if (currentAddress && currentAddress !== storedAddress) {
         setStoredAddress(currentAddress);
       }
+
       if (currentWalletType && currentWalletType !== walletType) {
         setStoredWallet(currentWalletType);
+      }
+
+      if (currentNFT_Hold && currentNFT_Hold !== nft_hold) {
+        setNftHold(currentNFT_Hold);
+      }
+
+      if (currentToken_Hold && currentToken_Hold !== token_hold) {
+        setTokenHold(currentToken_Hold);
       }
     };
 
@@ -86,13 +98,6 @@ export default function Art() {
   }, [logout]);
 
   useEffect(() => {
-    if (storedAddress) {
-      setPedroTokens(100);
-      setPedroNfts(1);
-    }
-  }, [storedAddress]);
-
-  useEffect(() => {
   const combinations = layers.reduce((total, layer) => {
     if (!layer.enabled || layer.images.length === 0) return total;
     return total * layer.images.length;
@@ -101,7 +106,7 @@ export default function Art() {
   setTotalCombinations(combinations);
   }, [layers]);
 
-  const baseAmount = pedroNfts ? "1" : "100000";
+  const baseAmount = nft_hold ? "1" : "100000";
 
   const handleDownloadWithPayment = () => {
 
@@ -644,7 +649,7 @@ export default function Art() {
                   <div className="text-center">
                     <h3 className="text-sm font-medium text-gray-400 mb-1">PEDRO Tokens</h3>
                     <div className="flex items-center justify-center space-x-2">
-                      <p className="text-xl font-bold text-white">{pedroTokens.toLocaleString()}</p>
+                      <p className="text-xl font-bold text-white">{token_hold.toLocaleString()}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -658,7 +663,7 @@ export default function Art() {
                   <div className="text-center">
                     <h3 className="text-sm font-medium text-gray-400 mb-1">Pedro NFTs</h3>
                     <div className="flex items-center justify-center space-x-2">
-                      <p className="text-xl font-bold text-white">{pedroNfts}</p>
+                      <p className="text-xl font-bold text-white">{nft_hold}</p>
                     </div>
                   </div>
                 </motion.div>

@@ -6,6 +6,13 @@ import Image from "next/image";
 import Button from '@/components/basic_button';
 import Head from "next/head";
 
+interface PedroApiResponse {
+  wallet: string;
+  nft_hold: number;
+  token_hold: number;
+  check: string; 
+}
+
 declare global {
   interface Window extends KeplrWindow {}
 }
@@ -97,15 +104,14 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
       localStorage.setItem("connectedWalletType", walletType);
       localStorage.setItem("connectedWalletAddress", address);
       setWalletAddress(address);
-
-      console.log("updated address:", address)
       
-      const response = await fetch(`https://api.pedroinjraccoon.online/check/${address}/`);
-      const result = await response.text();
+      const response = await fetch(`https://api.pedroinjraccoon.online/check_pedro/${address}/`);
+      const result: PedroApiResponse = await response.json();
 
-
-      if (result.trim() === '"yes"') {
+      if (result.check === "yes") {
         setIsAuthenticated(true);
+        localStorage.setItem('nft_hold', result.nft_hold.toString());
+        localStorage.setItem('token_hold', result.token_hold.toString());
       } else {
         setModalMessage("Not enough $PEDRO or any Pedro NFT");
         setIsModalOpen(true);
