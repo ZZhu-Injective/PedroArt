@@ -24,7 +24,7 @@ export default function AltHomePage() {
           <div className="absolute inset-0 bg-black opacity-10" />
           <div className="absolute inset-0">
             <Image
-              src="/wallpaper3.png"
+              src="/wallpaper4.png"
               alt="Background texture"
               layout="fill"
               objectFit="cover"

@@ -585,7 +585,7 @@ export default function Art() {
           <div className="fixed inset-0 overflow-hidden pointer-events-none">
             <div className="absolute inset-0">
               <Image
-                src="/wallpaper4.png"
+                src="/wallpaper3.png"
                 alt="Background texture"
                 layout="fill"
                 objectFit="cover"
