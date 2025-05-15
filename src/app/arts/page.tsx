@@ -268,7 +268,7 @@ export default function Art() {
             </motion.div>
           </section>
 
-          <section className="relative sm:py-8 py-2 px-6 mx-auto max-w-[1500px]" ref={galleryRef}>
+          <section className="relative sm:py-8 py-2 px-2 sm: mx-auto max-w-[1500px]" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
               initial="hidden"

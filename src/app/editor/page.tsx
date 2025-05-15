@@ -481,7 +481,7 @@ export default function ImageEditor() {
               </motion.div>
           </section>
 
-          <div className='sm:py-8 py-2  mx-auto max-w-[1500px] px-6'>
+          <div className='sm:py-8 py-2 mx-auto max-w-[1500px] px-2'>
             <section className="px-3 sm:px-6 py-3 sm:py-5 bg-black/50 rounded-xl border border-white/10 mb-3 sm:mb-5">
               <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-10 text-white">HOW IT WORKS</h2>
               
