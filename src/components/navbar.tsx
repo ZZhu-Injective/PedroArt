@@ -127,7 +127,7 @@ const Navbar = () => {
             {[
               { href: "/arts", label: "ART" },
               { href: "/meme", label: "MEME" },
-              { href: "/factory", label: "CREATE" },
+              { href: "/factory", label: "CRAFT" },
               { href: "/editor", label: "EDIT" },
               { href: "/nftgenerator", label: "NFT" },
               { href: "https://pedroinjraccoon.online/", label: "MAIN" },
