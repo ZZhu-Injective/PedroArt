@@ -324,27 +324,63 @@ export default function NFTCreator() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-black/50 backdrop-blur-sm p-7 rounded-lg border border-white/20 shadow-lg"
-                >
-                  <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-10 text-white">HOW IT WORKS</h2>
-                  <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-white/80">
-                    <li className="flex items-start">
-                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
-                      <span><strong>Category</strong> - Select a Background, Eyes, etc.</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
-                      <span><strong>Mix and Match</strong> - Mix and Match Pedro The Raccoon</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
-                      <span><strong>Download</strong> - Click "Download Image" when ready</span>
-                    </li>
-                    <li className="flex items-start">
-                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
-                      <span><strong>Important</strong> - Pedro are free to use for personal use</span>
-                    </li>
-                  </ul>
+                  className="bg-black/50 p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden"
+                >                  
+                  <h2 className="text-2xl font-bold text-center mb-6 text-white">
+                    HOW IT WORKS
+                  </h2>
+                  
+                  <div className="space-y-4">
+                    {[
+                      {
+                        icon: "1.",
+                        title: "Select Category",
+                        text: "Choose from Background, Eyes, Outfit and more"
+                      },
+                      {
+                        icon: "2.",
+                        title: "Mix & Match",
+                        text: "Combine different elements to create your unique Pedro"
+                      },
+                      {
+                        icon: "3.",
+                        title: "Download",
+                        text: "Save your creation with one click"
+                      },
+                      {
+                        icon: "!",
+                        title: "Important",
+                        text: "Pedro NFTs are free for personal use"
+                      }
+                    ].map((item, index) => (
+                      <motion.div 
+                        key={index}
+                        initial={{ x: -20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: 0.3 + index * 0.1 }}
+                        className="flex items-start p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition-all group"
+                      >
+                        <span className="font-mono text-gray-400 mr-4 text-lg group-hover:text-white transition-colors">
+                          {item.icon}
+                        </span>
+                        <div>
+                          <h3 className="font-semibold text-white">{item.title}</h3>
+                          <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
+                            {item.text}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                  
+                  <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.7 }}
+                    className="mt-6 text-center text-xs text-gray-500 font-mono"
+                  >
+                    CREATE • CUSTOMIZE • DOWNLOAD
+                  </motion.div>
                 </motion.div>
 
                 <motion.div 
@@ -416,15 +452,6 @@ export default function NFTCreator() {
                     </div>
                   )}
                 </motion.div>
-
-                <div className="hidden lg:flex justify-center items-center p-8">
-                  <Button
-                    onClick={downloadNFT}
-                    disabled={isDownloading || !imagesLoaded}
-                    className="w-full md:w-1/2 py-3 text-lg font-bold bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
-                    label={isDownloading ? 'Downloading...' : 'DOWNLOAD IMAGE'}
-                  />
-                </div>
               </div>
 
               <div className="space-y-6 order-2">
@@ -459,11 +486,57 @@ export default function NFTCreator() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="bg-black/50 p-4 rounded-lg border border-white/10 shadow-lg backdrop-blur-sm"
+                  className="bg-black/50 p-4 rounded-lg border border-gray-700 shadow-lg backdrop-blur-sm"
                 >
+
+                  <div className="mb-3">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-lg font-semibold text-white">Combinations</h3>
+                      <button
+                        onClick={() => {
+                          const newCombinations = Array(6).fill(0).map(() => generateRandomCombination());
+                          setRandomCombinations(newCombinations);
+                        }}
+                        className="px-3 py-1 text-sm text-black hover:text-white bg-white hover:bg-black rounded-full"
+                      >
+                        Random
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                      {randomCombinations.map((combo, index) => (
+                        <div 
+                          key={index}
+                          className="relative group cursor-pointer"
+                          onClick={() => setSelectedElements(combo)}
+                        >
+                          <div 
+                            className="aspect-square rounded-lg overflow-hidden border-2 border-white/20"
+                            style={{
+                              backgroundColor: backgroundColors[combo.backgroundColor].value.startsWith('linear-gradient') 
+                                ? '#00000000'
+                                : backgroundColors[combo.backgroundColor].value,
+                              backgroundImage: backgroundColors[combo.backgroundColor].value.startsWith('linear-gradient') 
+                                ? backgroundColors[combo.backgroundColor].value
+                                : undefined
+                            }}
+                          >
+                            <div className="absolute inset-0">
+                              <img src="/raccoon/Raccoon.png" className="w-full h-full object-contain" />
+                            </div>
+                            {combo.eyes > 0 && <img src={elements.eyes[combo.eyes].image} className="absolute inset-0 w-full h-full object-contain" />}
+                            {combo.outfit > 0 && <img src={elements.outfit[combo.outfit].image} className="absolute inset-0 w-full h-full object-contain" />}
+                            {combo.hat > 0 && <img src={elements.hat[combo.hat].image} className="absolute inset-0 w-full h-full object-contain" />}
+                            {combo.accessory > 0 && <img src={elements.accessory[combo.accessory].image} className="absolute inset-0 w-full h-full object-contain" />}
+                            {combo.mouth > 0 && <img src={elements.mouth[combo.mouth].image} className="absolute inset-0 w-full h-full object-contain" />}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
                   {activeCategory === 'background' ? (
                     <>
-                      <h3 className="text-xl font-semibold mb-3 text-white">
+                      <h3 className="text-xl font-semibold mb-3 mt-6 text-white">
                         Background Color
                       </h3>
                       <div className="grid grid-cols-6 gap-2">
@@ -525,52 +598,17 @@ export default function NFTCreator() {
                     </>
                   )}
 
-                  <div className="mt-6">
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-lg font-semibold text-white">Combinations</h3>
-                      <button
-                        onClick={() => {
-                          const newCombinations = Array(6).fill(0).map(() => generateRandomCombination());
-                          setRandomCombinations(newCombinations);
-                        }}
-                        className="px-3 py-1 text-sm text-black hover:text-white bg-white hover:bg-black rounded-full"
-                      >
-                        Random
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                      {randomCombinations.map((combo, index) => (
-                        <div 
-                          key={index}
-                          className="relative group cursor-pointer"
-                          onClick={() => setSelectedElements(combo)}
-                        >
-                          <div 
-                            className="aspect-square rounded-lg overflow-hidden border-2 border-white/20"
-                            style={{
-                              backgroundColor: backgroundColors[combo.backgroundColor].value.startsWith('linear-gradient') 
-                                ? '#00000000'
-                                : backgroundColors[combo.backgroundColor].value,
-                              backgroundImage: backgroundColors[combo.backgroundColor].value.startsWith('linear-gradient') 
-                                ? backgroundColors[combo.backgroundColor].value
-                                : undefined
-                            }}
-                          >
-                            <div className="absolute inset-0">
-                              <img src="/raccoon/Raccoon.png" className="w-full h-full object-contain" />
-                            </div>
-                            {combo.eyes > 0 && <img src={elements.eyes[combo.eyes].image} className="absolute inset-0 w-full h-full object-contain" />}
-                            {combo.outfit > 0 && <img src={elements.outfit[combo.outfit].image} className="absolute inset-0 w-full h-full object-contain" />}
-                            {combo.hat > 0 && <img src={elements.hat[combo.hat].image} className="absolute inset-0 w-full h-full object-contain" />}
-                            {combo.accessory > 0 && <img src={elements.accessory[combo.accessory].image} className="absolute inset-0 w-full h-full object-contain" />}
-                            {combo.mouth > 0 && <img src={elements.mouth[combo.mouth].image} className="absolute inset-0 w-full h-full object-contain" />}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 </motion.div>
+
+                <div className="hidden lg:flex justify-center items-center p-5">
+                  <Button
+                    onClick={downloadNFT}
+                    disabled={isDownloading || !imagesLoaded}
+                    className="w-full md:w-1/2 py-3 text-lg font-bold bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                    label={isDownloading ? 'Downloading...' : 'DOWNLOAD IMAGE'}
+                  />
+                </div>
 
                 <div className="lg:hidden flex justify-center items-center p-10">
                   <Button
