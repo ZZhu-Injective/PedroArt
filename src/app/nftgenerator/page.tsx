@@ -520,7 +520,6 @@ const updateRarity = useCallback((layerIndex: number, imageIndex: number, value:
     }
     
     setPreviews(newPreviews);
-    setShowPreviews(true);
     setCurrentStep(5);
   }, [batchSize, layers, totalCombinations]);
 
@@ -937,13 +936,24 @@ const updateRarity = useCallback((layerIndex: number, imageIndex: number, value:
                         </div>
                         <div className="flex items-center gap-2">
                           <FiPercent className="text-white/70" />
+                          
                           <input
                             type="number"
                             min="0"
                             max="100"
                             value={layers[activeLayerIndex].layerRarity.toString()}
-                            onChange={(e) => setWidth(parseInt(e.target.value) || 600)}
-                            className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right"
+                            onChange={(e) => {
+                              const rawValue = e.target.value;
+                              
+                              if (rawValue === "" || /^[0-9]+$/.test(rawValue)) {
+                                  const numValue = rawValue === "" ? 0 : parseInt(rawValue, 10);
+                                  
+                                  if (numValue >= 0 && numValue <= 100) {
+                                      updateLayerRarityValue(activeLayerIndex, numValue);
+                                  }
+                              }}
+                            }
+                            className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right"                            
                           />
                           <span className="text-sm text-white/50">%</span>
                           <motion.button
