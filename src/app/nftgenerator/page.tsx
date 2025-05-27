@@ -276,7 +276,7 @@ export default function NFTGenerator() {
         sequence: baseAccount.sequence,
         timeoutHeight: timeoutHeight.toNumber(),
         accountNumber: baseAccount.accountNumber,
-        memo: "Send to burn wallet",
+        memo: "Send to burn wallet - PEDRO X NFT",
       });
   
       const offlineSigner = wallet.getOfflineSigner(chainId);
@@ -303,12 +303,36 @@ export default function NFTGenerator() {
   
       const txHash = await broadcastTx(ChainId.Mainnet, txRawSigned);
 
-      if (txHash) {
-        setPaymentState('success');
-        setHasPaid(true);
-        setModalMessage("Payment successful! You can now download your NFTs.");
-        setIsWarningModalOpen(true);
+    try {
+      const response = await fetch('https://api.pedroinjective.online/burned', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          srcInjectiveAddress: storedAddress,
+          baseAmount: baseAmount,
+          txRawSigned: txRawSigned,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send transaction info to API');
       }
+
+      const data = await response.json();
+      console.log('API response:', data);
+    } catch (apiError) {
+      console.error('API error:', apiError);
+    }
+
+    if (txHash) {
+      setPaymentState('success');
+      setHasPaid(true);
+      setModalMessage("Payment successful! You can now download your NFTs.");
+      setIsWarningModalOpen(true);
+    }
+    
     } catch (error) {
       console.error('Payment error:', error);
       setPaymentState('failed');
