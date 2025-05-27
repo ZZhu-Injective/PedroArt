@@ -422,39 +422,57 @@ export default function NFTGenerator() {
     setLayers(updatedLayers);
   }, [layers]);
 
-const updateRarity = useCallback((layerIndex: number, imageIndex: number, value: string) => {
-  const updatedLayers = [...layers];
-  const numValue = parseInt(value) || 0;
-  
-  const oldValue = updatedLayers[layerIndex].images[imageIndex].rarity;
-  const delta = numValue - oldValue;
-  
-  updatedLayers[layerIndex].images[imageIndex].rarity = Math.min(100, Math.max(0, numValue));
-  
-  const otherImages = updatedLayers[layerIndex].images.filter((_, i) => i !== imageIndex);
-  const totalOtherRarity = otherImages.reduce((sum, img) => sum + img.rarity, 0);
-  const remainingPercentage = 100 - numValue;
-  
-  if (totalOtherRarity > 0 && remainingPercentage >= 0) {
-    const scaleFactor = remainingPercentage / totalOtherRarity;
-    updatedLayers[layerIndex].images.forEach((img, i) => {
-      if (i !== imageIndex) {
-        img.rarity = Math.max(0, Math.min(100, Math.floor(img.rarity * scaleFactor)));
-      }
-    });
+  const updateRarity = useCallback((layerIndex: number, imageIndex: number, value: string) => {
+    const updatedLayers = [...layers];
+    const numValue = parseInt(value) || 0;
+    const maxValue = 100;
     
-    const newTotal = updatedLayers[layerIndex].images.reduce((sum, img) => sum + img.rarity, 0);
-    if (newTotal !== 100 && updatedLayers[layerIndex].images.length > 1) {
-      const diff = 100 - newTotal;
-      const lastIndex = updatedLayers[layerIndex].images.length - 1;
-      updatedLayers[layerIndex].images[lastIndex].rarity += diff;
+    const currentTotal = updatedLayers[layerIndex].images.reduce((sum, img) => sum + img.rarity, 0);
+    const currentImageValue = updatedLayers[layerIndex].images[imageIndex].rarity;
+    const otherImagesTotal = currentTotal - currentImageValue;
+    
+    const maxAllowed = maxValue - otherImagesTotal;
+    
+    const clampedValue = Math.max(0, Math.min(maxAllowed, numValue));
+    
+    updatedLayers[layerIndex].images[imageIndex].rarity = clampedValue;
+    
+    if (clampedValue < currentImageValue) {
+      const remainder = currentImageValue - clampedValue;
+      const otherImages = updatedLayers[layerIndex].images.filter((_, i) => i !== imageIndex);
+      
+      if (otherImages.length > 0) {
+        const equalShare = Math.floor(remainder / otherImages.length);
+        let distributed = 0;
+        
+        otherImages.forEach((img, i) => {
+          const originalIndex = updatedLayers[layerIndex].images.findIndex(
+            (_, idx) => idx !== imageIndex && idx === i
+          );
+          if (originalIndex !== -1) {
+            const newValue = img.rarity + equalShare;
+            updatedLayers[layerIndex].images[originalIndex].rarity = Math.min(100, newValue);
+            distributed += equalShare;
+          }
+        });
+        
+        const remaining = remainder - distributed;
+        if (remaining > 0) {
+          const firstOtherIndex = updatedLayers[layerIndex].images.findIndex(
+            (_, idx) => idx !== imageIndex
+          );
+          if (firstOtherIndex !== -1) {
+            updatedLayers[layerIndex].images[firstOtherIndex].rarity = Math.min(
+              100,
+              updatedLayers[layerIndex].images[firstOtherIndex].rarity + remaining
+            );
+          }
+        }
+      }
     }
-  } else if (updatedLayers[layerIndex].images.length === 1) {
-    updatedLayers[layerIndex].images[0].rarity = 100;
-  }
-  
-  setLayers(updatedLayers);
-}, [layers]);
+    
+    setLayers(updatedLayers);
+  }, [layers]);
 
   const removeImage = useCallback((layerIndex: number, imageIndex: number) => {
     const updatedLayers = [...layers];
@@ -482,70 +500,6 @@ const updateRarity = useCallback((layerIndex: number, imageIndex: number, value:
     updatedLayers[layerIndex].enabled = !updatedLayers[layerIndex].enabled;
     setLayers(updatedLayers);
   }, [layers]);
-
-  const generateBatchPreviews = useCallback(() => {
-    if (layers.length === 0 || batchSize < 1) return;
-
-    const maxAllowed = Math.min(5000, totalCombinations);
-    
-    if (batchSize > maxAllowed) {
-      setModalMessage(`You can only generate up to ${maxAllowed} NFTs at once.`);
-      setIsWarningModalOpen(true);
-      setBatchSize(maxAllowed);
-      return;
-    }
-
-    const newPreviews: Preview[] = [];
-    
-    const enabledLayers = layers.filter(layer => 
-      layer.enabled && layer.images.length > 0
-    );
-
-    for (let i = 0; i < batchSize; i++) {
-      const selectedImages: number[] = [];
-      const selectedImageUrls: string[] = [];
-      const usedLayers: boolean[] = [];
-      
-      layers.forEach(() => usedLayers.push(false));
-      
-      [...enabledLayers]
-        .sort((a, b) => a.zIndex - b.zIndex)
-        .forEach((layer, layerIdx) => {
-          const useLayer = Math.random() * 100 < layer.layerRarity;
-          usedLayers[layers.indexOf(layer)] = useLayer;
-          
-          if (!useLayer) {
-            return;
-          }
-
-          const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
-          let random = Math.random() * totalRarity;
-          let cumulative = 0;
-          let selectedIndex = 0;
-          
-          for (let j = 0; j < layer.images.length; j++) {
-            cumulative += layer.images[j].rarity;
-            if (random <= cumulative) {
-              selectedIndex = j;
-              break;
-            }
-          }
-          
-          selectedImages[layers.indexOf(layer)] = selectedIndex;
-          selectedImageUrls.push(layer.images[selectedIndex].preview);
-        });
-      
-      newPreviews.push({
-        images: selectedImageUrls,
-        layers: selectedImages,
-        id: Date.now() + Math.random().toString(36).substr(2, 9),
-        usedLayers
-      });
-    }
-    
-    setPreviews(newPreviews);
-    setCurrentStep(5);
-  }, [batchSize, layers, totalCombinations]);
 
   const downloadPreview = useCallback((preview: Preview) => {
     if (!preview || preview.layers.length === 0) return;
@@ -749,30 +703,114 @@ const updateRarity = useCallback((layerIndex: number, imageIndex: number, value:
     }
   };
 
-  const renderPreviewCanvas = useCallback(() => {
-    if (!canvasRef.current || layers.length === 0 || activeLayerIndex >= layers.length) return;
-    
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
+  const renderPreviewCanvas = useCallback((preview: Preview) => {
+    const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const activeLayer = layers[activeLayerIndex];
-    if (activeLayer.images.length > 0) {
-      const img = new window.Image() as HTMLImageElement;
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      };
-      img.src = activeLayer.images[0].preview;
-    }
-  }, [activeLayerIndex, layers, width, height]);
+    const layersToDraw = layers
+      .map((layer, layerIdx) => ({
+        layer,
+        imgIdx: preview.layers[layerIdx],
+        zIndex: layer.zIndex
+      }))
+      .filter(({ imgIdx }) => imgIdx !== -1)
+      .sort((a, b) => a.zIndex - b.zIndex);
 
-  useEffect(() => {
-    renderPreviewCanvas();
-  }, [renderPreviewCanvas]);
+    const promises = layersToDraw.map(({ layer, imgIdx }) => {
+      return new Promise<void>((resolve) => {
+        const img = new window.Image();
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve();
+        };
+        img.onerror = () => resolve();
+        img.src = layer.images[imgIdx].preview;
+      });
+    });
+
+    return Promise.all(promises).then(() => canvas);
+  }, [layers, width, height]);
+
+  const generateBatchPreviews = useCallback(async () => {
+    if (layers.length === 0 || batchSize < 1) return;
+
+      const invalidLayers = layers.filter(layer => 
+      layer.enabled && 
+      layer.images.length > 0 && 
+      layer.images.reduce((sum, img) => sum + img.rarity, 0) !== 100
+    );
+
+    if (invalidLayers.length > 0) {
+      setModalMessage(`Some layers don't have rarity totals equal to 100%. Please fix before generating.`);
+      setIsWarningModalOpen(true);
+      return;
+    }
+
+    const maxAllowed = Math.min(5000, totalCombinations);
+    if (batchSize > maxAllowed) {
+      setModalMessage(`You can only generate up to ${maxAllowed} NFTs at once.`);
+      setIsWarningModalOpen(true);
+      setBatchSize(maxAllowed);
+      return;
+    }
+
+    const newPreviews: Preview[] = [];
+    const enabledLayers = layers.filter(layer => 
+      layer.enabled && layer.images.length > 0
+    );
+
+    for (let i = 0; i < batchSize; i++) {
+      const selectedImages: number[] = [];
+      const usedLayers: boolean[] = [];
+      layers.forEach(() => usedLayers.push(false));
+      
+      [...enabledLayers]
+        .sort((a, b) => a.zIndex - b.zIndex)
+        .forEach((layer, layerIdx) => {
+          const useLayer = Math.random() * 100 < layer.layerRarity;
+          usedLayers[layers.indexOf(layer)] = useLayer;
+          
+          if (!useLayer) return;
+
+          const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
+          let random = Math.random() * totalRarity;
+          let cumulative = 0;
+          let selectedIndex = 0;
+          
+          for (let j = 0; j < layer.images.length; j++) {
+            cumulative += layer.images[j].rarity;
+            if (random <= cumulative) {
+              selectedIndex = j;
+              break;
+            }
+          }
+          
+          selectedImages[layers.indexOf(layer)] = selectedIndex;
+        });
+      
+      const preview: Preview = {
+        layers: selectedImages,
+        id: Date.now() + Math.random().toString(36).substr(2, 9),
+        usedLayers,
+        images: [] 
+      };
+
+      const canvas = await renderPreviewCanvas(preview);
+      if (canvas) {
+        preview.images = [canvas.toDataURL('image/png')];
+      }
+
+      newPreviews.push(preview);
+    }
+    
+    setPreviews(newPreviews);
+    setCurrentStep(5);
+  }, [batchSize, layers, totalCombinations, renderPreviewCanvas]);
 
  return (
     <WalletAuthGuard>
@@ -967,18 +1005,12 @@ const updateRarity = useCallback((layerIndex: number, imageIndex: number, value:
                             max="100"
                             value={layers[activeLayerIndex].layerRarity.toString()}
                             onChange={(e) => {
-                              const rawValue = e.target.value;
-                              
-                              if (rawValue === "" || /^[0-9]+$/.test(rawValue)) {
-                                  const numValue = rawValue === "" ? 0 : parseInt(rawValue, 10);
-                                  
-                                  if (numValue >= 0 && numValue <= 100) {
-                                      updateLayerRarityValue(activeLayerIndex, numValue);
-                                  }
-                              }}
-                            }
-                            className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right"                            
+                              const value = parseInt(e.target.value) || 0;
+                              updateLayerRarityValue(activeLayerIndex, Math.min(100, Math.max(0, value)));
+                            }}
+                            className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right"
                           />
+
                           <span className="text-sm text-white/50">%</span>
                           <motion.button
                             whileHover={{ scale: 1.05 }}
@@ -1080,19 +1112,28 @@ const updateRarity = useCallback((layerIndex: number, imageIndex: number, value:
                             <div className="p-3 bg-white/5 rounded-lg border border-white/10 mb-2">
                               <div className="flex justify-between items-center">
                                 <span className="text-sm text-white/80">Total Rarity</span>
-                                <span className="text-sm font-mono">
-                                  {layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0)}%
-                                </span>
+                                  <span className={`text-sm font-mono ${
+                                    layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) !== 100 
+                                      ? 'text-red-400' 
+                                      : 'text-green-400'
+                                  }`}>
+                                    {layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0)}%
+                                  </span>
                               </div>
-                              <div className="w-full h-1 bg-white/10 rounded-full mt-1 overflow-hidden">
-                                <div 
-                                  className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full" 
-                                  style={{ 
-                                    width: `${Math.min(100, layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) || 0)}%` 
-                                  }}
-                                />
-                              </div>
-                            </div>
+
+                                <div className="w-full h-1 bg-white/10 rounded-full mt-1 overflow-hidden">
+                                    <div 
+                                      className={`h-full rounded-full ${
+                                        layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) !== 100
+                                          ? 'bg-red-500/50' 
+                                          : 'bg-green-500/50'
+                                      }`} 
+                                      style={{ 
+                                        width: `${Math.min(100, layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) || 0)}%` 
+                                      }}
+                                    />
+                                  </div>
+                                </div>
                             
                             {layers[activeLayerIndex]?.images.map((image, imgIndex) => (
                               <div key={imgIndex} className="p-3 bg-white/5 rounded-lg">
@@ -1101,19 +1142,20 @@ const updateRarity = useCallback((layerIndex: number, imageIndex: number, value:
                                     <FiImage size={12} />
                                     {image.name}
                                   </span>
-                                  <span className="text-sm font-mono">{image.rarity}%</span>
-                                </div>
-                                <input
-                                  type="range"
-                                  min="0"
-                                  max="100"
-                                  value={image.rarity}
-                                  onChange={(e) => updateRarity(activeLayerIndex, imgIndex, e.target.value)}
-                                  className="w-full h-1 bg-white/10 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
-                                />
-                                <div className="flex justify-between text-xs text-white/50 mt-1">
-                                  <span>0%</span>
-                                  <span>100%</span>
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      value={image.rarity}
+                                      onChange={(e) => {
+                                        const value = parseInt(e.target.value) || 0;
+                                        updateRarity(activeLayerIndex, imgIndex, value.toString());
+                                      }}
+                                      className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right"
+                                    />
+                                    <span className="text-sm text-white/50">%</span>
+                                  </div>
                                 </div>
                               </div>
                             ))}
@@ -1156,28 +1198,17 @@ const updateRarity = useCallback((layerIndex: number, imageIndex: number, value:
                       {previews.map((preview, idx) => (
                         <div key={preview.id} className="relative group">
                           <div className="aspect-square bg-black/50 rounded-lg overflow-hidden border border-white/10 relative">
-                            <canvas 
-                              width={width} 
-                              height={height}
-                              className="w-full h-full object-contain"
-                              ref={(el) => {
-                                if (el) {
-                                  const ctx = el.getContext('2d');
-                                  if (ctx) {
-                                    ctx.clearRect(0, 0, width, height);
-                                    
-                                    layers.forEach((layer, layerIdx) => {
-                                      const imgIndex = preview.layers[layerIdx];
-                                      if (imgIndex !== -1 && layer.images[imgIndex]) {
-                                        const img = new window.Image();
-                                        img.src = layer.images[imgIndex].preview;
-                                        ctx.drawImage(img, 0, 0, width, height);
-                                      }
-                                    });
-                                  }
-                                }
-                              }}
-                            />
+                            {preview.images.length > 0 ? (
+                              <img 
+                                src={preview.images[0]} 
+                                alt={`Preview ${idx}`}
+                                className="w-full h-full object-contain"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <FaSpinner className="animate-spin" />
+                              </div>
+                            )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
                             <span className="text-xs text-white truncate w-full">
                               {itemPrefix ? `${itemPrefix}-${idx + 1}` : `NFT-${idx + 1}`}
