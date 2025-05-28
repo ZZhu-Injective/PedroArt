@@ -144,6 +144,7 @@ export default function NFTGenerator() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [showPreviews, setShowPreviews] = useState<boolean>(false);
+  const [showAllLayers, setShowAllLayers] = useState(true);
 
   const steps = [
     {
@@ -212,6 +213,55 @@ export default function NFTGenerator() {
     
     setTotalCombinations(combinations);
   }, [layers]);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (layers.length === 0) {
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.font = '24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('No layers to preview', canvas.width / 2, canvas.height / 2);
+      return;
+    }
+
+    if (showAllLayers) {
+      layers
+        .filter(layer => layer.enabled && layer.images.length > 0)
+        .sort((a, b) => a.zIndex - b.zIndex)
+        .forEach(layer => {
+          const previewImage = layer.images[0]; 
+          if (previewImage) {
+            const img = new window.Image();
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            };
+            img.src = previewImage.preview;
+          }
+        });
+    } else {
+      const activeLayer = layers[activeLayerIndex];
+      if (activeLayer && activeLayer.images.length > 0) {
+        const previewImage = activeLayer.images[0]; 
+        const img = new window.Image();
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = previewImage.preview;
+      }
+    }
+  }, [layers, activeLayerIndex, width, height, showAllLayers]);
 
   const baseAmount = nft_hold ? "1" : "100000";
 
@@ -739,7 +789,7 @@ export default function NFTGenerator() {
   const generateBatchPreviews = useCallback(async () => {
     if (layers.length === 0 || batchSize < 1) return;
 
-      const invalidLayers = layers.filter(layer => 
+    const invalidLayers = layers.filter(layer => 
       layer.enabled && 
       layer.images.length > 0 && 
       layer.images.reduce((sum, img) => sum + img.rarity, 0) !== 100
@@ -765,33 +815,34 @@ export default function NFTGenerator() {
     );
 
     for (let i = 0; i < batchSize; i++) {
-      const selectedImages: number[] = [];
-      const usedLayers: boolean[] = [];
-      layers.forEach(() => usedLayers.push(false));
+      const selectedImages: number[] = Array(layers.length).fill(-1);
+      const usedLayers: boolean[] = Array(layers.length).fill(false);
       
-      [...enabledLayers]
-        .sort((a, b) => a.zIndex - b.zIndex)
-        .forEach((layer, layerIdx) => {
-          const useLayer = Math.random() * 100 < layer.layerRarity;
-          usedLayers[layers.indexOf(layer)] = useLayer;
-          
-          if (!useLayer) return;
+      layers.forEach((layer, layerIdx) => {
+        console.log(layer)
+        console.log(layerIdx)
+        if (!layer.enabled || layer.images.length === 0) return;
+        
+        const useLayer = Math.random() * 100 <= layer.layerRarity;
 
-          const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
-          let random = Math.random() * totalRarity;
-          let cumulative = 0;
-          let selectedIndex = 0;
-          
-          for (let j = 0; j < layer.images.length; j++) {
-            cumulative += layer.images[j].rarity;
-            if (random <= cumulative) {
-              selectedIndex = j;
-              break;
-            }
+        usedLayers[layerIdx] = useLayer;
+        
+        if (!useLayer) return;
+
+        const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
+
+        let random = Math.random() * totalRarity;
+        let cumulative = 0;
+        
+        for (let j = 0; j < layer.images.length; j++) {
+          cumulative += layer.images[j].rarity;
+          console.log(j)
+          if (random <= cumulative) {
+            selectedImages[layerIdx] = j;
+            break;
           }
-          
-          selectedImages[layers.indexOf(layer)] = selectedIndex;
-        });
+        }
+      });
       
       const preview: Preview = {
         layers: selectedImages,
@@ -859,7 +910,7 @@ export default function NFTGenerator() {
               </motion.div>
             </section>
 
-            <section className="relative px-4 mx-auto max-w-6xl mb-8">
+            <section className="relative px-8 mx-auto max-w-6xl mb-8">
               <motion.div
                 variants={containerVariants}
                 initial="hidden"
@@ -974,6 +1025,8 @@ export default function NFTGenerator() {
                     <div className="relative w-full aspect-square bg-black/50 rounded-xl overflow-hidden border border-white/10">
                       <canvas 
                         ref={canvasRef}
+                        width={width}
+                        height={height}
                         className="w-full h-full object-contain"
                       />
                     </div>
