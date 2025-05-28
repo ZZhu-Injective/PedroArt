@@ -725,27 +725,31 @@ export default function NFTGenerator() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Get layers to draw, sorted by z-index
     const layersToDraw = layers
       .map((layer, layerIdx) => ({
         layer,
         imgIdx: preview.layers[layerIdx],
-        zIndex: layer.zIndex,
-        used: preview.usedLayers[layerIdx]
+        used: preview.usedLayers[layerIdx],
+        zIndex: layer.zIndex
       }))
       .filter(({ used, imgIdx }) => used && imgIdx !== -1)
       .sort((a, b) => a.zIndex - b.zIndex);
 
-    await Promise.all(layersToDraw.map(({ layer, imgIdx }) => {
-      return new Promise<void>((resolve) => {
-        const img = new window.Image();
+    for (const { layer, imgIdx } of layersToDraw) {
+      const img = new window.Image();
+      await new Promise<void>((resolve) => {
         img.onload = () => {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           resolve();
         };
-        img.onerror = () => resolve();
+        img.onerror = (event: Event | string) => {
+          console.warn(`Failed to load image for layer ${layer.name}`, event);
+          resolve();
+        };
         img.src = layer.images[imgIdx].preview;
       });
-    }));
+    }
 
     return canvas;
   }, [layers, width, height]);
