@@ -44,9 +44,11 @@ type DragItem = {
   index: number;
 };
 
+type LayerCombination = {
+  [layerId: string]: number;
+};
 
 type PaymentState = 'idle' | 'processing' | 'success' | 'failed';
-
 
 const DraggableLayer: React.FC<{
   layer: Layer;
@@ -146,6 +148,8 @@ export default function NFTGenerator() {
   const [showPreviews, setShowPreviews] = useState<boolean>(false);
   const [showAllLayers, setShowAllLayers] = useState(true);
   const [isGeneratingPreviews, setIsGeneratingPreviews] = useState(false);
+  const [usedCombinations, setUsedCombinations] = useState<Set<string>>(new Set());
+
 
   const steps = [
     {
@@ -725,8 +729,7 @@ export default function NFTGenerator() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Get layers to draw, sorted by z-index
-    const layersToDraw = layers
+    const drawQueue = layers
       .map((layer, layerIdx) => ({
         layer,
         imgIdx: preview.layers[layerIdx],
@@ -736,102 +739,102 @@ export default function NFTGenerator() {
       .filter(({ used, imgIdx }) => used && imgIdx !== -1)
       .sort((a, b) => a.zIndex - b.zIndex);
 
-    for (const { layer, imgIdx } of layersToDraw) {
-      const img = new window.Image();
-      await new Promise<void>((resolve) => {
-        img.onload = () => {
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          resolve();
-        };
-        img.onerror = (event: Event | string) => {
-          console.warn(`Failed to load image for layer ${layer.name}`, event);
-          resolve();
-        };
-        img.src = layer.images[imgIdx].preview;
-      });
+    for (const { layer, imgIdx } of drawQueue) {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const img = new window.Image();
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve();
+          };
+          img.onerror = (err) => {
+            console.error(`Error loading ${layer.name} image ${imgIdx}`, err);
+            reject(err);
+          };
+          img.src = layer.images[imgIdx].preview;
+        });
+      } catch (err) {
+        console.warn(`Skipping failed layer ${layer.name}`);
+        continue;
+      }
     }
 
     return canvas;
   }, [layers, width, height]);
-
+  
   const generateBatchPreviews = useCallback(async () => {
     if (layers.length === 0 || batchSize < 1) return;
 
-    const invalidLayers = layers.filter(layer => 
-      layer.enabled && 
-      layer.images.length > 0 && 
-      layer.images.reduce((sum, img) => sum + img.rarity, 0) !== 100
-    );
+    setUsedCombinations(new Set());
+    setIsGeneratingPreviews(true);
+    setPreviews([]);
 
-    if (invalidLayers.length > 0) {
-      setModalMessage(`Some layers don't have rarity totals equal to 100%. Please fix before generating.`);
-      setIsWarningModalOpen(true);
-      return;
-    }
+    try {
+      const newPreviews: Preview[] = [];
+      const combinations = new Set<string>();
 
-    const maxAllowed = Math.min(5000, totalCombinations);
-    if (batchSize > maxAllowed) {
-      setModalMessage(`You can only generate up to ${maxAllowed} NFTs at once.`);
-      setIsWarningModalOpen(true);
-      setBatchSize(maxAllowed);
-      return;
-    }
+      while (newPreviews.length < batchSize) {
+        const selectedImages: number[] = Array(layers.length).fill(-1);
+        const usedLayers: boolean[] = Array(layers.length).fill(false);
+        let combinationKey = "";
 
-     setIsGeneratingPreviews(true);
-      setPreviews([]);
-
-      try {
-        const newPreviews: Preview[] = [];
-
-        for (let i = 0; i < batchSize; i++) {
-          const selectedImages: number[] = Array(layers.length).fill(-1);
-          const usedLayers: boolean[] = Array(layers.length).fill(false);
-
-          layers.forEach((layer, layerIdx) => {
-            if (!layer.enabled || layer.images.length === 0) {
-              usedLayers[layerIdx] = false;
-              return;
-            }
-
-            const useLayer = Math.random() * 100 <= layer.layerRarity;
-            usedLayers[layerIdx] = useLayer;
-
-            if (!useLayer) return;
-
-            const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
-            let random = Math.random() * totalRarity;
-            let cumulative = 0;
-
-            for (let j = 0; j < layer.images.length; j++) {
-              cumulative += layer.images[j].rarity;
-              if (random <= cumulative) {
-                selectedImages[layerIdx] = j;
-                break;
-              }
-            }
-          });
-
-          const preview: Preview = {
-            layers: selectedImages,
-            id: `${Date.now()}-${i}`,
-            usedLayers,
-            images: []
-          };
-
-          const canvas = await renderPreviewCanvas(preview);
-          if (canvas) {
-            preview.images = [canvas.toDataURL('image/png')];
+        layers.forEach((layer, layerIdx) => {
+          if (!layer.enabled || layer.images.length === 0) {
+            usedLayers[layerIdx] = false;
+            return;
           }
 
-          newPreviews.push(preview);
+          if (layer.layerRarity === 100) {
+            usedLayers[layerIdx] = true;
+          } else {
+            usedLayers[layerIdx] = Math.random() * 100 <= layer.layerRarity;
+          }
+
+          if (!usedLayers[layerIdx]) {
+            combinationKey += `-`;
+            return;
+          }
+
+          const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
+          let random = Math.random() * totalRarity;
+          let cumulative = 0;
+
+          for (let j = 0; j < layer.images.length; j++) {
+            cumulative += layer.images[j].rarity;
+            if (random <= cumulative) {
+              selectedImages[layerIdx] = j;
+              combinationKey += `${j}:`;
+              break;
+            }
+          }
+        });
+
+        if (combinations.has(combinationKey)) {
+          continue;
         }
 
-        setPreviews(newPreviews);
-        setCurrentStep(5);
-      } finally {
-        setIsGeneratingPreviews(false);
+        combinations.add(combinationKey);
+
+        const preview: Preview = {
+          layers: selectedImages,
+          usedLayers,
+          id: `preview-${Date.now()}-${newPreviews.length}`,
+          images: []
+        };
+
+        const canvas = await renderPreviewCanvas(preview);
+        if (canvas) {
+          preview.images = [canvas.toDataURL('image/png')];
+          newPreviews.push(preview);
+        }
       }
-    }, [batchSize, layers, totalCombinations, renderPreviewCanvas]);
+
+      setPreviews(newPreviews);
+      setUsedCombinations(combinations);
+    } finally {
+      setIsGeneratingPreviews(false);
+    }
+  }, [batchSize, layers, renderPreviewCanvas]);
 
 
  return (
