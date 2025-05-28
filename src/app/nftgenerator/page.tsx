@@ -145,6 +145,7 @@ export default function NFTGenerator() {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [showPreviews, setShowPreviews] = useState<boolean>(false);
   const [showAllLayers, setShowAllLayers] = useState(true);
+  const [isGeneratingPreviews, setIsGeneratingPreviews] = useState(false);
 
   const steps = [
     {
@@ -477,49 +478,9 @@ export default function NFTGenerator() {
     const numValue = parseInt(value) || 0;
     const maxValue = 100;
     
-    const currentTotal = updatedLayers[layerIndex].images.reduce((sum, img) => sum + img.rarity, 0);
-    const currentImageValue = updatedLayers[layerIndex].images[imageIndex].rarity;
-    const otherImagesTotal = currentTotal - currentImageValue;
-    
-    const maxAllowed = maxValue - otherImagesTotal;
-    
-    const clampedValue = Math.max(0, Math.min(maxAllowed, numValue));
+    const clampedValue = Math.max(0, Math.min(maxValue, numValue));
     
     updatedLayers[layerIndex].images[imageIndex].rarity = clampedValue;
-    
-    if (clampedValue < currentImageValue) {
-      const remainder = currentImageValue - clampedValue;
-      const otherImages = updatedLayers[layerIndex].images.filter((_, i) => i !== imageIndex);
-      
-      if (otherImages.length > 0) {
-        const equalShare = Math.floor(remainder / otherImages.length);
-        let distributed = 0;
-        
-        otherImages.forEach((img, i) => {
-          const originalIndex = updatedLayers[layerIndex].images.findIndex(
-            (_, idx) => idx !== imageIndex && idx === i
-          );
-          if (originalIndex !== -1) {
-            const newValue = img.rarity + equalShare;
-            updatedLayers[layerIndex].images[originalIndex].rarity = Math.min(100, newValue);
-            distributed += equalShare;
-          }
-        });
-        
-        const remaining = remainder - distributed;
-        if (remaining > 0) {
-          const firstOtherIndex = updatedLayers[layerIndex].images.findIndex(
-            (_, idx) => idx !== imageIndex
-          );
-          if (firstOtherIndex !== -1) {
-            updatedLayers[layerIndex].images[firstOtherIndex].rarity = Math.min(
-              100,
-              updatedLayers[layerIndex].images[firstOtherIndex].rarity + remaining
-            );
-          }
-        }
-      }
-    }
     
     setLayers(updatedLayers);
   }, [layers]);
@@ -631,11 +592,13 @@ export default function NFTGenerator() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       const layersToDraw = preview.layers
-        .map((imgIdx, layerIdx) => ({ 
+        .map((imgIdx, layerIdx) => ({
           layerIdx,
           imgIdx,
-          zIndex: layers[layerIdx]?.zIndex || 0
+          zIndex: layers[layerIdx]?.zIndex || 0,
+          used: preview.usedLayers[layerIdx]
         }))
+        .filter(({ used, imgIdx }) => used && imgIdx !== -1)
         .sort((a, b) => a.zIndex - b.zIndex);
       
       let metadataRow = `${fileName};${title};${description};${nbCopies};`;
@@ -753,7 +716,7 @@ export default function NFTGenerator() {
     }
   };
 
-  const renderPreviewCanvas = useCallback((preview: Preview) => {
+  const renderPreviewCanvas = useCallback(async (preview: Preview) => {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -766,12 +729,13 @@ export default function NFTGenerator() {
       .map((layer, layerIdx) => ({
         layer,
         imgIdx: preview.layers[layerIdx],
-        zIndex: layer.zIndex
+        zIndex: layer.zIndex,
+        used: preview.usedLayers[layerIdx]
       }))
-      .filter(({ imgIdx }) => imgIdx !== -1)
+      .filter(({ used, imgIdx }) => used && imgIdx !== -1)
       .sort((a, b) => a.zIndex - b.zIndex);
 
-    const promises = layersToDraw.map(({ layer, imgIdx }) => {
+    await Promise.all(layersToDraw.map(({ layer, imgIdx }) => {
       return new Promise<void>((resolve) => {
         const img = new window.Image();
         img.onload = () => {
@@ -781,9 +745,9 @@ export default function NFTGenerator() {
         img.onerror = () => resolve();
         img.src = layer.images[imgIdx].preview;
       });
-    });
+    }));
 
-    return Promise.all(promises).then(() => canvas);
+    return canvas;
   }, [layers, width, height]);
 
   const generateBatchPreviews = useCallback(async () => {
@@ -809,59 +773,62 @@ export default function NFTGenerator() {
       return;
     }
 
-    const newPreviews: Preview[] = [];
-    const enabledLayers = layers.filter(layer => 
-      layer.enabled && layer.images.length > 0
-    );
+     setIsGeneratingPreviews(true);
+      setPreviews([]);
 
-    for (let i = 0; i < batchSize; i++) {
-      const selectedImages: number[] = Array(layers.length).fill(-1);
-      const usedLayers: boolean[] = Array(layers.length).fill(false);
-      
-      layers.forEach((layer, layerIdx) => {
-        console.log(layer)
-        console.log(layerIdx)
-        if (!layer.enabled || layer.images.length === 0) return;
-        
-        const useLayer = Math.random() * 100 <= layer.layerRarity;
+      try {
+        const newPreviews: Preview[] = [];
 
-        usedLayers[layerIdx] = useLayer;
-        
-        if (!useLayer) return;
+        for (let i = 0; i < batchSize; i++) {
+          const selectedImages: number[] = Array(layers.length).fill(-1);
+          const usedLayers: boolean[] = Array(layers.length).fill(false);
 
-        const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
+          layers.forEach((layer, layerIdx) => {
+            if (!layer.enabled || layer.images.length === 0) {
+              usedLayers[layerIdx] = false;
+              return;
+            }
 
-        let random = Math.random() * totalRarity;
-        let cumulative = 0;
-        
-        for (let j = 0; j < layer.images.length; j++) {
-          cumulative += layer.images[j].rarity;
-          console.log(j)
-          if (random <= cumulative) {
-            selectedImages[layerIdx] = j;
-            break;
+            const useLayer = Math.random() * 100 <= layer.layerRarity;
+            usedLayers[layerIdx] = useLayer;
+
+            if (!useLayer) return;
+
+            const totalRarity = layer.images.reduce((sum, img) => sum + img.rarity, 0);
+            let random = Math.random() * totalRarity;
+            let cumulative = 0;
+
+            for (let j = 0; j < layer.images.length; j++) {
+              cumulative += layer.images[j].rarity;
+              if (random <= cumulative) {
+                selectedImages[layerIdx] = j;
+                break;
+              }
+            }
+          });
+
+          const preview: Preview = {
+            layers: selectedImages,
+            id: `${Date.now()}-${i}`,
+            usedLayers,
+            images: []
+          };
+
+          const canvas = await renderPreviewCanvas(preview);
+          if (canvas) {
+            preview.images = [canvas.toDataURL('image/png')];
           }
+
+          newPreviews.push(preview);
         }
-      });
-      
-      const preview: Preview = {
-        layers: selectedImages,
-        id: Date.now() + Math.random().toString(36).substr(2, 9),
-        usedLayers,
-        images: [] 
-      };
 
-      const canvas = await renderPreviewCanvas(preview);
-      if (canvas) {
-        preview.images = [canvas.toDataURL('image/png')];
+        setPreviews(newPreviews);
+        setCurrentStep(5);
+      } finally {
+        setIsGeneratingPreviews(false);
       }
+    }, [batchSize, layers, totalCombinations, renderPreviewCanvas]);
 
-      newPreviews.push(preview);
-    }
-    
-    setPreviews(newPreviews);
-    setCurrentStep(5);
-  }, [batchSize, layers, totalCombinations, renderPreviewCanvas]);
 
  return (
     <WalletAuthGuard>
@@ -1160,60 +1127,63 @@ export default function NFTGenerator() {
                             </div>
                           )}
 
-                         {activeTraitTab === 'rarity' && (
-                          <div className="space-y-3 max-h-[550px] overflow-y-auto">
-                            <div className="p-3 bg-white/5 rounded-lg border border-white/10 mb-2">
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm text-white/80">Total Rarity</span>
+                          {activeTraitTab === 'rarity' && (
+                            <div className="space-y-3 max-h-[550px] overflow-y-auto">
+                              <div className="p-3 bg-white/5 rounded-lg border border-white/10 mb-2">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-white/80">Total Rarity</span>
                                   <span className={`text-sm font-mono ${
                                     layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) !== 100 
-                                      ? 'text-red-400' 
+                                      ? 'text-yellow-400' 
                                       : 'text-green-400'
                                   }`}>
                                     {layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0)}%
+                                    {layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) !== 100 && (
+                                      <span className="ml-2 text-xs">(Should total 100%)</span>
+                                    )}
                                   </span>
-                              </div>
+                                </div>
 
                                 <div className="w-full h-1 bg-white/10 rounded-full mt-1 overflow-hidden">
-                                    <div 
-                                      className={`h-full rounded-full ${
-                                        layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) !== 100
-                                          ? 'bg-red-500/50' 
-                                          : 'bg-green-500/50'
-                                      }`} 
-                                      style={{ 
-                                        width: `${Math.min(100, layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) || 0)}%` 
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                            
-                            {layers[activeLayerIndex]?.images.map((image, imgIndex) => (
-                              <div key={imgIndex} className="p-3 bg-white/5 rounded-lg">
-                                <div className="flex justify-between items-center mb-1">
-                                  <span className="text-sm text-white/80 truncate flex items-center gap-2">
-                                    <FiImage size={12} />
-                                    {image.name}
-                                  </span>
-                                  <div className="flex items-center gap-2">
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      max="100"
-                                      value={image.rarity}
-                                      onChange={(e) => {
-                                        const value = parseInt(e.target.value) || 0;
-                                        updateRarity(activeLayerIndex, imgIndex, value.toString());
-                                      }}
-                                      className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right"
-                                    />
-                                    <span className="text-sm text-white/50">%</span>
-                                  </div>
+                                  <div 
+                                    className={`h-full rounded-full ${
+                                      layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) !== 100
+                                        ? 'bg-yellow-500/50' 
+                                        : 'bg-green-500/50'
+                                    }`} 
+                                    style={{ 
+                                      width: `${Math.min(100, layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) || 0)}%` 
+                                    }}
+                                  />
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        )}
+                              
+                              {layers[activeLayerIndex]?.images.map((image, imgIndex) => (
+                                <div key={imgIndex} className="p-3 bg-white/5 rounded-lg">
+                                  <div className="flex justify-between items-center mb-1">
+                                    <span className="text-sm text-white/80 truncate flex items-center gap-2">
+                                      <FiImage size={12} />
+                                      {image.name}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={image.rarity}
+                                        onChange={(e) => {
+                                          const value = parseInt(e.target.value) || 0;
+                                          updateRarity(activeLayerIndex, imgIndex, value.toString());
+                                        }}
+                                        className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right"
+                                      />
+                                      <span className="text-sm text-white/50">%</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                     </>
@@ -1470,15 +1440,24 @@ export default function NFTGenerator() {
                           generateBatchPreviews();
                           setCurrentStep(5);
                         }}
-                        disabled={layers.length === 0 || layers.some(l => l.images.length === 0)}
+                        disabled={layers.length === 0 || layers.some(l => l.images.length === 0) || isGeneratingPreviews}
                         className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 ${
-                          layers.length === 0 || layers.some(l => l.images.length === 0)
+                          layers.length === 0 || layers.some(l => l.images.length === 0) || isGeneratingPreviews
                             ? 'bg-white/10 text-white/50 cursor-not-allowed'
                             : 'bg-white text-black hover:bg-white/90'
                         }`}
                       >
-                        <FiImage size={14} />
-                        Generate NFTs
+                        {isGeneratingPreviews ? (
+                          <>
+                            <FaSpinner className="animate-spin" size={14} />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <FiImage size={14} />
+                            Generate NFTs
+                          </>
+                        )}
                       </motion.button>
 
                       {previews.length > 0 && (
@@ -1486,7 +1465,10 @@ export default function NFTGenerator() {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setShowPreviews(true)}
-                          className="w-full bg-white text-black border border-white/20 py-3 rounded-lg transition-all flex items-center justify-center gap-2"
+                          disabled={isGeneratingPreviews}
+                          className={`w-full bg-white text-black border border-white/20 py-3 rounded-lg transition-all flex items-center justify-center gap-2 ${
+                            isGeneratingPreviews ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         >
                           <FiImage size={14} />
                           View Previews
@@ -1497,9 +1479,9 @@ export default function NFTGenerator() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handleDownloadWithPayment}
-                        disabled={previews.length === 0 || isProcessingPayment}
+                        disabled={previews.length === 0 || isProcessingPayment || isGeneratingPreviews}
                         className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 ${
-                          previews.length === 0 || isProcessingPayment
+                          previews.length === 0 || isProcessingPayment || isGeneratingPreviews
                             ? 'bg-white/10 text-white/50 cursor-not-allowed'
                             : 'bg-gradient-to-r bg-white text-black hover:opacity-90'
                         }`}
