@@ -1635,8 +1635,8 @@ export default function NFTGenerator() {
               animate={{ scale: 1, opacity: 1 }}
               className="relative max-w-md w-full bg-gradient-to-br from-black/80 to-gray-900/80 backdrop-blur-lg rounded-2xl p-8 border border-white/10 shadow-2xl text-center"
             >
-              <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiDownload className="text-purple-400" size={24} />
+              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
+                <FiDownload className="text-white" size={24} />
               </div>
               <h3 className="text-xl font-bold text-white mb-6">Preparing Download</h3>
               
@@ -1644,7 +1644,7 @@ export default function NFTGenerator() {
                 <motion.div
                   animate={{ width: `${downloadProgress}%` }}
                   transition={{ duration: 0.3 }}
-                  className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"
+                  className="h-full bg-gradient-to-r from-black to-white rounded-full"
                 />
               </div>
               
