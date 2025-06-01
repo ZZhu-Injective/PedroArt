@@ -359,24 +359,19 @@ export default function NFTGenerator() {
       const txHash = await broadcastTx(ChainId.Mainnet, txRawSigned);
 
     try {
-      const response = await fetch('https://api.pedroinjective.online/burned', {
+      const response = await fetch('http://127.0.0.1:8000/burn/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          srcInjectiveAddress: storedAddress,
-          baseAmount: baseAmount,
-          txRawSigned: txRawSigned,
+          burn_data: {
+            srcInjectiveAddress: storedAddress,
+            baseAmount: baseAmount,
+            txHash: txHash,
+            reason: 'NFT-Tool'
+          }
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to send transaction info to API');
-      }
-
-      const data = await response.json();
-      console.log('API response:', data);
     } catch (apiError) {
       console.error('API error:', apiError);
     }
@@ -764,6 +759,17 @@ export default function NFTGenerator() {
   
   const generateBatchPreviews = useCallback(async () => {
     if (layers.length === 0 || batchSize < 1) return;
+
+    const totalPossibleCombinations = layers.reduce((total, layer) => {
+      if (!layer.enabled || layer.images.length === 0) return total;
+      return total * layer.images.length;
+    }, 1);
+
+    if (totalPossibleCombinations < batchSize) {
+      setModalMessage(`You've requested ${batchSize} NFTs but there are only ${totalPossibleCombinations} possible unique combinations`);
+      setIsWarningModalOpen(true);
+      return;
+    }
 
     setUsedCombinations(new Set());
     setIsGeneratingPreviews(true);
@@ -1403,9 +1409,28 @@ export default function NFTGenerator() {
                           min="1"
                           max="10000"
                           value={batchSize}
-                          onChange={(e) => setBatchSize(parseInt(e.target.value) || 100)}
+                          onChange={(e) => {
+                            const newSize = parseInt(e.target.value) || 100;
+                            const totalCombos = layers.reduce((total, layer) => {
+                              if (!layer.enabled || layer.images.length === 0) return total;
+                              return total * layer.images.length;
+                            }, 1);
+                            
+                            if (newSize > totalCombos && totalCombos > 0) {
+                              setModalMessage(`You can't generate more than ${totalCombos} unique NFTs with your current layers.`);
+                              setIsWarningModalOpen(true);
+                              setBatchSize(totalCombos);
+                            } else {
+                              setBatchSize(newSize);
+                            }
+                          }}
                           className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20"
                         />
+                        {totalCombinations > 0 && (
+                          <p className="text-xs text-white/50 mt-1">
+                            Max unique combinations: {totalCombinations}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
