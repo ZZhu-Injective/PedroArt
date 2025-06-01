@@ -306,7 +306,7 @@ export default function NFTCreator() {
               className="px-6 max-w-4xl relative z-10"
             >
               <motion.h1 className="text-4xl md:text-7xl font-bold mb-5 bg-clip-text text-white">
-                PEDRO CREATE
+                PEDRO CRAFT
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}
