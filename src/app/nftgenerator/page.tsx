@@ -268,7 +268,7 @@ export default function NFTGenerator() {
     }
   }, [layers, activeLayerIndex, width, height, showAllLayers]);
 
-  const baseAmount = nft_hold ? "1" : "100000";
+  const baseAmount = nft_hold === "0" ? "100000" : "1";
 
   const handleDownloadWithPayment = () => {
     if (hasPaid) {
