@@ -19,6 +19,9 @@ interface CardProps {
 }
 
 const images: GalleryImage[] = [
+  { url: 'fan39.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
+  { url: 'fan38.jpg', title: 'LazorioB', link: 'https://x.com/LazorioB' },
+  { url: 'fan37.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
   { url: 'fan36.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
   { url: 'fan35.jpg', title: 'zar_batyshka', link: 'https://x.com/zar_batyshka' },
   { url: 'fan34.jpg', title: 'Adam42931', link: 'https://x.com/Adam42931' },
