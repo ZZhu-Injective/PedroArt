@@ -148,7 +148,7 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
             layout="fill"
             objectFit="cover"
             quality={100}
-            className="opacity-20"
+            className="opacity-40"
           />
         </div>
 
