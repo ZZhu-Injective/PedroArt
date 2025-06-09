@@ -24,7 +24,7 @@ export default function AltHomePage() {
           <div className="absolute inset-0 bg-black opacity-10" />
           <div className="absolute inset-0">
             <Image
-              src="/wallpaper4.png"
+              src="/wallpaper5.webp"
               alt="Background texture"
               layout="fill"
               objectFit="cover"
@@ -52,7 +52,7 @@ export default function AltHomePage() {
               className="text-5xl md:text-8xl font-bold mb-6 tracking-tighter font-mono"
               whileHover={{ scale: 1.02 }}
             >
-              PEDRO x <span className="text-white font-mono bg-clip-text bg-gradient-to-r">ART</span>
+              PEDRO × <span className="text-white font-mono bg-clip-text bg-gradient-to-r">ART</span>
             </motion.h1>
             <motion.p 
               className="text-xl md:text-2xl opacity-80 mb-8"
