@@ -446,11 +446,11 @@ export default function ImageEditor() {
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0">
             <Image
-              src="/wallpaper4.png"
+              src="/wallpaper9.webp"
               alt="Background texture"
               layout="fill"
               objectFit="cover"
-              className="opacity-20 mix-blend-overlay"
+              className="opacity-40 mix-blend-overlay"
               priority
             />
           </div>
