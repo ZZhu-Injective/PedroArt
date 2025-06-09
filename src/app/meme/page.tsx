@@ -239,7 +239,7 @@ export default function MemeGallery() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
               >
-                PEDRO MEME
+                FANS MEME
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}

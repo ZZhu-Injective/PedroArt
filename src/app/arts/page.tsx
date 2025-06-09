@@ -19,6 +19,7 @@ interface CardProps {
 }
 
 const images: GalleryImage[] = [
+  { url: 'fan40.jpg', title: 'Cherry_inj', link: 'https://x.com/cherry_inj' },
   { url: 'fan39.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
   { url: 'fan38.jpg', title: 'LazorioB', link: 'https://x.com/LazorioB' },
   { url: 'fan37.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
@@ -159,7 +160,7 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
           priority={index < 6}
         />
         
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
       </div>
       
       <div className="bg-gradient-to-t from-black/95 via-black/70 p-5 to-transparent rounded-b-2xl">
@@ -265,7 +266,7 @@ export default function Art() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
               >
-                PEDRO ART
+                FANS ART
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}

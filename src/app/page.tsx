@@ -66,7 +66,7 @@ export default function AltHomePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.8 }}
-              className="h-px w-full bg-gradient-to-r from-transparent via-gray-500 to-transparent my-12"
+              className="h-px w-full bg-gradient-to-r from-transparent via-gray-500 to-transparent my-5 md:my-12"
             />
             
             <motion.div
@@ -142,7 +142,7 @@ export default function AltHomePage() {
             className="mb-16"
           >
             <h2 className="text-3xl md:text-5xl text-center font-bold tracking-tighter mb-6">
-              <span className="text-white bg-clip-text bg-gradient-to-r">NFT TREASURY</span>
+              <span className="text-white bg-clip-text bg-gradient-to-r">PEDRO NFT</span>
             </h2>
             <div className="h-px w-48 mx-auto bg-gradient-to-r from-transparent via-gray-500 to-transparent" />
           </motion.div>
@@ -195,7 +195,7 @@ export default function AltHomePage() {
               transition={{ delay: 0.2, duration: 0.8 }}
               viewport={{ once: true }}
             >
-              Become part of our growing community on Injective.
+              Become part of our community on Injective.
             </motion.p>
 
             <div className="h-px w-48 mx-auto bg-gradient-to-r from-transparent via-gray-500 to-transparent my-8" />

@@ -143,7 +143,7 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
       <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <Image
-            src="/wallpaper4.png"
+            src="/wallpaper9.webp"
             alt="Background"
             layout="fill"
             objectFit="cover"
