@@ -32,7 +32,7 @@ const Footer = () => {
               </svg>
             </Link>
             <Link 
-              href="https://pedro-7.gitbook.io/pedro-meme-coin" 
+              href="https://pedro-on-injective.gitbook.io/pedro-on-injective-docs" 
               target="_blank"
               rel="noopener noreferrer"
               className="hover:opacity-70 transition-opacity"

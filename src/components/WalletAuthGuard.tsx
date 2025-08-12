@@ -105,7 +105,7 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
       localStorage.setItem("connectedWalletAddress", address);
       setWalletAddress(address);
       
-      const response = await fetch(`https://api.pedroinjraccoon.online/check_pedro/${address}/`);
+      const response = await fetch(`https://api.injectivepedro.com/check_pedro/${address}/`);
       const result: PedroApiResponse = await response.json();
 
       if (result.check === "yes") {

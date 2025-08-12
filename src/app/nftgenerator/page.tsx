@@ -359,7 +359,7 @@ export default function NFTGenerator() {
       const txHash = await broadcastTx(ChainId.Mainnet, txRawSigned);
 
     try {
-      const response = await fetch('https://api.pedroinjraccoon.online/burn/', {
+      const response = await fetch('https://api.injectivepedro.com/burn/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

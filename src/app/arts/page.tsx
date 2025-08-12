@@ -19,6 +19,13 @@ interface CardProps {
 }
 
 const images: GalleryImage[] = [
+  { url: 'fan47.jpg', title: 'ShiviXBT', link: 'https://x.com/ShiviXBT' },
+  { url: 'fan46.jpg', title: 'Mary_Inj', link: 'https://x.com/Mary_Inj' },
+  { url: 'fan45.jpg', title: 'Meowza', link: 'https://x.com/Meowza' },
+  { url: 'fan44.jpg', title: 'adam_nevergone', link: 'https://x.com/adam_nevergone' },
+  { url: 'fan43.jpg', title: 'adam_nevergone', link: 'https://x.com/adam_nevergone' },
+  { url: 'fan42.jpg', title: 'ShiviXBT', link: 'https://x.com/ShiviXBT' },
+  { url: 'fan41.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
   { url: 'fan40.jpg', title: 'Cherry_inj', link: 'https://x.com/cherry_inj' },
   { url: 'fan39.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
   { url: 'fan38.jpg', title: 'LazorioB', link: 'https://x.com/LazorioB' },

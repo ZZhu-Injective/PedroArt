@@ -46,7 +46,7 @@ const LeapWallet: React.FC = () => {
         return;
       }
   
-      const response = await fetch(`https://api.pedroinjraccoon.online/check/${leapAddresses[0]}/`);
+      const response = await fetch(`https://api.injectivepedro.com/check/${leapAddresses[0]}/`);
       console.log(response);
       const result = await response.text();
   

@@ -47,7 +47,7 @@ const KeplrWallet: React.FC = () => {
         return;
       }
 
-      const response = await fetch(`https://api.pedroinjraccoon.online/check/${keplrAddresses[0]}/`);
+      const response = await fetch(`https://api.injectivepedro.com/check/${keplrAddresses[0]}/`);
       console.log(response);
       const result = await response.text();
 
