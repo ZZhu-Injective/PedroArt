@@ -118,7 +118,7 @@ const DraggableLayer: React.FC<{
 
 export default function NFTGenerator() {
   const { logout } = useWalletAuth();
-  const [batchSize, setBatchSize] = useState<number>(100);
+  const [batchSize, setBatchSize] = useState<number>(1);
   const [layers, setLayers] = useState<Layer[]>([]);
   const [previews, setPreviews] = useState<Preview[]>([]);
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -1407,7 +1407,7 @@ export default function NFTGenerator() {
                         <input
                           type="number"
                           min="1"
-                          max="10000"
+                          max="5000"
                           value={batchSize}
                           onChange={(e) => {
                             const newSize = parseInt(e.target.value) || 100;
@@ -1456,7 +1456,7 @@ export default function NFTGenerator() {
                         onClick={() => {
                           setLayers([]);
                           setPreviews([]);
-                          setBatchSize(100);
+                          setBatchSize(1);
                           setCurrentStep(1);
                         }}
                         className="w-full bg-transparent border border-white/20 hover:border-white/40 text-white py-3 rounded-lg transition-all flex items-center justify-center gap-2"
