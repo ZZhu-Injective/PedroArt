@@ -19,6 +19,7 @@ interface CardProps {
 }
 
 const images: GalleryImage[] = [
+  { url: 'fan48.jpg', title: 'zar_batyshka', link: 'https://x.com/zar_batyshka' },
   { url: 'fan47.jpg', title: 'ShiviXBT', link: 'https://x.com/ShiviXBT' },
   { url: 'fan46.jpg', title: 'Mary_Inj', link: 'https://x.com/Mary_Inj' },
   { url: 'fan45.jpg', title: 'Meowza', link: 'https://x.com/Meowza' },
