@@ -28,7 +28,7 @@ export default function AltHomePage() {
               alt="Background texture"
               layout="fill"
               objectFit="cover"
-              className="opacity-30 mix-blend-overlay"
+              className="opacity-20 mix-blend-overlay"
               priority
             />
           </div>
