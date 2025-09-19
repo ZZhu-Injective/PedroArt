@@ -24,11 +24,11 @@ export default function AltHomePage() {
           <div className="absolute inset-0 bg-black opacity-10" />
           <div className="absolute inset-0">
             <Image
-              src="/wallpaper9.webp"
+              src="/wallpaper9.gif"
               alt="Background texture"
               layout="fill"
               objectFit="cover"
-              className="opacity-40 mix-blend-overlay"
+              className="opacity-30 mix-blend-overlay"
               priority
             />
           </div>
