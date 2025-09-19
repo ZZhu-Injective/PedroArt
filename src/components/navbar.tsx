@@ -119,10 +119,10 @@ const Navbar = () => {
   };
 
   const navItems: NavItem[] = [
-    { href: "/info", label: "Info" },
-    { href: "https://injective.talis.art/collection/67abd09e5bb1ebd34c3f2585", label: "Buy NFT", newTab: true },
-    { href: "https://choice.exchange/swap?input=inj&output=inj1c6lxety9hqn9q4khwqvjcfa24c2qeqvvfsg4fm", label: "Buy PEDRO", newTab: true },
-    { href: "/partnerships", label: "Partnerships" },
+    { href: "/arts", label: "Fans Art" },
+    { href: "/factory", label: "Factory"},
+    { href: "/editor", label: "Editor"},
+    { href: "/nftgenerator", label: "NFT Genrator" },
     { 
       label: "More", 
       submenu: [
