@@ -317,7 +317,7 @@ export default function NFTCreator() {
             </motion.div>
           </section>
 
-          <div className="sm:py-8 py-2 px-2 mx-auto max-w-[1500px]">
+          <div className="sm:py-8 py-2 px-2 mx-auto max-w-[1800px]">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="flex flex-col gap-4 order-1 lg:order-none">
                 <motion.div
