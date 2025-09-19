@@ -126,7 +126,7 @@ const Navbar = () => {
     { 
       label: "More", 
       submenu: [
-        { href: "https://injectivepedro.com/", label: "Main", newTab: true },
+        { href: "https://injectivepedro.com/", label: "Mainpage", newTab: true },
         { href: "https://job.injectivepedro.com/", label: "Talent", newTab: true },
         { href: "https://burn.injectivepedro.com/", label: "Burn", newTab: true },
         { href: "https://scam.injectivepedro.com/", label: "Scam", newTab: true },

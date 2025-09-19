@@ -288,12 +288,12 @@ export default function Art() {
             </motion.div>
           </section>
 
-          <section className="relative sm:py-8 py-2 px-2 sm: mx-auto max-w-[1500px]" ref={galleryRef}>
+          <section className="relative sm:py-8 py-2 px-2 sm: mx-auto max-w-[1800px]" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="show"
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-4"
+              className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 px-4"
             >
               {images.map((image, index) => (
                 <Card 
