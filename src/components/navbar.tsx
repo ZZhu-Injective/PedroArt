@@ -151,8 +151,8 @@ const Navbar = () => {
               width={40}
               height={40}
             />
-            <span className="hidden sm:inline">PEDRO THE RACCOON</span>
-            <span className="sm:hidden">PEDRO THE RACCOON </span>
+            <span className="hidden sm:inline">PEDRO x ART</span>
+            <span className="sm:hidden">PEDRO x ART </span>
           </Link>
 
           {!isLargeScreen && (
