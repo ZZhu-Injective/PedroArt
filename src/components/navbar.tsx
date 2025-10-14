@@ -130,7 +130,6 @@ const Navbar = () => {
         { href: "https://job.injectivepedro.com/", label: "Talent", newTab: true },
         { href: "https://burn.injectivepedro.com/", label: "Burn", newTab: true },
         { href: "https://scam.injectivepedro.com/", label: "Scam", newTab: true },
-        { href: "/dashboard", label: "Dashboard", newTab: true}
       ]
     },
   ];
