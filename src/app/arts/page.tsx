@@ -85,6 +85,13 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80 } },
 };
 
+// X/Twitter Icon Component
+const XIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+);
+
 const Card = ({ imageUrl, title, link, index }: CardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -176,7 +183,7 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
       
       <div className="bg-gradient-to-t from-black/95 via-black/70 p-5 to-transparent rounded-b-2xl">
         <motion.h3 
-          className="text-white text-xl font-bold text-center py-5 tracking-tight"
+          className="text-white text-xl font-bold text-center py-3 tracking-tight"
         >
           {title}
         </motion.h3>
@@ -187,11 +194,15 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
             whileTap={{ scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
-            <Button
+            <button
               onClick={() => window.open(link, '_blank')}
-              className="text-white bg-transparent hover:bg-white hover:text-black text-sm font-medium px-6 py-2.5 rounded-full border border-white/50 hover:border-white transition-all duration-300 relative overflow-hidden group" 
-              label={"FOLLOW ARTIST"}            
-            />
+              className="flex items-center gap-2 bg-black/80 hover:bg-black text-white hover:text-white text-sm font-medium px-6 py-3 rounded-full border border-white/30 hover:border-white transition-all duration-300 relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <XIcon className="w-4 h-4 transition-transform group-hover:scale-110" />
+              <span className="relative z-10">VIEW PROFILE</span>
+              <div className="absolute inset-0 border-2 border-transparent group-hover:border-white/20 rounded-full transition-all duration-300" />
+            </button>
           </motion.div>
         </div>
       </div>
@@ -212,6 +223,67 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
         />
       </motion.div>
     </motion.div>
+  );
+};
+
+// Floating Sparkles Component
+const FloatingSparkles = () => {
+  const [sparkles, setSparkles] = useState<{x: string, y: string, size: number, id: number, color: string, delay: number}[]>([]);
+
+  useEffect(() => {
+    const createSparkle = () => ({
+      id: Date.now() + Math.random(),
+      x: `${Math.random() * 100}%`,
+      y: `${Math.random() * 100}%`,
+      size: Math.random() * 6 + 3,
+      color: `radial-gradient(circle, 
+        ${Math.random() > 0.5 ? '#ffffff' : '#888888'} 0%, 
+        transparent 80%)`,
+      delay: Math.random() * 3000
+    });
+
+    const initialSparkles = Array.from({ length: 25 }, createSparkle);
+    setSparkles(initialSparkles);
+
+    const interval = setInterval(() => {
+      const newSparkle = createSparkle();
+      setSparkles(prev => [...prev, newSparkle]);
+      
+      setTimeout(() => {
+        setSparkles(prev => prev.filter(s => s.id !== newSparkle.id));
+      }, 4000);
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-10">
+      {sparkles.map(sparkle => (
+        <div
+          key={sparkle.id}
+          className="sparkle"
+          style={{
+            left: sparkle.x,
+            top: sparkle.y,
+            width: sparkle.size,
+            height: sparkle.size,
+            background: sparkle.color,
+            animationDelay: `${sparkle.delay}ms`,
+            boxShadow: `0 0 ${sparkle.size * 2}px ${sparkle.size}px ${sparkle.color}`
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Animated Grid Background
+const AnimatedGrid = () => {
+  return (
+    <div className="fixed inset-0 z-0 opacity-20">
+      <div className="absolute inset-0 bg-grid-animation"></div>
+    </div>
   );
 };
 
@@ -250,20 +322,22 @@ export default function Art() {
       </Head>
 
       <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute inset-0">
-            <Image
-              src="/wallpaper9.webp"
-              alt="Background texture"
-              layout="fill"
-              objectFit="cover"
-              className="opacity-40 mix-blend-overlay"
-              priority
-            />
-          </div>
+        {/* Background Elements */}
+        <AnimatedGrid />
+        <FloatingSparkles />
+        
+        <div className="fixed inset-0 z-0 opacity-30">
+          <Image
+            src="/wallpaper9.webp"
+            alt="Pedro The Raccoon Wallpaper"
+            fill
+            className="object-cover"
+            priority
+          />
         </div>
 
         <div className="relative z-10">
+          {/* Hero Section */}
           <section className="flex items-center justify-center py-12 text-center relative overflow-hidden">
             <motion.div
               initial={{ opacity: 0, y: -50 }}
@@ -279,21 +353,57 @@ export default function Art() {
               >
                 FANS ART
               </motion.h1>
+              
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}
                 animate={{ opacity: 1, scaleX: 1 }}
                 transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
-                className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent"
+                className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent mb-4"
               />
+              
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+                className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto"
+              >
+                THANK YOU FAM
+              </motion.p>
             </motion.div>
           </section>
 
-          <section className="relative sm:py-8 py-2 px-2 sm: mx-auto max-w-[1800px]" ref={galleryRef}>
+          <section className="relative py-4 px-4 mx-auto max-w-[1500px]">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4"
+            >
+              {[
+                { label: 'ART PIECES', value: images.length },
+                { label: 'ARTISTS', value: new Set(images.map(img => img.title)).size },
+                { label: 'COMMUNITY', value: '800+' },
+                { label: 'INSPIRATION', value: '100%' },
+              ].map((stat, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  className="text-center p-6 bg-black/30 backdrop-blur-sm rounded-xl border border-white/10 hover:border-white/30 transition-all duration-300"
+                >
+                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">{stat.value}</div>
+                  <div className="text-sm md:text-base text-gray-400 font-medium">{stat.label}</div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </section>
+
+          {/* Gallery Section */}
+          <section className="relative py-8 px-4 mx-auto max-w-[1500px]" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="show"
-              className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 px-4"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
             >
               {images.map((image, index) => (
                 <Card 
@@ -307,6 +417,80 @@ export default function Art() {
             </motion.div>
           </section>
         </div>
+
+        <style jsx global>{`
+          @keyframes sparkle {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(2) rotate(180deg); opacity: 0; }
+          }
+
+          @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+          }
+
+          @keyframes grid {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+          }
+
+          .sparkle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle 1.5s ease-out forwards, float 4s ease-in-out infinite;
+            z-index: 30;
+            filter: blur(1px);
+          }
+
+          .bg-grid-animation {
+            background-image: 
+              linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid 20s linear infinite;
+          }
+
+          body {
+            background-color: #000;
+            overflow-x: hidden;
+          }
+
+          /* Custom scrollbar */
+          ::-webkit-scrollbar {
+            width: 8px;
+          }
+
+          ::-webkit-scrollbar-track {
+            background: #000;
+          }
+
+          ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+          }
+
+          ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+          }
+
+          .animate-fadeIn {
+            animation: fadeIn 0.8s ease-out forwards;
+          }
+
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}</style>
       </div>
     </>
   );
