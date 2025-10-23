@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import Head from "next/head";
 import Image from "next/image";
 import { useEffect, useState, useRef } from 'react';
-import Button from '@/components/basic_button';
 
 interface GalleryImage {
   url: string;
@@ -19,14 +18,14 @@ interface CardProps {
 }
 
 const images: GalleryImage[] = [
-  { url: 'fan66.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan65.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan64.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan63.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan62.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan61.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan60.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan59.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
+  { url: 'fan66.jpg', title: 'Dee_vinchi', link: 'https://x.com/Dee_vinchi' },
+  { url: 'fan65.jpg', title: 'Clarkson_Es', link: 'https://x.com/Clarkson_Es' },
+  { url: 'fan64.jpg', title: 'adam_nevergone', link: 'https://x.com/adam_nevergone' },
+  { url: 'fan63.jpg', title: 'Dayve17_', link: 'https://x.com/Dayve17_' },
+  { url: 'fan62.jpg', title: '123SAINTe', link: 'https://x.com/123SAINTe' },
+  { url: 'fan61.jpg', title: 'felixx_78', link: 'https://x.com/felixx_78' },
+  { url: 'fan60.jpg', title: 'Dayve17_', link: 'https://x.com/Dayve17_' },
+  { url: 'fan59.jpg', title: 'adam_nevergone', link: 'https://x.com/adam_nevergone' },
   { url: 'fan58.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
   { url: 'fan57.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
   { url: 'fan56.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
@@ -350,7 +349,6 @@ export default function Art() {
         </div>
 
         <div className="relative z-10">
-          {/* Hero Section */}
           <section className="flex items-center justify-center py-12 text-center relative overflow-hidden">
             <motion.div
               initial={{ opacity: 0, y: -50 }}
@@ -410,7 +408,6 @@ export default function Art() {
             </motion.div>
           </section>
 
-          {/* Gallery Section */}
           <section className="relative py-8 px-4 mx-auto max-w-[1500px]" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
