@@ -18,6 +18,7 @@ interface CardProps {
 }
 
 const images: GalleryImage[] = [
+  { url: 'fan67.jpg', title: 'amstar_art', link: 'https://x.com/amstar_art' },
   { url: 'fan66.jpg', title: 'Dee_vinchi', link: 'https://x.com/Dee_vinchi' },
   { url: 'fan65.jpg', title: 'Clarkson_Es', link: 'https://x.com/Clarkson_Es' },
   { url: 'fan64.jpg', title: 'adam_nevergone', link: 'https://x.com/adam_nevergone' },
@@ -26,14 +27,14 @@ const images: GalleryImage[] = [
   { url: 'fan61.jpg', title: 'felixx_78', link: 'https://x.com/felixx_78' },
   { url: 'fan60.jpg', title: 'Dayve17_', link: 'https://x.com/Dayve17_' },
   { url: 'fan59.jpg', title: 'adam_nevergone', link: 'https://x.com/adam_nevergone' },
-  { url: 'fan58.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan57.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan56.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan55.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
+  { url: 'fan58.jpg', title: 'jayd3_official', link: 'https://x.com/jayd3_official' },
+  { url: 'fan57.jpg', title: 'Varsha2527', link: 'https://x.com/Varsha2527' },
+  { url: 'fan56.jpg', title: 'Jehad_S01', link: 'https://x.com/Jehad_S01' },
+  { url: 'fan55.jpg', title: 'MachiyaNFT', link: 'https://x.com/MachiyaNFT' },
   { url: 'fan54.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan53.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
+  { url: 'fan53.jpg', title: 'ZaynaharX9639', link: 'https://x.com/ZaynaharX9639' },
   { url: 'fan52.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
-  { url: 'fan51.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
+  { url: 'fan51.jpg', title: 'felixx_78', link: 'https://x.com/felixx_78' },
   { url: 'fan50.jpg', title: 'ShiviXBT', link: 'https://x.com/ShiviXBT' },
   { url: 'fan49.jpg', title: 'Mary_Inj', link: 'https://x.com/Mary_Inj' },
   { url: 'fan48.jpg', title: 'zar_batyshka', link: 'https://x.com/zar_batyshka' },
@@ -239,7 +240,6 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
   );
 };
 
-// Floating Sparkles Component
 const FloatingSparkles = () => {
   const [sparkles, setSparkles] = useState<{x: string, y: string, size: number, id: number, color: string, delay: number}[]>([]);
 
@@ -291,7 +291,6 @@ const FloatingSparkles = () => {
   );
 };
 
-// Animated Grid Background
 const AnimatedGrid = () => {
   return (
     <div className="fixed inset-0 z-0 opacity-20">
