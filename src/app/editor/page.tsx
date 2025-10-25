@@ -18,6 +18,65 @@ interface Layer {
   isBackground?: boolean;
 }
 
+const FloatingSparkles = () => {
+  const [sparkles, setSparkles] = useState<{x: string, y: string, size: number, id: number, color: string, delay: number}[]>([]);
+
+  useEffect(() => {
+    const createSparkle = () => ({
+      id: Date.now() + Math.random(),
+      x: `${Math.random() * 100}%`,
+      y: `${Math.random() * 100}%`,
+      size: Math.random() * 6 + 3,
+      color: `radial-gradient(circle, 
+        ${Math.random() > 0.5 ? '#ffffff' : '#888888'} 0%, 
+        transparent 80%)`,
+      delay: Math.random() * 3000
+    });
+
+    const initialSparkles = Array.from({ length: 25 }, createSparkle);
+    setSparkles(initialSparkles);
+
+    const interval = setInterval(() => {
+      const newSparkle = createSparkle();
+      setSparkles(prev => [...prev, newSparkle]);
+      
+      setTimeout(() => {
+        setSparkles(prev => prev.filter(s => s.id !== newSparkle.id));
+      }, 4000);
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-10">
+      {sparkles.map(sparkle => (
+        <div
+          key={sparkle.id}
+          className="sparkle"
+          style={{
+            left: sparkle.x,
+            top: sparkle.y,
+            width: sparkle.size,
+            height: sparkle.size,
+            background: sparkle.color,
+            animationDelay: `${sparkle.delay}ms`,
+            boxShadow: `0 0 ${sparkle.size * 2}px ${sparkle.size}px ${sparkle.color}`
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+const AnimatedGrid = () => {
+  return (
+    <div className="fixed inset-0 z-0 opacity-20">
+      <div className="absolute inset-0 bg-grid-animation"></div>
+    </div>
+  );
+};
+
 export default function ImageEditor() {
   const [layers, setLayers] = useState<Layer[]>([]);
   const [activeLayerId, setActiveLayerId] = useState<string | null>(null);
@@ -415,7 +474,7 @@ export default function ImageEditor() {
 
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
-      link.download = 'meme-creator.png';
+      link.download = 'pedro-creator.png';
       link.href = dataUrl;
       link.click();
     } catch (error) {
@@ -443,17 +502,17 @@ export default function ImageEditor() {
       </Head>
 
       <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute inset-0">
-            <Image
-              src="/wallpaper9.webp"
-              alt="Background texture"
-              layout="fill"
-              objectFit="cover"
-              className="opacity-40 mix-blend-overlay"
-              priority
-            />
-          </div>
+        <AnimatedGrid />
+        <FloatingSparkles />
+        
+        <div className="fixed inset-0 z-0 opacity-30">
+          <Image
+            src="/wallpaper9.webp"
+            alt="Pedro The Raccoon Wallpaper"
+            fill
+            className="object-cover"
+            priority
+          />
         </div>
 
         <div className="relative z-10">
@@ -476,62 +535,77 @@ export default function ImageEditor() {
                   initial={{ opacity: 0, scaleX: 0 }}
                   animate={{ opacity: 1, scaleX: 1 }}
                   transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
-                  className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent"
+                  className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent mb-4"
                 />
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.8 }}
+                  className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto"
+                >
+                  CREATE YOUR UNIQUE MEMES
+                </motion.p>
               </motion.div>
           </section>
 
           <div className='sm:py-8 py-2 mx-auto max-w-[1500px] px-2'>
-            <section className="px-3 sm:px-6 py-3 sm:py-5 bg-black/50 rounded-xl border border-gray-700 mb-3 sm:mb-5">
+            <section className="px-3 sm:px-6 py-3 sm:py-5 bg-black/50 backdrop-blur-sm rounded-xl border border-white/10 shadow-2xl mb-3 sm:mb-5">
               <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-10 text-white">HOW IT WORKS</h2>
               
               <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
-                <div className="bg-white/5 p-3 sm:p-4 rounded-lg">
-                  <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 text-blue-400">Editing Features</h3>
-                  <ul className="space-y-1 sm:space-y-2 text-sm sm:text-base text-white/80">
+                <div className="bg-black/30 p-3 sm:p-4 rounded-lg border border-white/10">
+                  <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 text-white">Editing Features</h3>
+                  <ul className="space-y-1 sm:space-y-2 text-sm sm:text-base text-gray-300">
                     <li className="flex items-start">
-                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span className="bg-white/20 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
                       <span><strong>Move:</strong> Click and drag any layer</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span className="bg-white/20 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
                       <span><strong>Resize:</strong> Drag the blue handle</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span className="bg-white/20 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
                       <span><strong>Rotate:</strong> Drag the green handle or use slider</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span className="bg-white/20 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
                       <span><strong>Layer Order:</strong> Use layer controls in toolbar</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-blue-500/20 text-blue-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
+                      <span className="bg-white/20 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
                       <span><strong>Pedro:</strong> Be yourself and share your daily photo!</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="bg-red-500/10 p-3 sm:p-4 rounded-lg border border-yellow-500/30">
+                <div className="bg-yellow-500/10 p-3 sm:p-4 rounded-lg border border-yellow-500/30">
                   <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 text-yellow-400">Monthly Contest</h3>
-                  <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-white/90">
+                  <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-300">
                     <li className="flex items-start">
-                      <span className="bg-red-500/20 text-red-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✨</span>
+                      <span className="bg-yellow-500/20 text-yellow-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✨</span>
                       <span>Post with "GInjective" + <span className="font-mono bg-white/10 px-1 py-0.5 sm:px-1.5 rounded text-xs sm:text-sm">$INJ #Myself @injpedro</span></span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-red-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🎟️</span>
+                      <span className="bg-yellow-500/20 text-yellow-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🎟️</span>
                       <span>Max 2 entries per person (MONTHLY)</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-red-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🏆</span>
+                      <span className="bg-yellow-500/20 text-yellow-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🏆</span>
                       <span>Prize: <span className="font-bold">1 $INJ + 100,000 $PEDRO</span></span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-red-500/20 text-purple-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🔄</span>
+                      <span className="bg-yellow-500/20 text-yellow-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">👥</span>
+                      <span>Minimum 10 participants required</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="bg-yellow-500/20 text-yellow-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🔄</span>
                       <span>New (RANDOM) winner every month!</span>
                     </li>
                   </ul>
+                  <div className="mt-3 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs text-red-300">
+                    <strong>Important:</strong> Contest requires minimum 10 unique participants to be valid
+                  </div>
                 </div>
               </div>
             </section>
@@ -539,7 +613,7 @@ export default function ImageEditor() {
           
           <div className="max-w-[1500px] mx-auto pb-10 px-6">
             <div className="flex flex-col md:flex-row gap-4">
-              <div className="bg-black/50 p-2 rounded-xl border border-white/10 shadow-lg w-full md:w-20 lg:w-24 transition-all duration-200 backdrop-blur-sm">
+              <div className="bg-black/50 backdrop-blur-sm p-2 rounded-xl border border-white/10 shadow-lg w-full md:w-20 lg:w-24 transition-all duration-200">
                 <div className="flex md:hidden items-center justify-between space-x-2 overflow-x-auto py-1">
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -757,14 +831,14 @@ export default function ImageEditor() {
               </div>
 
               <div className="flex-1 flex flex-col gap-4">
-                <div className="bg-black/50 p-3 rounded-xl border border-white/10 shadow-lg backdrop-blur-sm">
+                <div className="bg-black/50 backdrop-blur-sm p-3 rounded-xl border border-white/10 shadow-lg">
                   <div className="flex justify-between items-center">
                     <h2 className="text-lg font-semibold text-white">PEDRO THE RACCOON</h2>
                     <div className="flex items-center space-x-2">
                       <button 
                         onClick={() => setZoom(prev => Math.min(prev + 10, 200))}
                         disabled={zoom >= 200}
-                        className="p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50"
+                        className="p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50 transition-colors duration-200"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -774,7 +848,7 @@ export default function ImageEditor() {
                       <button 
                         onClick={() => setZoom(prev => Math.max(prev - 10, 50))}
                         disabled={zoom <= 50}
-                        className="p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50"
+                        className="p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50 transition-colors duration-200"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -786,7 +860,7 @@ export default function ImageEditor() {
 
                 <div
                   ref={canvasRef}
-                  className={`bg-black/50 p-1 sm:p-2 rounded-xl border border-white/10 shadow-lg flex-1 min-h-[500px] h-[40vh] relative overflow-hidden touch-none ${
+                  className={`bg-black/50 backdrop-blur-sm p-1 sm:p-2 rounded-xl border border-white/10 shadow-lg flex-1 min-h-[500px] h-[40vh] relative overflow-hidden touch-none ${
                     layers.length === 0 ? 'cursor-pointer' : ''
                   }`}
                   onClick={() => layers.length === 0 && fileInputRef.current?.click()}
@@ -875,18 +949,18 @@ export default function ImageEditor() {
                 </div>
               </div>
 
-              <div className="bg-black/50 rounded-xl border border-white/10 shadow-lg w-full md:w-80 lg:w-96 h-[800px] overflow-hidden flex flex-col backdrop-blur-sm">
+              <div className="bg-black/50 backdrop-blur-sm rounded-xl border border-white/10 shadow-lg w-full md:w-80 lg:w-96 h-[800px] overflow-hidden flex flex-col">
                 <div className="border-b border-white/10">
                   <div className="flex">
                     <button
                       onClick={() => setShowStickers(true)}
-                      className={`flex-1 py-3 px-4 text-center font-medium ${showStickers ? 'text-white border-b-2 border-blue-500' : 'text-white/50 hover:text-white'}`}
+                      className={`flex-1 py-3 px-4 text-center font-medium ${showStickers ? 'text-white border-b-2 border-blue-500' : 'text-white/50 hover:text-white'} transition-colors duration-200`}
                     >
                       Stickers
                     </button>
                     <button
                       onClick={() => setShowStickers(false)}
-                      className={`flex-1 py-3 px-4 text-center font-medium ${!showStickers ? 'text-white border-b-2 border-blue-500' : 'text-white/50 hover:text-white'}`}
+                      className={`flex-1 py-3 px-4 text-center font-medium ${!showStickers ? 'text-white border-b-2 border-blue-500' : 'text-white/50 hover:text-white'} transition-colors duration-200`}
                     >
                       Layers
                     </button>
@@ -929,7 +1003,7 @@ export default function ImageEditor() {
                           <div
                             key={layer.id}
                             onClick={() => setActiveLayerId(layer.id)}
-                            className={`p-3 rounded-lg flex items-center cursor-pointer ${activeLayerId === layer.id ? 'bg-blue-500/20 border border-blue-500/30' : 'hover:bg-white/10 border border-transparent'}`}
+                            className={`p-3 rounded-lg flex items-center cursor-pointer ${activeLayerId === layer.id ? 'bg-blue-500/20 border border-blue-500/30' : 'hover:bg-white/10 border border-transparent'} transition-colors duration-200`}
                           >
                             <div className="w-10 h-10 bg-white/10 rounded mr-3 overflow-hidden">
                               <img
@@ -948,7 +1022,7 @@ export default function ImageEditor() {
                                 setLayers(prev => prev.filter(l => l.id !== layer.id));
                                 if (activeLayerId === layer.id) setActiveLayerId(null);
                               }}
-                              className="p-1 text-white/40 hover:text-red-400"
+                              className="p-1 text-white/40 hover:text-red-400 transition-colors duration-200"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -963,7 +1037,7 @@ export default function ImageEditor() {
                 <div className="p-4 border-b border-white/10 text-center">
                   <Button
                     onClick={() => stickerFileInputRef.current?.click()}
-                    className="w-full py-2 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 flex items-center justify-center shadow-md transition-all duration-200" label={'Upload Sticker'}                  />
+                    className="w-full py-2 px-4 rounded-lg bg-gradient-to-r from-white to-gray-300 text-black hover:from-gray-300 hover:to-white flex items-center justify-center shadow-md transition-all duration-200 border border-white/30 hover:border-white" label={'Upload Sticker'}                  />
                   <input
                     type="file"
                     ref={stickerFileInputRef}
@@ -976,6 +1050,64 @@ export default function ImageEditor() {
             </div>
           </div>
         </div>
+
+        <style jsx global>{`
+          @keyframes sparkle {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(2) rotate(180deg); opacity: 0; }
+          }
+
+          @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+          }
+
+          @keyframes grid {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+          }
+
+          .sparkle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle 1.5s ease-out forwards, float 4s ease-in-out infinite;
+            z-index: 30;
+            filter: blur(1px);
+          }
+
+          .bg-grid-animation {
+            background-image: 
+              linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid 20s linear infinite;
+          }
+
+          body {
+            background-color: #000;
+            overflow-x: hidden;
+          }
+
+          ::-webkit-scrollbar {
+            width: 8px;
+          }
+
+          ::-webkit-scrollbar-track {
+            background: #000;
+          }
+
+          ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+          }
+
+          ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+          }
+        `}</style>
       </div>
     </>
   );
