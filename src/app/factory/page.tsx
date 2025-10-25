@@ -147,6 +147,65 @@ const backgroundColors = [
   { name: 'Charcoal Blue', value: '#36454f' },
 ];
 
+const FloatingSparkles = () => {
+  const [sparkles, setSparkles] = useState<{x: string, y: string, size: number, id: number, color: string, delay: number}[]>([]);
+
+  useEffect(() => {
+    const createSparkle = () => ({
+      id: Date.now() + Math.random(),
+      x: `${Math.random() * 100}%`,
+      y: `${Math.random() * 100}%`,
+      size: Math.random() * 6 + 3,
+      color: `radial-gradient(circle, 
+        ${Math.random() > 0.5 ? '#ffffff' : '#888888'} 0%, 
+        transparent 80%)`,
+      delay: Math.random() * 3000
+    });
+
+    const initialSparkles = Array.from({ length: 25 }, createSparkle);
+    setSparkles(initialSparkles);
+
+    const interval = setInterval(() => {
+      const newSparkle = createSparkle();
+      setSparkles(prev => [...prev, newSparkle]);
+      
+      setTimeout(() => {
+        setSparkles(prev => prev.filter(s => s.id !== newSparkle.id));
+      }, 4000);
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-10">
+      {sparkles.map(sparkle => (
+        <div
+          key={sparkle.id}
+          className="sparkle"
+          style={{
+            left: sparkle.x,
+            top: sparkle.y,
+            width: sparkle.size,
+            height: sparkle.size,
+            background: sparkle.color,
+            animationDelay: `${sparkle.delay}ms`,
+            boxShadow: `0 0 ${sparkle.size * 2}px ${sparkle.size}px ${sparkle.color}`
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+const AnimatedGrid = () => {
+  return (
+    <div className="fixed inset-0 z-0 opacity-20">
+      <div className="absolute inset-0 bg-grid-animation"></div>
+    </div>
+  );
+};
+
 export default function NFTCreator() {
   const [selectedElements, setSelectedElements] = useState({
     backgroundColor: 0,
@@ -283,18 +342,18 @@ export default function NFTCreator() {
         <meta name="description" content="Create your custom Pedro raccoon NFT" />
       </Head>
 
-      <div className="min-h-screen bg-black text-white overflow-hidden font-mono">
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute inset-0">
-            <Image
-              src="/wallpaper9.webp"
-              alt="Background texture"
-              layout="fill"
-              objectFit="cover"
-              className="opacity-40 mix-blend-overlay"
-              priority
-            />
-          </div>
+      <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
+        <AnimatedGrid />
+        <FloatingSparkles />
+        
+        <div className="fixed inset-0 z-0 opacity-30">
+          <Image
+            src="/wallpaper9.webp"
+            alt="Pedro The Raccoon Wallpaper"
+            fill
+            className="object-cover"
+            priority
+          />
         </div>
 
         <div className="relative z-10">
@@ -305,15 +364,30 @@ export default function NFTCreator() {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="px-6 max-w-4xl relative z-10"
             >
-              <motion.h1 className="text-4xl md:text-7xl font-bold mb-5 bg-clip-text text-white">
+              <motion.h1
+                className="text-4xl md:text-7xl font-bold mb-5 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+              >
                 PEDRO CRAFT
               </motion.h1>
+              
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}
                 animate={{ opacity: 1, scaleX: 1 }}
                 transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
-                className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent"
+                className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent mb-4"
               />
+              
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+                className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto"
+              >
+                CREATE YOUR UNIQUE PFP
+              </motion.p>
             </motion.div>
           </section>
 
@@ -324,7 +398,7 @@ export default function NFTCreator() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-black/50 p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden"
+                  className="bg-black/50 backdrop-blur-sm p-6 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden"
                 >                  
                   <h2 className="text-2xl font-bold text-center mb-6 text-white">
                     HOW IT WORKS
@@ -358,7 +432,7 @@ export default function NFTCreator() {
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.3 + index * 0.1 }}
-                        className="flex items-start p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition-all group"
+                        className="flex items-start p-4 bg-black/30 rounded-lg border border-white/10 hover:border-white/30 transition-all duration-300 group backdrop-blur-sm"
                       >
                         <span className="font-mono text-gray-400 mr-4 text-lg group-hover:text-white transition-colors">
                           {item.icon}
@@ -387,7 +461,7 @@ export default function NFTCreator() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="relative aspect-square rounded-xl overflow-hidden border-2 border-white/20 shadow-lg"
+                  className="relative aspect-square rounded-2xl overflow-hidden border-2 border-white/20 shadow-lg backdrop-blur-sm"
                   ref={canvasRef}
                   style={{
                     ...getBackgroundStyle(),
@@ -458,10 +532,10 @@ export default function NFTCreator() {
                 <div className="flex overflow-x-auto pb-2 gap-2">
                   <button
                     onClick={() => setActiveCategory('background')}
-                    className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${
+                    className={`px-4 py-2 rounded-full whitespace-nowrap transition-all backdrop-blur-sm border ${
                       activeCategory === 'background' 
-                        ? 'bg-white text-black font-bold' 
-                        : 'bg-white/10 hover:bg-white/20'
+                        ? 'bg-white text-black font-bold border-white' 
+                        : 'bg-white/10 hover:bg-white/20 border-white/10 hover:border-white/30'
                     }`}
                   >
                     Background
@@ -470,10 +544,10 @@ export default function NFTCreator() {
                     <button
                       key={category}
                       onClick={() => setActiveCategory(category)}
-                      className={`px-4 py-2 rounded-full whitespace-nowrap capitalize transition-all ${
+                      className={`px-4 py-2 rounded-full whitespace-nowrap capitalize transition-all backdrop-blur-sm border ${
                         activeCategory === category 
-                          ? 'bg-white text-black font-bold' 
-                          : 'bg-white/10 hover:bg-white/20'
+                          ? 'bg-white text-black font-bold border-white' 
+                          : 'bg-white/10 hover:bg-white/20 border-white/10 hover:border-white/30'
                       }`}
                     >
                       {category}
@@ -486,7 +560,7 @@ export default function NFTCreator() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="bg-black/50 p-4 rounded-lg border border-gray-700 shadow-lg backdrop-blur-sm"
+                  className="bg-black/50 backdrop-blur-sm p-4 rounded-xl border border-white/10 shadow-2xl"
                 >
 
                   <div className="mb-3">
@@ -497,7 +571,7 @@ export default function NFTCreator() {
                           const newCombinations = Array(6).fill(0).map(() => generateRandomCombination());
                           setRandomCombinations(newCombinations);
                         }}
-                        className="px-3 py-1 text-sm text-black hover:text-white bg-white hover:bg-black rounded-full"
+                        className="px-3 py-1 text-sm text-black hover:text-white bg-white hover:bg-black rounded-full border border-white/30 transition-all duration-300"
                       >
                         Random
                       </button>
@@ -511,7 +585,7 @@ export default function NFTCreator() {
                           onClick={() => setSelectedElements(combo)}
                         >
                           <div 
-                            className="aspect-square rounded-lg overflow-hidden border-2 border-white/20"
+                            className="aspect-square rounded-lg overflow-hidden border-2 border-white/20 hover:border-white/40 transition-all duration-300"
                             style={{
                               backgroundColor: backgroundColors[combo.backgroundColor].value.startsWith('linear-gradient') 
                                 ? '#00000000'
@@ -544,7 +618,7 @@ export default function NFTCreator() {
                           <button
                             key={index}
                             onClick={() => handleElementChange('backgroundColor', index)}
-                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all backdrop-blur-sm ${
                               selectedElements.backgroundColor === index
                                 ? 'border-white ring-2 ring-white'
                                 : 'border-white/20 hover:border-white/50'
@@ -575,7 +649,7 @@ export default function NFTCreator() {
                           <button
                             key={index}
                             onClick={() => handleElementChange(activeCategory as keyof typeof selectedElements, index)}
-                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all backdrop-blur-sm ${
                               selectedElements[activeCategory as keyof typeof selectedElements] === index
                                 ? 'border-white ring-2 ring-white'
                                 : 'border-white/20 hover:border-white/50'
@@ -605,7 +679,7 @@ export default function NFTCreator() {
                   <Button
                     onClick={downloadNFT}
                     disabled={isDownloading || !imagesLoaded}
-                    className="w-full md:w-1/2 py-3 text-lg font-bold bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                    className="w-full md:w-1/2 py-3 text-lg font-bold bg-gradient-to-r from-white to-gray-300 hover:from-gray-300 hover:to-white text-black rounded-full border border-white/30 hover:border-white transition-all duration-300"
                     label={isDownloading ? 'Downloading...' : 'DOWNLOAD IMAGE'}
                   />
                 </div>
@@ -614,7 +688,7 @@ export default function NFTCreator() {
                   <Button
                     onClick={downloadNFT}
                     disabled={isDownloading || !imagesLoaded}
-                    className="w-full py-3 text-lg font-bold bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
+                    className="w-full py-3 text-lg font-bold bg-gradient-to-r from-white to-gray-300 hover:from-gray-300 hover:to-white text-black rounded-full border border-white/30 hover:border-white transition-all duration-300"
                     label={isDownloading ? 'Downloading...' : 'Download Image'}
                   />
                 </div>
@@ -622,6 +696,64 @@ export default function NFTCreator() {
             </div>
           </div>
         </div>
+
+        <style jsx global>{`
+          @keyframes sparkle {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(2) rotate(180deg); opacity: 0; }
+          }
+
+          @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+          }
+
+          @keyframes grid {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+          }
+
+          .sparkle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle 1.5s ease-out forwards, float 4s ease-in-out infinite;
+            z-index: 30;
+            filter: blur(1px);
+          }
+
+          .bg-grid-animation {
+            background-image: 
+              linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid 20s linear infinite;
+          }
+
+          body {
+            background-color: #000;
+            overflow-x: hidden;
+          }
+
+          ::-webkit-scrollbar {
+            width: 8px;
+          }
+
+          ::-webkit-scrollbar-track {
+            background: #000;
+          }
+
+          ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+          }
+
+          ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+          }
+        `}</style>
       </div>
     </>
   );
