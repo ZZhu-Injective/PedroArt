@@ -160,7 +160,7 @@ const Navbar = () => {
             <img
               src="/pedro_logo4.png"
               alt="Pedro the Raccoon Logo"
-              className="w-10 h-10 sm:w-8 sm:h-8 mr-2 rounded-full"
+              className="w-10 h-10 mr-2 rounded-full"
               width={40}
               height={40}
             />
