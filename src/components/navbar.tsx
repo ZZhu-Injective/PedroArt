@@ -118,14 +118,6 @@ const Navbar = () => {
     }
   };
 
-  const handleSubMenuItemClick = (subItem: SubMenuItem) => {
-    if (subItem.newTab) {
-      closeMenu();
-    } else {
-      closeMenu();
-    }
-  };
-
   const navItems: NavItem[] = [
     { href: "/arts", label: "Fans Art" },
     { href: "/factory", label: "Factory"},
@@ -252,6 +244,7 @@ const Navbar = () => {
                       </svg>
                     </button>
                     
+                    {/* Desktop submenu */}
                     {isLargeScreen && (
                       <div 
                         className={`absolute top-full left-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-neutral-200 transition-all duration-200 ${subMenuOpen && activeSubMenu === item.label ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
@@ -292,6 +285,7 @@ const Navbar = () => {
                   </div>
                 )}
                 
+                {/* Mobile submenu */}
                 {!isLargeScreen && activeSubMenu === item.label && item.submenu && (
                   <div className="w-full bg-neutral-900">
                     {item.submenu.map((subItem) => (
