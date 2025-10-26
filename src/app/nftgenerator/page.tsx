@@ -16,6 +16,65 @@ import { TransactionException } from '@injectivelabs/exceptions';
 import { FaLayerGroup, FaUpload, FaSlidersH, FaCog, FaPlus, FaTrash, FaArrowUp, FaArrowDown, FaFileDownload, FaFileImage, FaPercentage, FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
 import { FiLayers, FiUpload, FiSettings, FiPlus, FiTrash2, FiArrowUp, FiArrowDown, FiDownload, FiImage, FiPercent, FiSliders } from 'react-icons/fi';
 
+const FloatingSparkles = () => {
+  const [sparkles, setSparkles] = useState<{x: string, y: string, size: number, id: number, color: string, delay: number}[]>([]);
+
+  useEffect(() => {
+    const createSparkle = () => ({
+      id: Date.now() + Math.random(),
+      x: `${Math.random() * 100}%`,
+      y: `${Math.random() * 100}%`,
+      size: Math.random() * 6 + 3,
+      color: `radial-gradient(circle, 
+        ${Math.random() > 0.5 ? '#ffffff' : '#888888'} 0%, 
+        transparent 80%)`,
+      delay: Math.random() * 3000
+    });
+
+    const initialSparkles = Array.from({ length: 25 }, createSparkle);
+    setSparkles(initialSparkles);
+
+    const interval = setInterval(() => {
+      const newSparkle = createSparkle();
+      setSparkles(prev => [...prev, newSparkle]);
+      
+      setTimeout(() => {
+        setSparkles(prev => prev.filter(s => s.id !== newSparkle.id));
+      }, 4000);
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-10">
+      {sparkles.map(sparkle => (
+        <div
+          key={sparkle.id}
+          className="sparkle"
+          style={{
+            left: sparkle.x,
+            top: sparkle.y,
+            width: sparkle.size,
+            height: sparkle.size,
+            background: sparkle.color,
+            animationDelay: `${sparkle.delay}ms`,
+            boxShadow: `0 0 ${sparkle.size * 2}px ${sparkle.size}px ${sparkle.color}`
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+const AnimatedGrid = () => {
+  return (
+    <div className="fixed inset-0 z-0 opacity-20">
+      <div className="absolute inset-0 bg-grid-animation"></div>
+    </div>
+  );
+};
+
 type ImageLayer = {
   file: File;
   preview: string;
@@ -96,9 +155,9 @@ const DraggableLayer: React.FC<{
       ref={ref}
       whileHover={{ scale: 0.95 }}
       whileTap={{ scale: 0.98 }}
-      className={`p-3 rounded-xl cursor-pointer flex items-center ${
-        isActive ? 'bg-white/10' : 'bg-black/50'
-      } ${isDragging ? 'opacity-50' : 'opacity-100'}`}
+      className={`p-3 rounded-xl cursor-pointer flex items-center backdrop-blur-sm border ${
+        isActive ? 'bg-white/10 border-white/30' : 'bg-black/30 border-white/10'
+      } ${isDragging ? 'opacity-50' : 'opacity-100'} transition-all duration-300`}
       onClick={onClick}
       style={{ cursor: 'grab' }}
     >
@@ -114,6 +173,21 @@ const DraggableLayer: React.FC<{
       </div>
     </motion.div>
   );
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 50 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80 } },
 };
 
 export default function NFTGenerator() {
@@ -149,7 +223,6 @@ export default function NFTGenerator() {
   const [showAllLayers, setShowAllLayers] = useState(true);
   const [isGeneratingPreviews, setIsGeneratingPreviews] = useState(false);
   const [usedCombinations, setUsedCombinations] = useState<Set<string>>(new Set());
-
 
   const steps = [
     {
@@ -842,7 +915,6 @@ export default function NFTGenerator() {
     }
   }, [batchSize, layers, renderPreviewCanvas]);
 
-
  return (
     <WalletAuthGuard>
       <>
@@ -852,17 +924,17 @@ export default function NFTGenerator() {
         </Head>
 
         <div className="min-h-screen bg-black text-white overflow-hidden font-mono selection:bg-white selection:text-black">
-          <div className="fixed inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute inset-0">
-              <Image
-                src="/wallpaper9.webp"
-                alt="Background texture"
-                layout="fill"
-                objectFit="cover"
-                className="opacity-40 mix-blend-overlay"
-                priority
-              />
-            </div>
+          <AnimatedGrid />
+          <FloatingSparkles />
+          
+          <div className="fixed inset-0 z-0 opacity-30">
+            <Image
+              src="/wallpaper9.webp"
+              alt="Pedro The Raccoon Wallpaper"
+              fill
+              className="object-cover"
+              priority
+            />
           </div>
 
           <div className="relative z-10">
@@ -885,8 +957,16 @@ export default function NFTGenerator() {
                   initial={{ opacity: 0, scaleX: 0 }}
                   animate={{ opacity: 1, scaleX: 1 }}
                   transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
-                  className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent"
+                  className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent mb-4"
                 />
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.8 }}
+                  className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto"
+                >
+                  CREATE YOUR NFT COLLECTION
+                </motion.p>
               </motion.div>
             </section>
 
@@ -901,16 +981,20 @@ export default function NFTGenerator() {
                   <motion.div
                     key={step.id}
                     variants={itemVariants}
-                    className={`group relative overflow-hidden rounded-2xl ${step.completed ? 'bg-green-900/20' : 'bg-black/50'} shadow-2xl transition-all duration-500 backdrop-blur-sm border ${currentStep === step.id ? 'border-white/50' : 'border-white/10'} hover:border-white/30 p-4 cursor-pointer`}
+                    className={`group relative overflow-hidden rounded-2xl backdrop-blur-sm border shadow-2xl transition-all duration-500 p-4 cursor-pointer ${
+                      step.completed ? 'bg-green-900/20 border-green-500/30' : 'bg-black/50 border-white/10'
+                    } ${currentStep === step.id ? 'border-white/50' : 'border-white/10'} hover:border-white/30`}
                     onClick={() => setCurrentStep(step.id)}
                   >
                     <div className="flex items-center gap-3 mb-2">
-                      <div className={`p-2 rounded-full ${step.completed ? 'bg-green-500/20' : 'bg-white/10'}`}>
+                      <div className={`p-2 rounded-full backdrop-blur-sm ${
+                        step.completed ? 'bg-green-500/20' : 'bg-white/10'
+                      }`}>
                         {step.icon}
                       </div>
-                      <h3 className="text-lg font-bold">{step.title}</h3>
+                      <h3 className="text-lg font-bold text-white">{step.title}</h3>
                       {step.completed && (
-                        <div className="ml-auto bg-green-500/20 p-1 rounded-full">
+                        <div className="ml-auto bg-green-500/20 p-1 rounded-full backdrop-blur-sm">
                           <FaCheck className="text-green-400" size={12} />
                         </div>
                       )}
@@ -929,11 +1013,11 @@ export default function NFTGenerator() {
               </motion.div>
             </section>
 
-            <section className="relative sm:py-8 py-2 px-2 mx-auto max-w-[1800px]">
+            <section className="relative sm:py-8 py-2 px-2 mx-auto max-w-[1500px]">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4">
                 <motion.div
                   variants={itemVariants}
-                  className="group relative overflow-hidden rounded-2xl bg-black/50 shadow-2xl hover:shadow-white/20 transition-all duration-500 backdrop-blur-sm border border-white/10 hover:border-white/30 p-6"
+                  className="group relative overflow-hidden rounded-2xl bg-black/50 backdrop-blur-sm shadow-2xl hover:shadow-white/20 transition-all duration-500 border border-white/10 hover:border-white/30 p-6"
                 >
                 <DndProvider backend={HTML5Backend}>
                   <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
@@ -980,7 +1064,7 @@ export default function NFTGenerator() {
                         placeholder="Layer name"
                         value={newLayerName}
                         onChange={(e) => setNewLayerName(e.target.value)}
-                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20 backdrop-blur-sm"
                       />
                       <motion.button
                         whileHover={{ scale: 1.05 }}
@@ -989,7 +1073,7 @@ export default function NFTGenerator() {
                           addLayer();
                           setCurrentStep(2); 
                         }}
-                        className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-4 py-2 text-white transition-all flex items-center gap-2"
+                        className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-4 py-2 text-white transition-all flex items-center gap-2 backdrop-blur-sm"
                       >
                         <FiPlus size={14} />
                         Add
@@ -1002,7 +1086,7 @@ export default function NFTGenerator() {
                       <FiImage />
                       Layer Preview
                     </h3>
-                    <div className="relative w-full aspect-square bg-black/50 rounded-xl overflow-hidden border border-white/10">
+                    <div className="relative w-full aspect-square bg-black/50 rounded-xl overflow-hidden border border-white/10 backdrop-blur-sm">
                       <canvas 
                         ref={canvasRef}
                         width={width}
@@ -1015,7 +1099,7 @@ export default function NFTGenerator() {
 
                 <motion.div
                   variants={itemVariants}
-                  className="group relative overflow-hidden rounded-2xl bg-black/50 shadow-2xl hover:shadow-white/20 transition-all duration-500 backdrop-blur-sm border border-white/10 hover:border-white/30 p-6"
+                  className="group relative overflow-hidden rounded-2xl bg-black/50 backdrop-blur-sm shadow-2xl hover:shadow-white/20 transition-all duration-500 border border-white/10 hover:border-white/30 p-6"
                 >
                   {layers.length > 0 ? (
                     <>
@@ -1041,7 +1125,7 @@ export default function NFTGenerator() {
                               const value = parseInt(e.target.value) || 0;
                               updateLayerRarityValue(activeLayerIndex, Math.min(100, Math.max(0, value)));
                             }}
-                            className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right"
+                            className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right backdrop-blur-sm"
                           />
 
                           <span className="text-sm text-white/50">%</span>
@@ -1079,7 +1163,7 @@ export default function NFTGenerator() {
                             whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.99 }}
                             onClick={() => fileInputRefs.current[activeLayerIndex]?.click()}
-                            className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center cursor-pointer hover:border-white/40 transition-all"
+                            className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center cursor-pointer hover:border-white/40 transition-all backdrop-blur-sm"
                           >
                             <p className="text-white/70 mb-2">Click or drop images here</p>
                             <p className="text-xs text-white/50">(PNG format, max 2MB per image)</p>
@@ -1112,7 +1196,7 @@ export default function NFTGenerator() {
                                 <motion.div
                                   key={imgIndex}
                                   whileHover={{ scale: 0.95 }}
-                                  className="flex items-center gap-3 p-2 bg-white/5 rounded-lg"
+                                  className="flex items-center gap-3 p-2 bg-white/5 rounded-lg backdrop-blur-sm"
                                 >
                                   <div className="w-10 h-10 bg-black/50 rounded overflow-hidden">
                                     <img 
@@ -1142,7 +1226,7 @@ export default function NFTGenerator() {
 
                           {activeTraitTab === 'rarity' && (
                             <div className="space-y-3 max-h-[550px] overflow-y-auto">
-                              <div className="p-3 bg-white/5 rounded-lg border border-white/10 mb-2">
+                              <div className="p-3 bg-white/5 rounded-lg border border-white/10 mb-2 backdrop-blur-sm">
                                 <div className="flex justify-between items-center">
                                   <span className="text-sm text-white/80">Total Rarity</span>
                                   <span className={`text-sm font-mono ${
@@ -1172,7 +1256,7 @@ export default function NFTGenerator() {
                               </div>
                               
                               {layers[activeLayerIndex]?.images.map((image, imgIndex) => (
-                                <div key={imgIndex} className="p-3 bg-white/5 rounded-lg">
+                                <div key={imgIndex} className="p-3 bg-white/5 rounded-lg backdrop-blur-sm">
                                   <div className="flex justify-between items-center mb-1">
                                     <span className="text-sm text-white/80 truncate flex items-center gap-2">
                                       <FiImage size={12} />
@@ -1188,7 +1272,7 @@ export default function NFTGenerator() {
                                           const value = parseInt(e.target.value) || 0;
                                           updateRarity(activeLayerIndex, imgIndex, value.toString());
                                         }}
-                                        className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right"
+                                        className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right backdrop-blur-sm"
                                       />
                                       <span className="text-sm text-white/50">%</span>
                                     </div>
@@ -1212,7 +1296,7 @@ export default function NFTGenerator() {
                 {showPreviews && previews.length > 0 ? (
                   <motion.div
                     variants={itemVariants}
-                    className="group relative overflow-hidden rounded-2xl bg-black/50 shadow-2xl hover:shadow-white/20 transition-all duration-500 backdrop-blur-sm border border-white/10 hover:border-white/30 p-6"
+                    className="group relative overflow-hidden rounded-2xl bg-black/50 backdrop-blur-sm shadow-2xl hover:shadow-white/20 transition-all duration-500 border border-white/10 hover:border-white/30 p-6"
                   >
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-white text-xl font-bold flex items-center gap-2">
@@ -1233,7 +1317,7 @@ export default function NFTGenerator() {
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-[460px] overflow-y-auto p-2">
                       {previews.map((preview, idx) => (
                         <div key={preview.id} className="relative group">
-                          <div className="aspect-square bg-black/50 rounded-lg overflow-hidden border border-white/10 relative">
+                          <div className="aspect-square bg-black/50 rounded-lg overflow-hidden border border-white/10 relative backdrop-blur-sm">
                             {preview.images.length > 0 ? (
                               <img 
                                 src={preview.images[0]} 
@@ -1266,23 +1350,23 @@ export default function NFTGenerator() {
                     </div>
 
                     <div className="space-y-3">
-                      <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                      <div className="p-3 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
                         <label className="block text-sm text-white/70 mb-1">Collection name</label>
                         <input
                           type="text"
                           value={collectionName}
                           onChange={(e) => setCollectionName(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-white/20 text-sm"
+                          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-white/20 text-sm backdrop-blur-sm"
                         />
                       </div>
 
-                      <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                      <div className="p-3 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
                         <label className="block text-sm text-white/70 mb-1">Item name prefix</label>
                         <input
                           type="text"
                           value={itemPrefix}
                           onChange={(e) => setItemPrefix(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-white/20 text-sm"
+                          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-white/20 text-sm backdrop-blur-sm"
                           placeholder="e.g., MyNFT"
                         />
                       </div>
@@ -1292,10 +1376,10 @@ export default function NFTGenerator() {
                         whileTap={{ scale: 0.98 }}
                         onClick={handleDownloadWithPayment}
                         disabled={isProcessingPayment}
-                        className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 ${
+                        className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm border ${
                           isProcessingPayment
-                            ? 'bg-white/10 text-white/50 cursor-not-allowed'
-                            : 'bg-white text-black hover:opacity-90'
+                            ? 'bg-white/10 text-white/50 cursor-not-allowed border-white/10'
+                            : 'bg-white text-black hover:opacity-90 border-white/30'
                         }`}
                       >
                         {isProcessingPayment ? (
@@ -1318,7 +1402,7 @@ export default function NFTGenerator() {
                           setShowPreviews(false);
                           setCurrentStep(4);
                         }}
-                        className="w-full bg-transparent border border-white/20 hover:border-white/40 text-white py-3 rounded-lg transition-all flex items-center justify-center gap-2"
+                        className="w-full bg-transparent border border-white/20 hover:border-white/40 text-white py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm"
                       >
                         <FiSliders size={14} />
                         Adjust Settings
@@ -1328,7 +1412,7 @@ export default function NFTGenerator() {
                 ) : (
                 <motion.div
                   variants={itemVariants}
-                  className="group relative overflow-hidden rounded-2xl bg-black/50 shadow-2xl hover:shadow-white/20 transition-all duration-500 backdrop-blur-sm border border-white/10 hover:border-white/30 p-6"
+                  className="group relative overflow-hidden rounded-2xl bg-black/50 backdrop-blur-sm shadow-2xl hover:shadow-white/20 transition-all duration-500 border border-white/10 hover:border-white/30 p-6"
                 >
                   <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
                     <FiSettings />
@@ -1345,7 +1429,7 @@ export default function NFTGenerator() {
                         type="text"
                         value={collectionName}
                         onChange={(e) => setCollectionName(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20 backdrop-blur-sm"
                       />
                     </div>
 
@@ -1355,7 +1439,7 @@ export default function NFTGenerator() {
                         type="text"
                         value={collectionDescription}
                         onChange={(e) => setCollectionDescription(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20 backdrop-blur-sm"
                       />
                     </div>
 
@@ -1365,7 +1449,7 @@ export default function NFTGenerator() {
                         type="text"
                         value={itemPrefix}
                         onChange={(e) => setItemPrefix(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20 backdrop-blur-sm"
                         placeholder="e.g., MyNFT"
                       />
                     </div>
@@ -1380,9 +1464,9 @@ export default function NFTGenerator() {
                             max="1600"
                             value={width}
                             onChange={(e) => setWidth(parseInt(e.target.value) || 600)}
-                            className="w-full bg-white/5 border border-white/10 rounded-l-lg px-4 py-2 text-white focus:outline-none"
+                            className="w-full bg-white/5 border border-white/10 rounded-l-lg px-4 py-2 text-white focus:outline-none backdrop-blur-sm"
                           />
-                          <span className="bg-white/10 border border-l-0 border-white/10 rounded-r-lg px-3 py-2 text-sm text-white/70">px</span>
+                          <span className="bg-white/10 border border-l-0 border-white/10 rounded-r-lg px-3 py-2 text-sm text-white/70 backdrop-blur-sm">px</span>
                         </div>
                       </div>
                       <div>
@@ -1394,9 +1478,9 @@ export default function NFTGenerator() {
                             max="1600"
                             value={height}
                             onChange={(e) => setHeight(parseInt(e.target.value) || 600)}
-                            className="w-full bg-white/5 border border-white/10 rounded-l-lg px-4 py-2 text-white focus:outline-none"
+                            className="w-full bg-white/5 border border-white/10 rounded-l-lg px-4 py-2 text-white focus:outline-none backdrop-blur-sm"
                           />
-                          <span className="bg-white/10 border border-l-0 border-white/10 rounded-r-lg px-3 py-2 text-sm text-white/70">px</span>
+                          <span className="bg-white/10 border border-l-0 border-white/10 rounded-r-lg px-3 py-2 text-sm text-white/70 backdrop-blur-sm">px</span>
                         </div>
                       </div>
                     </div>
@@ -1424,7 +1508,7 @@ export default function NFTGenerator() {
                               setBatchSize(newSize);
                             }
                           }}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                          className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20 backdrop-blur-sm"
                         />
                         {totalCombinations > 0 && (
                           <p className="text-xs text-white/50 mt-1">
@@ -1435,7 +1519,7 @@ export default function NFTGenerator() {
                     )}
                   </div>
 
-                  <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="text-white/70">Wallet:</div>
                       <div className="text-right font-mono" title={storedAddress}>
@@ -1459,7 +1543,7 @@ export default function NFTGenerator() {
                           setBatchSize(1);
                           setCurrentStep(1);
                         }}
-                        className="w-full bg-transparent border border-white/20 hover:border-white/40 text-white py-3 rounded-lg transition-all flex items-center justify-center gap-2"
+                        className="w-full bg-transparent border border-white/20 hover:border-white/40 text-white py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm"
                       >
                         <FiTrash2 size={14} />
                         Reset All
@@ -1473,10 +1557,10 @@ export default function NFTGenerator() {
                           setCurrentStep(5);
                         }}
                         disabled={layers.length === 0 || layers.some(l => l.images.length === 0) || isGeneratingPreviews}
-                        className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 ${
+                        className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm border ${
                           layers.length === 0 || layers.some(l => l.images.length === 0) || isGeneratingPreviews
-                            ? 'bg-white/10 text-white/50 cursor-not-allowed'
-                            : 'bg-white text-black hover:bg-white/90'
+                            ? 'bg-white/10 text-white/50 cursor-not-allowed border-white/10'
+                            : 'bg-white text-black hover:bg-white/90 border-white/30'
                         }`}
                       >
                         {isGeneratingPreviews ? (
@@ -1498,7 +1582,7 @@ export default function NFTGenerator() {
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setShowPreviews(true)}
                           disabled={isGeneratingPreviews}
-                          className={`w-full bg-white text-black border border-white/20 py-3 rounded-lg transition-all flex items-center justify-center gap-2 ${
+                          className={`w-full bg-white text-black border border-white/20 py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm ${
                             isGeneratingPreviews ? 'opacity-50 cursor-not-allowed' : ''
                           }`}
                         >
@@ -1512,10 +1596,10 @@ export default function NFTGenerator() {
                         whileTap={{ scale: 0.98 }}
                         onClick={handleDownloadWithPayment}
                         disabled={previews.length === 0 || isProcessingPayment || isGeneratingPreviews}
-                        className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 ${
+                        className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm border ${
                           previews.length === 0 || isProcessingPayment || isGeneratingPreviews
-                            ? 'bg-white/10 text-white/50 cursor-not-allowed'
-                            : 'bg-gradient-to-r bg-white text-black hover:opacity-90'
+                            ? 'bg-white/10 text-white/50 cursor-not-allowed border-white/10'
+                            : 'bg-gradient-to-r bg-white text-black hover:opacity-90 border-white/30'
                         }`}
                       >
                         {isProcessingPayment ? (
@@ -1560,7 +1644,7 @@ export default function NFTGenerator() {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => setIsPaymentModalOpen(false)}
-                  className="flex-1 bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 rounded-lg transition-all flex items-center justify-center gap-2"
+                  className="flex-1 bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm"
                 >
                   <FaTimes size={14} />
                   Cancel
@@ -1682,22 +1766,65 @@ export default function NFTGenerator() {
             </motion.div>
           </div>
         )}
+
+        <style jsx global>{`
+          @keyframes sparkle {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(2) rotate(180deg); opacity: 0; }
+          }
+
+          @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+          }
+
+          @keyframes grid {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+          }
+
+          .sparkle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle 1.5s ease-out forwards, float 4s ease-in-out infinite;
+            z-index: 30;
+            filter: blur(1px);
+          }
+
+          .bg-grid-animation {
+            background-image: 
+              linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: grid 20s linear infinite;
+          }
+
+          body {
+            background-color: #000;
+            overflow-x: hidden;
+          }
+
+          ::-webkit-scrollbar {
+            width: 8px;
+          }
+
+          ::-webkit-scrollbar-track {
+            background: #000;
+          }
+
+          ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+          }
+
+          ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+          }
+        `}</style>
       </>
     </WalletAuthGuard>
   );
 }
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 50 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80 } },
-};
