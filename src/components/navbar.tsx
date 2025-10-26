@@ -229,7 +229,7 @@ const Navbar = () => {
                     onMouseLeave={handleItemLeave}
                   >
                     <button
-                      onClick={() => toggleSubMenu(item.label)}
+                      onClick={() => !isLargeScreen && toggleSubMenu(item.label)}
                       className={`py-3 px-5 text-sm lg:text-lg font-medium block w-full text-center transition-colors duration-200 flex items-center justify-center lg:justify-start ${activeSubMenu === item.label && !isLargeScreen ? 'bg-white text-black' : 'hover:bg-white hover:text-black'}`}
                     >
                       {item.label}
