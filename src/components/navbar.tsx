@@ -351,7 +351,7 @@ const Navbar = () => {
                 </a>
               </div>
               <p className="text-center text-[10px] sm:text-xs text-neutral-500">
-                © 2024 Pedro x Art
+                © 2025 Pedro x Art
               </p>
             </div>
           </div>
