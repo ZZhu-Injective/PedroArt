@@ -118,6 +118,14 @@ const Navbar = () => {
     }
   };
 
+  const handleSubMenuItemClick = (subItem: SubMenuItem) => {
+    if (subItem.newTab) {
+      closeMenu();
+    } else {
+      closeMenu();
+    }
+  };
+
   const navItems: NavItem[] = [
     { href: "/arts", label: "Fans Art" },
     { href: "/factory", label: "Factory"},
@@ -250,7 +258,7 @@ const Navbar = () => {
                         onMouseLeave={handleSubMenuLeave}
                       >
                         {item.submenu.map((subItem) => (
-                          <Link
+                          <a
                             key={subItem.href}
                             href={subItem.href}
                             className="block px-4 py-3 text-sm text-black hover:bg-black hover:text-white transition-colors"
@@ -259,7 +267,7 @@ const Navbar = () => {
                             rel={subItem.newTab ? "noopener noreferrer" : undefined}
                           >
                             {subItem.label}
-                          </Link>
+                          </a>
                         ))}
                       </div>
                     )}
@@ -287,7 +295,7 @@ const Navbar = () => {
                 {!isLargeScreen && activeSubMenu === item.label && item.submenu && (
                   <div className="w-full bg-neutral-900">
                     {item.submenu.map((subItem) => (
-                      <Link
+                      <a
                         key={subItem.href}
                         href={subItem.href}
                         className="block py-4 px-12 text-sm text-white hover:bg-white hover:text-black transition-colors"
@@ -296,7 +304,7 @@ const Navbar = () => {
                         rel={subItem.newTab ? "noopener noreferrer" : undefined}
                       >
                         {subItem.label}
-                      </Link>
+                      </a>
                     ))}
                   </div>
                 )}
