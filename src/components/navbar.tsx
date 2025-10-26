@@ -164,7 +164,7 @@ const Navbar = () => {
               width={40}
               height={40}
             />
-            <span className="hidden sm:inline sm:text-base">PEDRO x ART</span>
+            <span className="hidden sm:inline sm:text-xl">PEDRO x ART</span>
             <span className="sm:hidden">PEDRO x ART</span>
           </Link>
 
