@@ -110,7 +110,7 @@ const Navbar = () => {
   const handleSubMenuLeave = () => {
     if (isLargeScreen) {
       setTimeout(() => {
-        if (hoveredItem !== "Other Websites") {
+        if (hoveredItem !== "More") {
           setSubMenuOpen(false);
           setActiveSubMenu(null);
         }
@@ -124,7 +124,7 @@ const Navbar = () => {
     { href: "/editor", label: "Editor"},
     { href: "/nftgenerator", label: "NFT Generator" },
     { 
-      label: "Other Websites", 
+      label: "More", 
       submenu: [
         { href: "https://injectivepedro.com/", label: "Mainpage", newTab: true },
         { href: "https://job.injectivepedro.com/", label: "Talent", newTab: true },
