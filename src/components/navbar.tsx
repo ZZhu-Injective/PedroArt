@@ -89,7 +89,7 @@ const Navbar = () => {
 
   const handleItemHover = (label: string) => {
     setHoveredItem(label);
-    if (isLargeScreen && label === "Other Websites") {
+    if (isLargeScreen && label === "More") {
       setSubMenuOpen(true);
       setActiveSubMenu(label);
     }
@@ -138,7 +138,7 @@ const Navbar = () => {
     if (isLargeScreen) return navItems;
     
     const artItems = navItems.filter(item => !item.submenu);
-    const otherWebsites = navItems.find(item => item.label === "Other Websites");
+    const otherWebsites = navItems.find(item => item.label === "More");
     
     return [
       ...artItems,
