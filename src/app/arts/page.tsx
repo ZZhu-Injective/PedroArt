@@ -18,13 +18,16 @@ interface CardProps {
 }
 
 const images: GalleryImage[] = [
-  { url: 'fan80.jpg', title: 'amstar_art', link: 'https://x.com/amstar_art' },  
+  { url: 'fan83.jpg', title: 'Dee_vinchi', link: 'https://x.com/Dee_vinchi' },  
+  { url: 'fan82.jpg', title: 'singularity_66', link: 'https://x.com/singularity_66' },  
+  { url: 'fan81.jpg', title: 'afro_v1', link: 'https://x.com/afro_v1' },  
+  { url: 'fan80.jpg', title: 'kayd_kova', link: 'https://x.com/kayd_kova' },  
   { url: 'fan79.jpg', title: 'Mary_Inj', link: 'https://x.com/Mary_Inj' },
   { url: 'fan78.jpg', title: 'amstar_art', link: 'https://x.com/amstar_art' },  
   { url: 'fan77.jpg', title: 'NwudeChris1', link: 'https://x.com/NwudeChris1' },  
   { url: 'fan76.jpg', title: 'ZaynaharX9639', link: 'https://x.com/ZaynaharX9639' },
-  { url: 'fan75.jpg', title: 'amstar_art', link: 'https://x.com/amstar_art' },
-  { url: 'fan74.jpg', title: 'amstar_art', link: 'https://x.com/amstar_art' },
+  { url: 'fan75.jpg', title: 'NwudeChris1', link: 'https://x.com/NwudeChris1' },
+  { url: 'fan74.jpg', title: '?', link: 'https://x.com/?' },
   { url: 'fan73.jpg', title: 'ZaynaharX9639', link: 'https://x.com/ZaynaharX9639' },
   { url: 'fan72.jpg', title: 'MahmoudH0110', link: 'https://x.com/MahmoudH0110' },
   { url: 'fan71.jpg', title: 'web3rana', link: 'https://x.com/web3rana' },  
