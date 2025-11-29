@@ -122,11 +122,13 @@ const Navbar = () => {
     { href: "/arts", label: "Fans Art" },
     { href: "/factory", label: "Factory"},
     { href: "/editor", label: "Editor"},
+    { href: "https://memedepot.com/d/pedro", label: "Meme", newTab: true },
     { href: "/nftgenerator", label: "NFT Generator" },
     { 
       label: "More", 
       submenu: [
         { href: "https://injectivepedro.com/", label: "Mainpage", newTab: true },
+        { href: "https://board.injectivepedro.com/", label: "Dashboard", newTab: true },
         { href: "https://job.injectivepedro.com/", label: "Talent", newTab: true },
         { href: "https://burn.injectivepedro.com/", label: "Burn", newTab: true },
         { href: "https://scam.injectivepedro.com/", label: "Scam", newTab: true },
@@ -246,20 +248,21 @@ const Navbar = () => {
           <div className="flex-1 flex flex-col min-h-0">
             <nav className="flex-1 overflow-y-auto py-3 sm:py-4">
               <div className="mb-4 sm:mb-6 px-3 sm:px-4">
-                <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2 sm:mb-3 px-1">
+                <h4 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2 sm:mb-3 px-1">
                   Art Tools
-                </h3>
+                </h4>
                 <ul className="space-y-1.5 sm:space-y-2">
                   {mobileNavItems.filter(item => 
                     item.label === "Fans Art" || 
                     item.label === "Factory" || 
                     item.label === "Editor" || 
+                    item.label === "Meme" ||
                     item.label === "NFT Generator"
                   ).map((item, index) => (
                     <li key={`${item.href}-${index}`}>
                       <a
                         href={item.href || '#'}
-                        className="flex items-center justify-between py-2.5 sm:py-3 px-3 text-sm sm:text-base font-medium text-black rounded-lg hover:bg-black hover:text-white transition-all duration-200 active:scale-95 border border-neutral-200 hover:border-black"
+                        className="flex items-center justify-between py-2.5 sm:py-3 px-3 text-xs sm:text-base font-medium text-black rounded-lg hover:bg-black hover:text-white transition-all duration-200 active:scale-95 border border-neutral-200 hover:border-black"
                         onClick={closeMenu}
                       >
                         <span className="flex-1 text-left">{item.label}</span>
@@ -271,19 +274,20 @@ const Navbar = () => {
 
               <div className="px-3 sm:px-4">
                 <h3 className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2 sm:mb-3 px-1">
-                  Other Websites
+                  Other Pedro Web
                 </h3>
                 <ul className="space-y-1.5 sm:space-y-2">
                   {mobileNavItems.filter(item => 
                     item.label === "Mainpage" || 
                     item.label === "Talent" || 
                     item.label === "Burn" || 
+                    item.label === "Dashboard" ||
                     item.label === "Scam"
                   ).map((item, index) => (
                     <li key={`${item.href}-${index}`}>
                       <a
                         href={item.href || '#'}
-                        className="flex items-center justify-between py-2.5 sm:py-3 px-3 text-sm sm:text-base font-medium text-black rounded-lg hover:bg-black hover:text-white transition-all duration-200 active:scale-95 border border-neutral-200 hover:border-black"
+                        className="flex items-center justify-between py-2.5 sm:py-3 px-3 text-xs sm:text-base font-medium text-black rounded-lg hover:bg-black hover:text-white transition-all duration-200 active:scale-95 border border-neutral-200 hover:border-black"
                         onClick={closeMenu}
                         target={item.newTab ? "_blank" : undefined}
                         rel={item.newTab ? "noopener noreferrer" : undefined}
