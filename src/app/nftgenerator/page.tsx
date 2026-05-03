@@ -970,7 +970,7 @@ export default function NFTGenerator() {
               </motion.div>
             </section>
 
-            <section className="relative px-8 mx-auto max-w-[1500px] mb-8">
+            <section className="relative container mx-auto px-4 sm:px-5 max-w-7xl mb-8">
               <motion.div
                 variants={containerVariants}
                 initial="hidden"
@@ -1013,7 +1013,7 @@ export default function NFTGenerator() {
               </motion.div>
             </section>
 
-            <section className="relative sm:py-8 py-2 px-2 mx-auto max-w-[1500px]">
+            <section className="relative container mx-auto px-4 sm:px-5 py-8 sm:py-10 max-w-7xl">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4">
                 <motion.div
                   variants={itemVariants}

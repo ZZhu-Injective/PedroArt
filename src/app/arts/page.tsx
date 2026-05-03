@@ -336,7 +336,7 @@ export default function Art() {
             </motion.div>
           </section>
 
-          <section className="relative py-4 px-4 mx-auto max-w-[1500px]">
+          <section className="relative container mx-auto px-4 sm:px-5 py-4 max-w-7xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -361,7 +361,7 @@ export default function Art() {
             </motion.div>
           </section>
 
-          <section className="relative pb-16 pt-2 px-4 mx-auto max-w-[1500px]">
+          <section className="relative container mx-auto px-4 sm:px-5 pt-2 pb-16 max-w-7xl">
             <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
               {images.map((image, index) => (
                 <MasonryCard

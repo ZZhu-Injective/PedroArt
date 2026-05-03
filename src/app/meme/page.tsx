@@ -250,7 +250,7 @@ export default function MemeGallery() {
             </motion.div>
           </section>
 
-          <section className="relative sm:py-8 py-2 px-2 mx-auto max-w-[1500px]" ref={galleryRef}>
+          <section className="relative container mx-auto px-4 sm:px-5 py-8 sm:py-10 md:py-16 max-w-7xl" ref={galleryRef}>
             <motion.div
               variants={containerVariants}
               initial="hidden"
