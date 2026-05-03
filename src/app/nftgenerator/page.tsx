@@ -2,17 +2,16 @@
 import { motion } from "framer-motion";
 import Head from "next/head";
 import Image from "next/image";
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { Fragment, useEffect, useState, useRef, useCallback } from 'react';
 import JSZip from 'jszip';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { saveAs } from 'file-saver';
 import WalletAuthGuard from "@/components/WalletAuthGuard";
 import { useWalletAuth } from "@/components/WalletAuthGuard";
-import { ChainId } from '@injectivelabs/ts-types';
-import { BaseAccount, BroadcastModeKeplr, ChainRestAuthApi, ChainRestTendermintApi, CosmosTxV1Beta1Tx, createTransaction, getTxRawFromTxRawOrDirectSignResponse, MsgSend, TxRaw } from '@injectivelabs/sdk-ts';
-import { BigNumberInBase, DEFAULT_BLOCK_TIMEOUT_HEIGHT, getStdFee } from '@injectivelabs/utils';
-import { TransactionException } from '@injectivelabs/exceptions';
+import { MsgSend } from '@injectivelabs/sdk-ts';
+import { BigNumberInBase } from '@injectivelabs/utils';
+import { signAndBroadcast } from '@/lib/wallet';
 import { FaLayerGroup, FaUpload, FaSlidersH, FaCog, FaPlus, FaTrash, FaArrowUp, FaArrowDown, FaFileDownload, FaFileImage, FaPercentage, FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
 import { FiLayers, FiUpload, FiSettings, FiPlus, FiTrash2, FiArrowUp, FiArrowDown, FiDownload, FiImage, FiPercent, FiSliders } from 'react-icons/fi';
 
@@ -359,29 +358,6 @@ export default function NFTGenerator() {
     setIsProcessingPayment(true);
 
     try {
-      const wallet = walletType === 'leap' ? window.leap : window.keplr;
-      if (!wallet) {
-        throw new Error(`${walletType} extension not installed`);
-      }
-
-      const chainId = ChainId.Mainnet;
-      await wallet.enable(chainId);
-      const [account] = await wallet.getOfflineSigner(chainId).getAccounts();
-      const injectiveAddress = account.address;
-  
-      const restEndpoint = "https://sentry.lcd.injective.network:443";
-      const chainRestAuthApi = new ChainRestAuthApi(restEndpoint);
-      const accountDetailsResponse = await chainRestAuthApi.fetchAccount(injectiveAddress);
-      if (!accountDetailsResponse) {
-        throw new Error("Failed to fetch account details");
-      }
-      const baseAccount = BaseAccount.fromRestApi(accountDetailsResponse);
-  
-      const chainRestTendermintApi = new ChainRestTendermintApi(restEndpoint);
-      const latestBlock = await chainRestTendermintApi.fetchLatestBlock();
-      const latestHeight = latestBlock.header.height;
-      const timeoutHeight = new BigNumberInBase(latestHeight).plus(DEFAULT_BLOCK_TIMEOUT_HEIGHT);
-      
       const msg = MsgSend.fromJSON({
         amount: {
           amount: new BigNumberInBase(baseAmount).times(new BigNumberInBase(10).pow(18)).toFixed(),
@@ -391,71 +367,31 @@ export default function NFTGenerator() {
         dstInjectiveAddress: "inj1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqe2hm49",
       });
 
-      const pubKey = await wallet.getKey(chainId);
-      if (!pubKey || !pubKey.pubKey) {
-        throw new Error("Failed to retrieve public key from wallet");
+      const txHash = await signAndBroadcast(msg, "Send to burn wallet - PEDRO X NFT");
+
+      try {
+        await fetch('https://api.injectivepedro.com/burn/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            burn_data: {
+              srcInjectiveAddress: storedAddress,
+              baseAmount: baseAmount,
+              txHash: txHash,
+              reason: 'NFT-Tool'
+            }
+          }),
+        });
+      } catch (apiError) {
+        console.error('API error:', apiError);
       }
-  
-      const { txRaw: finalTxRaw, signDoc } = createTransaction({
-        pubKey: Buffer.from(pubKey.pubKey).toString('base64'),
-        chainId,
-        fee: getStdFee(),
-        message: msg,
-        sequence: baseAccount.sequence,
-        timeoutHeight: timeoutHeight.toNumber(),
-        accountNumber: baseAccount.accountNumber,
-        memo: "Send to burn wallet - PEDRO X NFT",
-      });
-  
-      const offlineSigner = wallet.getOfflineSigner(chainId);
-      const directSignResponse = await offlineSigner.signDirect(injectiveAddress, signDoc);
-  
-      const txRawSigned = getTxRawFromTxRawOrDirectSignResponse(directSignResponse);
-  
-      const broadcastTx = async (chainId: string, txRaw: TxRaw) => {
-        const result = await wallet.sendTx(
-          chainId,
-          CosmosTxV1Beta1Tx.TxRaw.encode(txRaw).finish(),
-          BroadcastModeKeplr.Sync,
-        );
-  
-        if (!result || result.length === 0) {
-          throw new TransactionException(
-            new Error('Transaction failed to be broadcasted'),
-            { contextModule: 'Wallet' },
-          );
-        }
-  
-        return Buffer.from(result).toString('hex');
-      };
-  
-      const txHash = await broadcastTx(ChainId.Mainnet, txRawSigned);
 
-    try {
-      const response = await fetch('https://api.injectivepedro.com/burn/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          burn_data: {
-            srcInjectiveAddress: storedAddress,
-            baseAmount: baseAmount,
-            txHash: txHash,
-            reason: 'NFT-Tool'
-          }
-        }),
-      });
-
-    } catch (apiError) {
-      console.error('API error:', apiError);
-    }
-
-    if (txHash) {
-      setPaymentState('success');
-      setHasPaid(true);
-      setModalMessage("Payment successful! You can now download your NFTs.");
-      setIsWarningModalOpen(true);
-    }
-    
+      if (txHash) {
+        setPaymentState('success');
+        setHasPaid(true);
+        setModalMessage("Payment successful! You can now download your NFTs.");
+        setIsWarningModalOpen(true);
+      }
     } catch (error) {
       console.error('Payment error:', error);
       setPaymentState('failed');
@@ -464,7 +400,7 @@ export default function NFTGenerator() {
     } finally {
       setIsProcessingPayment(false);
     }
-  }, [storedAddress, walletType, baseAmount]);
+  }, [storedAddress, baseAmount]);
 
   const calculateAllCombinations = useCallback(() => {
     if (layers.length === 0) return [];
@@ -938,688 +874,529 @@ export default function NFTGenerator() {
           </div>
 
           <div className="relative z-10">
-            <section className="flex items-center justify-center py-12 text-center relative overflow-hidden">
-              <motion.div
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="px-6 max-w-4xl relative z-10"
-              >
-                <motion.h1
-                  className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight font-mono mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2, duration: 0.8 }}
-                >
-                  PEDRO X NFT
-                </motion.h1>
-                <motion.div
-                  initial={{ opacity: 0, scaleX: 0 }}
-                  animate={{ opacity: 1, scaleX: 1 }}
-                  transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
-                  className="h-px w-full bg-gradient-to-r from-transparent via-gray-500 to-transparent mb-6"
-                />
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4, duration: 0.8 }}
-                  className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto font-mono"
-                >
-                  CREATE YOUR NFT COLLECTION
-                </motion.p>
-              </motion.div>
-            </section>
-
-            <section className="relative container mx-auto px-4 sm:px-5 max-w-7xl mb-8">
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-                className="grid grid-cols-1 sm:grid-cols-4 gap-4"
-              >
-                {steps.map((step) => (
-                  <motion.div
-                    key={step.id}
-                    variants={itemVariants}
-                    className={`group relative overflow-hidden rounded-2xl backdrop-blur-xl border-2 shadow-2xl transition-all duration-500 p-4 cursor-pointer ${
-                      step.completed ? 'bg-black/60 border-white/40' : 'bg-black/60 border-gray-800/60'
-                    } ${currentStep === step.id ? 'border-white' : ''} hover:border-white/40`}
-                    onClick={() => setCurrentStep(step.id)}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`p-2 rounded-full backdrop-blur-sm border ${
-                        step.completed ? 'bg-white/10 border-white/40' : 'bg-white/5 border-gray-800'
-                      }`}>
-                        {step.icon}
-                      </div>
-                      <h3 className="text-lg font-bold text-white font-mono tracking-tight">{step.title}</h3>
-                      {step.completed && (
-                        <div className="ml-auto bg-white/10 p-1 rounded-full backdrop-blur-sm border border-white/30">
-                          <FaCheck className="text-white" size={12} />
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-sm text-white/70">{step.description}</p>
-                    {currentStep === step.id && (
-                      <motion.div 
-                        initial={{ scaleX: 0 }}
-                        animate={{ scaleX: 1 }}
-                        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                        className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-500 to-transparent origin-left"
-                      />
-                    )}
-                  </motion.div>
-                ))}
-              </motion.div>
-            </section>
-
-            <section className="relative container mx-auto px-4 sm:px-5 py-8 sm:py-10 max-w-7xl">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4">
-                <motion.div
-                  variants={itemVariants}
-                  className="group relative overflow-hidden rounded-2xl bg-black/60 backdrop-blur-xl shadow-2xl hover:shadow-white/10 transition-all duration-500 border border-gray-800/60 hover:border-white/40 p-6"
-                >
-                <DndProvider backend={HTML5Backend}>
-                  <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2 font-mono tracking-tight">
-                    <FaLayerGroup className="text-white" />
-                    Layers
-                  </h3>
-                  
-                  <div className="space-y-2 max-h-[330px] overflow-y-auto">
-                    {layers.map((layer, index) => (
-                      <DraggableLayer
-                        key={layer.id}
-                        layer={layer}
-                        index={index}
-                        moveLayer={(dragIndex, hoverIndex) => {
-                          const updatedLayers = [...layers];
-                          const [removed] = updatedLayers.splice(dragIndex, 1);
-                          updatedLayers.splice(hoverIndex, 0, removed);
-                          updatedLayers.forEach((l, i) => {
-                            l.zIndex = i;
-                          });
-                          setLayers(updatedLayers);
-                          if (activeLayerIndex === dragIndex) {
-                            setActiveLayerIndex(hoverIndex);
-                          }
-                        }}
-                        onClick={() => {
-                          handleLayerClick(index);
-                          setCurrentStep(2);
-                        }}
-                        isActive={index === activeLayerIndex}
-                      />
-                    ))}
+            <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-xl border-b border-gray-800/60">
+              <div className="container mx-auto px-4 sm:px-5 max-w-7xl flex flex-wrap items-center justify-between gap-3 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg border border-gray-700 bg-black flex items-center justify-center">
+                    <span className="text-white text-base font-bold font-mono">P</span>
                   </div>
-                </DndProvider>
-
-                  <div className="mt-6">
-                    <h3 className="text-white text-lg font-bold mb-3 flex items-center gap-2">
-                      <FiPlus />
-                      Create new layer
-                    </h3>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Layer name"
-                        value={newLayerName}
-                        onChange={(e) => setNewLayerName(e.target.value)}
-                        className="flex-1 bg-black/40 border border-gray-800/60 rounded-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
-                      />
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => {
-                          addLayer();
-                          setCurrentStep(2); 
-                        }}
-                        className="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-4 py-2 text-white transition-all flex items-center gap-2 backdrop-blur-sm"
+                  <div>
+                    <h1 className="text-sm sm:text-base font-bold text-white font-mono tracking-tight leading-tight">NFT Art Generator</h1>
+                    <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest leading-tight">by pedro × art</p>
+                  </div>
+                </div>
+                <nav className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+                  {[
+                    { id: 1, label: 'Settings', icon: <FaCog size={12} /> },
+                    { id: 2, label: 'Organize', icon: <FaLayerGroup size={12} /> },
+                    { id: 4, label: 'Preview', icon: <FaFileImage size={12} /> },
+                    { id: 5, label: 'Export', icon: <FaFileDownload size={12} /> },
+                  ].map((s, idx, arr) => (
+                    <Fragment key={s.id}>
+                      <button
+                        onClick={() => setCurrentStep(s.id)}
+                        className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-mono uppercase tracking-tight transition-all border-2 ${
+                          currentStep === s.id
+                            ? 'bg-white text-black border-white'
+                            : 'bg-transparent text-gray-300 border-gray-700 hover:border-white/60 hover:text-white'
+                        }`}
                       >
-                        <FiPlus size={14} />
-                        Add
-                      </motion.button>
-                    </div>
-                  </div>
+                        {s.icon}
+                        <span className="hidden sm:inline">{s.label}</span>
+                      </button>
+                      {idx < arr.length - 1 && <span className="text-gray-600 text-xs hidden sm:inline">›</span>}
+                    </Fragment>
+                  ))}
+                </nav>
+              </div>
+            </header>
 
-                  <div className="mt-6">
-                    <h3 className="text-white text-lg font-bold mb-3 flex items-center gap-2">
-                      <FiImage />
-                      Layer Preview
-                    </h3>
-                    <div className="relative w-full aspect-square bg-black/40 rounded-2xl overflow-hidden border border-gray-800/60 hover:border-white/40 backdrop-blur-xl transition-colors">
-                      <canvas 
-                        ref={canvasRef}
-                        width={width}
-                        height={height}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  variants={itemVariants}
-                  className="group relative overflow-hidden rounded-2xl bg-black/60 backdrop-blur-xl shadow-2xl hover:shadow-white/10 transition-all duration-500 border border-gray-800/60 hover:border-white/40 p-6"
-                >
-                  {layers.length > 0 ? (
-                    <>
-                      <div className="flex justify-between items-center mb-6">
-                        <div className="flex items-center gap-2">
-                          <FiLayers className="text-white/70" />
-                          <input
-                            type="text"
-                            value={layers[activeLayerIndex].name}
-                            onChange={(e) => updateLayerName(activeLayerIndex, e.target.value)}
-                            className="bg-transparent text-xl font-bold text-white border-b border-white/20 focus:outline-none focus:border-white/50"
-                          />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FiPercent className="text-white/70" />
-                          
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={layers[activeLayerIndex].layerRarity.toString()}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value) || 0;
-                              updateLayerRarityValue(activeLayerIndex, Math.min(100, Math.max(0, value)));
-                            }}
-                            className="w-16 bg-black/40 border border-gray-800/60 rounded-xl px-2 py-1 text-white font-mono text-right backdrop-blur-xl focus:outline-none focus:border-white/60 transition-colors"
-                          />
-
-                          <span className="text-sm text-white/50">%</span>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => removeLayer(activeLayerIndex)}
-                            className="text-red-400 hover:text-red-300 transition-all flex items-center gap-1"
-                          >
-                            <FiTrash2 size={16} />
-                          </motion.button>
-                        </div>
-                      </div>
-
-                      {currentStep >= 2 && (
-                        <div className="mb-6">
-                          <h3 className="text-white text-lg font-bold mb-3 flex items-center gap-2">
-                            <FiUpload />
-                            Upload Images
-                          </h3>
-                          <input
-                            type="file"
-                            accept="image/png"
-                            multiple
-                            className="hidden"
-                            onChange={(e) => {
-                              handleImageUpload(activeLayerIndex, e);
-                              setCurrentStep(3);
-                            }}
-                            ref={(el) => {
-                              fileInputRefs.current[activeLayerIndex] = el;
-                            }}
-                          />
-                          <motion.div
-                            whileHover={{ scale: 1.01 }}
-                            whileTap={{ scale: 0.99 }}
-                            onClick={() => fileInputRefs.current[activeLayerIndex]?.click()}
-                            className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center cursor-pointer hover:border-white/40 transition-all backdrop-blur-sm"
-                          >
-                            <p className="text-white/70 mb-2">Click or drop images here</p>
-                            <p className="text-xs text-white/50">(PNG format, max 2MB per image)</p>
-                          </motion.div>
-                        </div>
-                      )}
-
-                      {currentStep >= 2 && (
-                        <div>
-                          <div className="flex border-b border-white/10 mb-4">
-                            <button
-                              className={`pb-2 px-4 flex items-center gap-2 ${activeTraitTab === 'traits' ? 'text-white border-b-2 border-white' : 'text-white/50'}`}
-                              onClick={() => setActiveTraitTab('traits')}
-                            >
-                              <FiImage size={14} />
-                              Traits ({layers[activeLayerIndex]?.images.length || 0})
-                            </button>
-                            <button
-                              className={`pb-2 px-4 flex items-center gap-2 ${activeTraitTab === 'rarity' ? 'text-white border-b-2 border-white' : 'text-white/50'}`}
-                              onClick={() => setActiveTraitTab('rarity')}
-                            >
-                              <FiPercent size={14} />
-                              Rarity Settings
-                            </button>
-                          </div>
-
-                          {activeTraitTab === 'traits' && (
-                            <div className="space-y-2 max-h-[550px] overflow-y-auto">
-                              {layers[activeLayerIndex]?.images.map((image, imgIndex) => (
-                                <motion.div
-                                  key={imgIndex}
-                                  whileHover={{ scale: 0.95 }}
-                                  className="flex items-center gap-3 p-2 bg-white/5 rounded-lg backdrop-blur-sm"
-                                >
-                                  <div className="w-10 h-10 bg-black/50 rounded overflow-hidden">
-                                    <img 
-                                      src={image.preview} 
-                                      alt={image.name}
-                                      className="w-full h-full object-contain"
-                                    />
-                                  </div>
-                                  <input
-                                    type="text"
-                                    value={image.name}
-                                    onChange={(e) => updateImageName(activeLayerIndex, imgIndex, e.target.value)}
-                                    className="flex-1 bg-transparent text-white border-b border-white/10 focus:outline-none focus:border-white/30"
-                                  />
-                                  <motion.button
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() => removeImage(activeLayerIndex, imgIndex)}
-                                    className="text-red-400 hover:text-red-300"
-                                  >
-                                    <FiTrash2 size={16} />
-                                  </motion.button>
-                                </motion.div>
-                              ))}
-                            </div>
-                          )}
-
-                          {activeTraitTab === 'rarity' && (
-                            <div className="space-y-3 max-h-[550px] overflow-y-auto">
-                              <div className="p-3 bg-black/40 rounded-xl border border-gray-800/60 mb-2 backdrop-blur-xl">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm text-white/80">Total Rarity</span>
-                                  <span className={`text-sm font-mono ${
-                                    layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) !== 100 
-                                      ? 'text-yellow-400' 
-                                      : 'text-green-400'
-                                  }`}>
-                                    {layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0)}%
-                                    {layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) !== 100 && (
-                                      <span className="ml-2 text-xs">(Should total 100%)</span>
-                                    )}
-                                  </span>
-                                </div>
-
-                                <div className="w-full h-1 bg-white/10 rounded-full mt-1 overflow-hidden">
-                                  <div 
-                                    className={`h-full rounded-full ${
-                                      layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) !== 100
-                                        ? 'bg-yellow-500/50' 
-                                        : 'bg-green-500/50'
-                                    }`} 
-                                    style={{ 
-                                      width: `${Math.min(100, layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) || 0)}%` 
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                              
-                              {layers[activeLayerIndex]?.images.map((image, imgIndex) => (
-                                <div key={imgIndex} className="p-3 bg-white/5 rounded-lg backdrop-blur-sm">
-                                  <div className="flex justify-between items-center mb-1">
-                                    <span className="text-sm text-white/80 truncate flex items-center gap-2">
-                                      <FiImage size={12} />
-                                      {image.name}
-                                    </span>
-                                    <div className="flex items-center gap-2">
-                                      <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        value={image.rarity}
-                                        onChange={(e) => {
-                                          const value = parseInt(e.target.value) || 0;
-                                          updateRarity(activeLayerIndex, imgIndex, value.toString());
-                                        }}
-                                        className="w-16 bg-black/40 border border-gray-800/60 rounded-xl px-2 py-1 text-white font-mono text-right backdrop-blur-xl focus:outline-none focus:border-white/60 transition-colors"
-                                      />
-                                      <span className="text-sm text-white/50">%</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-                      <FaLayerGroup className="text-white/50" size={48} />
-                      <h3 className="text-xl text-white mb-2">No layers added yet</h3>
-                      <p className="text-white/50">Create your first layer to get started</p>
-                    </div>
-                  )}
-                </motion.div>
-
-                {showPreviews && previews.length > 0 ? (
-                  <motion.div
-                    variants={itemVariants}
-                    className="group relative overflow-hidden rounded-2xl bg-black/60 backdrop-blur-xl shadow-2xl hover:shadow-white/10 transition-all duration-500 border border-gray-800/60 hover:border-white/40 p-6"
-                  >
-                    <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-white text-xl font-bold flex items-center gap-2 font-mono tracking-tight">
-                        <FiImage />
-                        Generated Previews ({previews.length})
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => setShowPreviews(false)}
-                          className="text-white/50 hover:text-white"
+            <section className="container mx-auto px-4 sm:px-5 py-6 max-w-7xl">
+              <DndProvider backend={HTML5Backend}>
+                <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 lg:gap-6">
+                  <aside className="lg:sticky lg:top-[84px] lg:self-start lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto">
+                    <div className="bg-black/60 backdrop-blur-xl border border-gray-800/60 rounded-xl p-3">
+                      <div className="flex gap-2 mb-3">
+                        <input
+                          type="text"
+                          placeholder="New layer name"
+                          value={newLayerName}
+                          onChange={(e) => setNewLayerName(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && newLayerName.trim()) { addLayer(); setCurrentStep(2); } }}
+                          className="flex-1 min-w-0 bg-black/40 border border-gray-800/60 rounded-lg px-3 py-1.5 text-white font-mono text-sm focus:outline-none focus:border-white/60 transition-colors"
+                        />
+                        <button
+                          onClick={() => { addLayer(); setCurrentStep(2); }}
+                          disabled={!newLayerName.trim()}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border-2 border-black bg-white text-black text-xs font-semibold uppercase tracking-tight hover:bg-black hover:text-white hover:border-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-black disabled:hover:border-black"
                         >
-                          <FiSettings size={20} />
+                          <FiPlus size={12} /> Add
                         </button>
                       </div>
-                    </div>
 
-                    <div className="mb-4">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-[460px] overflow-y-auto p-2">
-                      {previews.map((preview, idx) => (
-                        <div key={preview.id} className="relative group">
-                          <div className="aspect-square bg-black/40 rounded-xl overflow-hidden border border-gray-800/60 hover:border-white/40 relative backdrop-blur-xl transition-colors">
-                            {preview.images.length > 0 ? (
-                              <img 
-                                src={preview.images[0]} 
-                                alt={`Preview ${idx}`}
-                                className="w-full h-full object-contain"
+                      {layers.length === 0 ? (
+                        <div className="text-center py-10 px-3 border border-dashed border-gray-800 rounded-lg">
+                          <FaLayerGroup className="mx-auto text-gray-700 mb-2" size={20} />
+                          <p className="text-xs text-gray-500 font-mono">No layers yet</p>
+                          <p className="text-[10px] text-gray-600 font-mono mt-1">Name one and click Add</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {layers.map((layer, index) => (
+                            <DraggableLayer
+                              key={layer.id}
+                              layer={layer}
+                              index={index}
+                              moveLayer={(dragIndex, hoverIndex) => {
+                                const updatedLayers = [...layers];
+                                const [removed] = updatedLayers.splice(dragIndex, 1);
+                                updatedLayers.splice(hoverIndex, 0, removed);
+                                updatedLayers.forEach((l, i) => { l.zIndex = i; });
+                                setLayers(updatedLayers);
+                                if (activeLayerIndex === dragIndex) setActiveLayerIndex(hoverIndex);
+                              }}
+                              onClick={() => { handleLayerClick(index); setCurrentStep(2); }}
+                              isActive={index === activeLayerIndex}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </aside>
+
+                  <main className="min-w-0 space-y-4">
+                    {currentStep === 1 && (
+                      <div className="bg-black/60 backdrop-blur-xl border border-gray-800/60 rounded-xl p-5 sm:p-6">
+                        <div className="flex items-center gap-2 mb-5">
+                          <FaCog className="text-white" size={14} />
+                          <h2 className="text-lg font-bold text-white font-mono tracking-tight">Collection Settings</h2>
+                        </div>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-mono mb-1.5">Collection name</label>
+                            <input
+                              type="text"
+                              value={collectionName}
+                              onChange={(e) => setCollectionName(e.target.value)}
+                              className="w-full bg-black/40 border border-gray-800/60 rounded-lg px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-white/60 transition-colors"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-mono mb-1.5">Description</label>
+                            <input
+                              type="text"
+                              value={collectionDescription}
+                              onChange={(e) => setCollectionDescription(e.target.value)}
+                              className="w-full bg-black/40 border border-gray-800/60 rounded-lg px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-white/60 transition-colors"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-mono mb-1.5">Item prefix</label>
+                            <input
+                              type="text"
+                              value={itemPrefix}
+                              onChange={(e) => setItemPrefix(e.target.value)}
+                              placeholder="e.g. PEDRO"
+                              className="w-full bg-black/40 border border-gray-800/60 rounded-lg px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-white/60 transition-colors placeholder:text-gray-700"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-mono mb-1.5">Width (px)</label>
+                              <input
+                                type="number" min="100" max="1600"
+                                value={width}
+                                onChange={(e) => setWidth(parseInt(e.target.value) || 600)}
+                                className="w-full bg-black/40 border border-gray-800/60 rounded-lg px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-white/60 transition-colors"
                               />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <FaSpinner className="animate-spin" />
-                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-mono mb-1.5">Height (px)</label>
+                              <input
+                                type="number" min="100" max="1600"
+                                value={height}
+                                onChange={(e) => setHeight(parseInt(e.target.value) || 600)}
+                                className="w-full bg-black/40 border border-gray-800/60 rounded-lg px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-white/60 transition-colors"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 font-mono mb-1.5">Collection size</label>
+                            <input
+                              type="number" min="1" max="5000"
+                              value={batchSize}
+                              onChange={(e) => {
+                                const newSize = parseInt(e.target.value) || 1;
+                                const totalCombos = layers.reduce((total, layer) => {
+                                  if (!layer.enabled || layer.images.length === 0) return total;
+                                  return total * layer.images.length;
+                                }, 1);
+                                if (newSize > totalCombos && totalCombos > 0) {
+                                  setModalMessage(`You can't generate more than ${totalCombos} unique NFTs with your current layers.`);
+                                  setIsWarningModalOpen(true);
+                                  setBatchSize(totalCombos);
+                                } else {
+                                  setBatchSize(newSize);
+                                }
+                              }}
+                              className="w-full bg-black/40 border border-gray-800/60 rounded-lg px-3 py-2 text-white font-mono text-sm focus:outline-none focus:border-white/60 transition-colors"
+                            />
+                            {totalCombinations > 0 && (
+                              <p className="text-[10px] text-gray-500 mt-1 font-mono">Max unique combinations: {totalCombinations}</p>
                             )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                            <span className="text-xs text-white truncate w-full">
-                              {itemPrefix ? `${itemPrefix}-${idx + 1}` : `NFT-${idx + 1}`}
-                            </span>
                           </div>
                         </div>
-                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+
+                        <div className="mt-6 p-4 bg-black/40 border border-gray-800/60 rounded-lg">
+                          <h3 className="text-[10px] uppercase tracking-widest text-gray-500 font-mono mb-3">Wallet</h3>
+                          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                            <div className="text-gray-400">Address</div>
+                            <div className="text-right text-white truncate" title={storedAddress}>
+                              {storedAddress && storedAddress !== 'None' ? `${storedAddress.slice(0, 6)}…${storedAddress.slice(-4)}` : '—'}
+                            </div>
+                            <div className="text-gray-400">PEDRO Balance</div>
+                            <div className="text-right text-white">{token_hold}</div>
+                            <div className="text-gray-400">NFTs Held</div>
+                            <div className="text-right text-white">{nft_hold}</div>
+                          </div>
+                        </div>
+
+                        <div className="mt-5 flex flex-col sm:flex-row gap-2">
                           <button
-                            onClick={() => downloadPreview(preview)}
-                            className="p-1.5 bg-white/20 rounded-full hover:bg-white/30 backdrop-blur-sm"
-                            title="Download this NFT"
+                            onClick={() => { setLayers([]); setPreviews([]); setBatchSize(1); setCurrentStep(1); }}
+                            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-gray-400 bg-transparent text-gray-300 text-sm font-mono uppercase tracking-tight hover:bg-white hover:text-black hover:border-white transition-colors rounded-lg"
                           >
-                            <FiDownload size={14} />
+                            <FiTrash2 size={12} /> Reset all
+                          </button>
+                          <button
+                            onClick={() => setCurrentStep(2)}
+                            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-black bg-white text-black text-sm font-mono uppercase tracking-tight hover:bg-black hover:text-white hover:border-white transition-colors rounded-lg"
+                          >
+                            <FaLayerGroup size={12} /> Continue
                           </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                    </div>
+                    )}
 
-                    <div className="space-y-3">
-                      <div className="p-3 bg-black/40 rounded-xl border border-gray-800/60 backdrop-blur-xl">
-                        <label className="block text-sm text-white/70 mb-1">Collection name</label>
-                        <input
-                          type="text"
-                          value={collectionName}
-                          onChange={(e) => setCollectionName(e.target.value)}
-                          className="w-full bg-black/40 border border-gray-800/60 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-white/60 text-sm backdrop-blur-xl transition-colors"
-                        />
-                      </div>
+                    {currentStep === 2 && (
+                      layers.length === 0 ? (
+                        <div className="bg-black/60 backdrop-blur-xl border border-gray-800/60 rounded-xl p-12 text-center">
+                          <FaLayerGroup className="mx-auto text-gray-700 mb-3" size={36} />
+                          <h3 className="text-lg font-bold text-white font-mono tracking-tight mb-1">No layers yet</h3>
+                          <p className="text-sm text-gray-500 font-mono">Name a layer in the sidebar and click Add to start.</p>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="bg-black/60 backdrop-blur-xl border border-gray-800/60 rounded-xl p-4 sm:p-5">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <FiLayers className="text-white shrink-0" />
+                                <input
+                                  type="text"
+                                  value={layers[activeLayerIndex].name}
+                                  onChange={(e) => updateLayerName(activeLayerIndex, e.target.value)}
+                                  className="bg-transparent text-xl font-bold text-white font-mono tracking-tight border-b border-gray-800 focus:outline-none focus:border-white min-w-0 max-w-full"
+                                />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => fileInputRefs.current[activeLayerIndex]?.click()}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-black bg-white text-black text-xs font-mono uppercase tracking-tight hover:bg-black hover:text-white hover:border-white transition-colors"
+                                >
+                                  <FiUpload size={12} /> Add files
+                                </button>
+                                <div className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-gray-800/60 bg-black/40">
+                                  <FiPercent size={12} className="text-gray-500" />
+                                  <input
+                                    type="number" min="0" max="100"
+                                    value={layers[activeLayerIndex].layerRarity.toString()}
+                                    onChange={(e) => {
+                                      const value = parseInt(e.target.value) || 0;
+                                      updateLayerRarityValue(activeLayerIndex, Math.min(100, Math.max(0, value)));
+                                    }}
+                                    className="w-12 bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                                  />
+                                  <span className="text-xs text-gray-500 font-mono">%</span>
+                                </div>
+                                <button
+                                  onClick={() => removeLayer(activeLayerIndex)}
+                                  aria-label="Delete layer"
+                                  className="p-1.5 rounded-lg border border-gray-800 text-gray-500 hover:text-white hover:border-white/40 transition-colors"
+                                >
+                                  <FiTrash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
 
-                      <div className="p-3 bg-black/40 rounded-xl border border-gray-800/60 backdrop-blur-xl">
-                        <label className="block text-sm text-white/70 mb-1">Item name prefix</label>
-                        <input
-                          type="text"
-                          value={itemPrefix}
-                          onChange={(e) => setItemPrefix(e.target.value)}
-                          className="w-full bg-black/40 border border-gray-800/60 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-white/60 text-sm backdrop-blur-xl transition-colors"
-                          placeholder="e.g., MyNFT"
-                        />
-                      </div>
+                            <div className="flex border-b border-gray-800 mt-4 -mx-4 sm:-mx-5 px-4 sm:px-5">
+                              <button
+                                onClick={() => setActiveTraitTab('traits')}
+                                className={`pb-3 px-3 -mb-px text-xs font-mono uppercase tracking-tight transition-colors flex items-center gap-2 ${activeTraitTab === 'traits' ? 'text-white border-b-2 border-white' : 'text-gray-500 hover:text-white border-b-2 border-transparent'}`}
+                              >
+                                <FiImage size={12} /> Traits ({layers[activeLayerIndex]?.images.length || 0})
+                              </button>
+                              <button
+                                onClick={() => setActiveTraitTab('rarity')}
+                                className={`pb-3 px-3 -mb-px text-xs font-mono uppercase tracking-tight transition-colors flex items-center gap-2 ${activeTraitTab === 'rarity' ? 'text-white border-b-2 border-white' : 'text-gray-500 hover:text-white border-b-2 border-transparent'}`}
+                              >
+                                <FiPercent size={12} /> Rarity
+                              </button>
+                            </div>
 
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handleDownloadWithPayment}
-                        disabled={isProcessingPayment}
-                        className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm border ${
-                          isProcessingPayment
-                            ? 'bg-white/10 text-white/50 cursor-not-allowed border-white/10'
-                            : 'bg-white text-black hover:opacity-90 border-white/30'
-                        }`}
-                      >
-                        {isProcessingPayment ? (
-                          <>
-                            <FaSpinner className="animate-spin" size={14} />
-                            Processing...
-                          </>
+                            <input
+                              type="file"
+                              accept="image/png"
+                              multiple
+                              className="hidden"
+                              onChange={(e) => { handleImageUpload(activeLayerIndex, e); setCurrentStep(2); }}
+                              ref={(el) => { fileInputRefs.current[activeLayerIndex] = el; }}
+                            />
+                          </div>
+
+                          {activeTraitTab === 'traits' && (
+                            layers[activeLayerIndex]?.images.length === 0 ? (
+                              <div
+                                onClick={() => fileInputRefs.current[activeLayerIndex]?.click()}
+                                className="bg-black/60 backdrop-blur-xl border-2 border-dashed border-gray-700 hover:border-white/60 rounded-xl p-12 text-center cursor-pointer transition-colors"
+                              >
+                                <FiUpload className="mx-auto text-gray-500 mb-3" size={28} />
+                                <p className="text-sm text-white font-mono font-bold tracking-tight">Drop PNG files or click to upload</p>
+                                <p className="text-[10px] text-gray-500 font-mono mt-1 uppercase tracking-widest">Max 2MB per image</p>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {layers[activeLayerIndex]?.images.map((image, imgIndex) => (
+                                  <div
+                                    key={imgIndex}
+                                    className="group relative bg-black/60 border border-gray-800/60 hover:border-white/60 rounded-xl overflow-hidden transition-colors"
+                                  >
+                                    <div className="aspect-square bg-black/40 flex items-center justify-center">
+                                      <img src={image.preview} alt={image.name} className="w-full h-full object-contain p-3" />
+                                    </div>
+                                    <div className="px-3 py-2 flex items-center justify-between gap-2 border-t border-gray-800/60">
+                                      <input
+                                        type="text"
+                                        value={image.name}
+                                        onChange={(e) => updateImageName(activeLayerIndex, imgIndex, e.target.value)}
+                                        className="flex-1 min-w-0 bg-transparent text-white font-mono text-xs focus:outline-none truncate"
+                                      />
+                                      <span className="text-[10px] text-gray-500 font-mono shrink-0">{image.rarity}%</span>
+                                    </div>
+                                    <button
+                                      onClick={() => removeImage(activeLayerIndex, imgIndex)}
+                                      aria-label="Remove trait"
+                                      className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-gray-400 hover:text-white border border-gray-800 hover:border-white/60 opacity-0 group-hover:opacity-100 transition-all"
+                                    >
+                                      <FiTrash2 size={11} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )
+                          )}
+
+                          {activeTraitTab === 'rarity' && (
+                            <div className="bg-black/60 backdrop-blur-xl border border-gray-800/60 rounded-xl p-4 sm:p-5 space-y-3">
+                              {(() => {
+                                const total = layers[activeLayerIndex]?.images.reduce((sum, img) => sum + img.rarity, 0) || 0;
+                                const isValid = total === 100;
+                                return (
+                                  <div className="p-3 bg-black/40 border border-gray-800/60 rounded-lg">
+                                    <div className="flex justify-between items-center mb-2">
+                                      <span className="text-xs text-gray-400 font-mono uppercase tracking-widest">Total rarity</span>
+                                      <span className={`text-xs font-mono font-bold ${isValid ? 'text-white' : 'text-gray-500'}`}>
+                                        {total}% {!isValid && <span className="text-gray-600 ml-1 normal-case tracking-normal">(should equal 100%)</span>}
+                                      </span>
+                                    </div>
+                                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                      <div
+                                        className={`h-full rounded-full ${isValid ? 'bg-white' : 'bg-gray-500'}`}
+                                        style={{ width: `${Math.min(100, total)}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+
+                              {layers[activeLayerIndex]?.images.map((image, imgIndex) => (
+                                <div key={imgIndex} className="flex items-center gap-3 p-2.5 bg-black/40 border border-gray-800/60 rounded-lg">
+                                  <div className="w-9 h-9 bg-black/40 rounded-md overflow-hidden border border-gray-800 shrink-0">
+                                    <img src={image.preview} alt={image.name} className="w-full h-full object-contain" />
+                                  </div>
+                                  <span className="flex-1 min-w-0 text-sm text-white font-mono truncate">{image.name}</span>
+                                  <input
+                                    type="number" min="0" max="100"
+                                    value={image.rarity}
+                                    onChange={(e) => updateRarity(activeLayerIndex, imgIndex, (parseInt(e.target.value) || 0).toString())}
+                                    className="w-14 bg-black/60 border border-gray-800/60 rounded-md px-2 py-1 text-white font-mono text-xs text-right focus:outline-none focus:border-white/60 transition-colors"
+                                  />
+                                  <span className="text-xs text-gray-500 font-mono">%</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() => { generateBatchPreviews(); setCurrentStep(4); }}
+                              disabled={layers.length === 0 || layers.some(l => l.images.length === 0) || isGeneratingPreviews}
+                              className="inline-flex items-center gap-2 px-4 py-2.5 border-2 border-black bg-white text-black text-sm font-mono uppercase tracking-tight hover:bg-black hover:text-white hover:border-white transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-black disabled:hover:border-black"
+                            >
+                              {isGeneratingPreviews ? <><FaSpinner className="animate-spin" size={12} /> Generating…</> : <><FaFileImage size={12} /> Generate NFTs</>}
+                            </button>
+                          </div>
+                        </>
+                      )
+                    )}
+
+                    {currentStep === 4 && (
+                      <div className="bg-black/60 backdrop-blur-xl border border-gray-800/60 rounded-xl p-4 sm:p-5">
+                        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                          <div className="flex items-center gap-2">
+                            <FaFileImage className="text-white" size={14} />
+                            <h2 className="text-lg font-bold text-white font-mono tracking-tight">
+                              Generated · <span className="text-gray-500">{previews.length}</span>
+                            </h2>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => generateBatchPreviews()}
+                              disabled={isGeneratingPreviews || layers.length === 0}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 border-2 border-gray-400 bg-transparent text-gray-300 text-xs font-mono uppercase tracking-tight hover:bg-white hover:text-black hover:border-white transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {isGeneratingPreviews ? <FaSpinner className="animate-spin" size={11} /> : <FiSliders size={12} />}
+                              Re-roll
+                            </button>
+                            <button
+                              onClick={() => setCurrentStep(5)}
+                              disabled={previews.length === 0}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 border-2 border-black bg-white text-black text-xs font-mono uppercase tracking-tight hover:bg-black hover:text-white hover:border-white transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-black disabled:hover:border-black"
+                            >
+                              <FaFileDownload size={11} /> Export
+                            </button>
+                          </div>
+                        </div>
+
+                        {previews.length === 0 ? (
+                          <div className="py-16 text-center">
+                            <FaFileImage className="mx-auto text-gray-700 mb-3" size={32} />
+                            <p className="text-sm text-white font-mono font-bold tracking-tight mb-1">No NFTs generated yet</p>
+                            <p className="text-xs text-gray-500 font-mono mb-4">Add layers + traits, then hit Generate.</p>
+                            <button
+                              onClick={() => { generateBatchPreviews(); }}
+                              disabled={layers.length === 0 || layers.some(l => l.images.length === 0) || isGeneratingPreviews}
+                              className="inline-flex items-center gap-2 px-4 py-2.5 border-2 border-black bg-white text-black text-sm font-mono uppercase tracking-tight hover:bg-black hover:text-white hover:border-white transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-black disabled:hover:border-black"
+                            >
+                              {isGeneratingPreviews ? <><FaSpinner className="animate-spin" size={12} /> Generating…</> : <><FaFileImage size={12} /> Generate NFTs</>}
+                            </button>
+                          </div>
                         ) : (
-                          <>
-                            <FiDownload size={14} />
-                            Download All ({previews.length} NFTs)
-                          </>
-                        )}
-                      </motion.button>
-
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          setShowPreviews(false);
-                          setCurrentStep(4);
-                        }}
-                        className="w-full bg-transparent border border-white/20 hover:border-white/40 text-white py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm"
-                      >
-                        <FiSliders size={14} />
-                        Adjust Settings
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                ) : (
-                <motion.div
-                  variants={itemVariants}
-                  className="group relative overflow-hidden rounded-2xl bg-black/60 backdrop-blur-xl shadow-2xl hover:shadow-white/10 transition-all duration-500 border border-gray-800/60 hover:border-white/40 p-6"
-                >
-                  <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2 font-mono tracking-tight">
-                    <FiSettings />
-                    Collection Settings
-                  </h3>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm text-white/70 mb-1 flex items-center gap-2">
-                        <FiImage size={14} />
-                        Collection name
-                      </label>
-                      <input
-                        type="text"
-                        value={collectionName}
-                        onChange={(e) => setCollectionName(e.target.value)}
-                        className="w-full bg-black/40 border border-gray-800/60 rounded-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm text-white/70 mb-1">Description</label>
-                      <input
-                        type="text"
-                        value={collectionDescription}
-                        onChange={(e) => setCollectionDescription(e.target.value)}
-                        className="w-full bg-black/40 border border-gray-800/60 rounded-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm text-white/70 mb-1">Item name prefix</label>
-                      <input
-                        type="text"
-                        value={itemPrefix}
-                        onChange={(e) => setItemPrefix(e.target.value)}
-                        className="w-full bg-black/40 border border-gray-800/60 rounded-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
-                        placeholder="e.g., MyNFT"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm text-white/70 mb-1">Width</label>
-                        <div className="flex">
-                          <input
-                            type="number"
-                            min="100"
-                            max="1600"
-                            value={width}
-                            onChange={(e) => setWidth(parseInt(e.target.value) || 600)}
-                            className="w-full bg-black/40 border border-gray-800/60 rounded-l-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
-                          />
-                          <span className="bg-white/10 border border-l-0 border-white/10 rounded-r-lg px-3 py-2 text-sm text-white/70 backdrop-blur-sm">px</span>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm text-white/70 mb-1">Height</label>
-                        <div className="flex">
-                          <input
-                            type="number"
-                            min="100"
-                            max="1600"
-                            value={height}
-                            onChange={(e) => setHeight(parseInt(e.target.value) || 600)}
-                            className="w-full bg-black/40 border border-gray-800/60 rounded-l-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
-                          />
-                          <span className="bg-white/10 border border-l-0 border-white/10 rounded-r-lg px-3 py-2 text-sm text-white/70 backdrop-blur-sm">px</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {currentStep >= 2 && (
-                      <div>
-                        <label className="block text-sm text-white/70 mb-1">Collection size</label>
-                        <input
-                          type="number"
-                          min="1"
-                          max="5000"
-                          value={batchSize}
-                          onChange={(e) => {
-                            const newSize = parseInt(e.target.value) || 100;
-                            const totalCombos = layers.reduce((total, layer) => {
-                              if (!layer.enabled || layer.images.length === 0) return total;
-                              return total * layer.images.length;
-                            }, 1);
-                            
-                            if (newSize > totalCombos && totalCombos > 0) {
-                              setModalMessage(`You can't generate more than ${totalCombos} unique NFTs with your current layers.`);
-                              setIsWarningModalOpen(true);
-                              setBatchSize(totalCombos);
-                            } else {
-                              setBatchSize(newSize);
-                            }
-                          }}
-                          className="w-full bg-black/40 border border-gray-800/60 rounded-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
-                        />
-                        {totalCombinations > 0 && (
-                          <p className="text-xs text-white/50 mt-1">
-                            Max unique combinations: {totalCombinations}
-                          </p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {previews.map((preview, idx) => (
+                              <div key={preview.id} className="group relative bg-black/40 border border-gray-800/60 hover:border-white/60 rounded-xl overflow-hidden transition-colors">
+                                <div className="aspect-square flex items-center justify-center">
+                                  {preview.images.length > 0 ? (
+                                    <img src={preview.images[0]} alt={`#${idx + 1}`} className="w-full h-full object-contain" />
+                                  ) : (
+                                    <FaSpinner className="animate-spin text-gray-500" />
+                                  )}
+                                </div>
+                                <div className="px-3 py-2 border-t border-gray-800/60 flex items-center justify-between">
+                                  <span className="text-xs text-white font-mono truncate">{itemPrefix ? `${itemPrefix}-${idx + 1}` : `NFT-${idx + 1}`}</span>
+                                  <button
+                                    onClick={() => downloadPreview(preview)}
+                                    aria-label="Download NFT"
+                                    className="p-1 rounded text-gray-500 hover:text-white transition-colors"
+                                  >
+                                    <FiDownload size={12} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
                     )}
-                  </div>
 
-                  <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="text-white/70">Wallet:</div>
-                      <div className="text-right font-mono" title={storedAddress}>
-                        {storedAddress ? `${storedAddress.slice(0, 6)}...${storedAddress.slice(-4)}` : 'Not connected'}
-                      </div>
-                      <div className="text-white/70">PEDRO Balance:</div>
-                      <div className="text-right">{token_hold}</div>
-                      <div className="text-white/70">NFTs Held:</div>
-                      <div className="text-right">{nft_hold}</div>
-                    </div>
-                  </div>
+                    {currentStep === 5 && (
+                      <div className="bg-black/60 backdrop-blur-xl border border-gray-800/60 rounded-xl p-5 sm:p-6">
+                        <div className="flex items-center gap-2 mb-5">
+                          <FaFileDownload className="text-white" size={14} />
+                          <h2 className="text-lg font-bold text-white font-mono tracking-tight">Export Collection</h2>
+                        </div>
 
-                  {currentStep >= 2 && (
-                    <div className="mt-6 space-y-3">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          setLayers([]);
-                          setPreviews([]);
-                          setBatchSize(1);
-                          setCurrentStep(1);
-                        }}
-                        className="w-full bg-transparent border border-white/20 hover:border-white/40 text-white py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm"
-                      >
-                        <FiTrash2 size={14} />
-                        Reset All
-                      </motion.button>
+                        <div className="grid grid-cols-2 gap-3 text-sm font-mono mb-5">
+                          <div className="p-3 bg-black/40 border border-gray-800/60 rounded-lg">
+                            <div className="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Collection</div>
+                            <div className="text-white truncate">{collectionName || '—'}</div>
+                          </div>
+                          <div className="p-3 bg-black/40 border border-gray-800/60 rounded-lg">
+                            <div className="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Pieces</div>
+                            <div className="text-white">{previews.length}</div>
+                          </div>
+                          <div className="p-3 bg-black/40 border border-gray-800/60 rounded-lg">
+                            <div className="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Dimensions</div>
+                            <div className="text-white">{width} × {height}</div>
+                          </div>
+                          <div className="p-3 bg-black/40 border border-gray-800/60 rounded-lg">
+                            <div className="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Cost</div>
+                            <div className="text-white">{baseAmount} $PEDRO</div>
+                          </div>
+                        </div>
 
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          generateBatchPreviews();
-                          setCurrentStep(5);
-                        }}
-                        disabled={layers.length === 0 || layers.some(l => l.images.length === 0) || isGeneratingPreviews}
-                        className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm border ${
-                          layers.length === 0 || layers.some(l => l.images.length === 0) || isGeneratingPreviews
-                            ? 'bg-white/10 text-white/50 cursor-not-allowed border-white/10'
-                            : 'bg-white text-black hover:bg-white/90 border-white/30'
-                        }`}
-                      >
-                        {isGeneratingPreviews ? (
-                          <>
-                            <FaSpinner className="animate-spin" size={14} />
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            <FiImage size={14} />
-                            Generate NFTs
-                          </>
-                        )}
-                      </motion.button>
-
-                      {previews.length > 0 && (
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => setShowPreviews(true)}
-                          disabled={isGeneratingPreviews}
-                          className={`w-full bg-white text-black border border-white/20 py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm ${
-                            isGeneratingPreviews ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
+                        <button
+                          onClick={handleDownloadWithPayment}
+                          disabled={previews.length === 0 || isProcessingPayment || isGeneratingPreviews}
+                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 border-2 border-black bg-white text-black text-sm font-mono uppercase tracking-tight hover:bg-black hover:text-white hover:border-white transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-black disabled:hover:border-black"
                         >
-                          <FiImage size={14} />
-                          View Previews
-                        </motion.button>
-                      )}
+                          {isProcessingPayment ? <><FaSpinner className="animate-spin" size={14} /> Processing payment…</> : <><FiDownload size={14} /> Download all ({previews.length} NFTs)</>}
+                        </button>
 
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handleDownloadWithPayment}
-                        disabled={previews.length === 0 || isProcessingPayment || isGeneratingPreviews}
-                        className={`w-full py-3 rounded-lg transition-all flex items-center justify-center gap-2 backdrop-blur-sm border ${
-                          previews.length === 0 || isProcessingPayment || isGeneratingPreviews
-                            ? 'bg-white/10 text-white/50 cursor-not-allowed border-white/10'
-                            : 'bg-gradient-to-r bg-white text-black hover:opacity-90 border-white/30'
-                        }`}
-                      >
-                        {isProcessingPayment ? (
-                          <>
-                            <FaSpinner className="animate-spin" size={14} />
-                            Processing...
-                          </>
-                        ) : (
-                          <>
-                            <FiDownload size={14} />
-                            Download All
-                          </>
+                        {hasPaid && (
+                          <p className="text-xs text-center text-gray-500 font-mono mt-3 uppercase tracking-widest">Payment complete · Re-download anytime</p>
                         )}
-                      </motion.button>
+                      </div>
+                    )}
+                  </main>
+                </div>
+              </DndProvider>
+
+              {previews.length > 0 && (
+                <div className="mt-6 bg-black/60 backdrop-blur-xl border border-gray-800/60 rounded-xl p-3">
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <div className="flex items-center gap-2">
+                      <FiImage size={12} className="text-gray-500" />
+                      <span className="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Live Previews · {previews.length}</span>
                     </div>
-                  )}
-                </motion.div>
+                    {currentStep !== 4 && (
+                      <button
+                        onClick={() => setCurrentStep(4)}
+                        className="text-[10px] text-gray-400 hover:text-white font-mono uppercase tracking-widest transition-colors"
+                      >
+                        View all →
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {previews.slice(0, 32).map((preview, idx) => (
+                      <button
+                        key={preview.id}
+                        onClick={() => downloadPreview(preview)}
+                        title={`Download ${itemPrefix ? `${itemPrefix}-${idx + 1}` : `NFT-${idx + 1}`}`}
+                        className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-lg border border-gray-800/60 hover:border-white/60 overflow-hidden bg-black/40 transition-colors"
+                      >
+                        {preview.images[0] && (
+                          <img src={preview.images[0]} alt={`#${idx + 1}`} className="w-full h-full object-contain" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
-              </div>
+
+              <canvas ref={canvasRef} width={width} height={height} className="hidden" />
             </section>
+
           </div>
         </div>
 

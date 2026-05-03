@@ -1,40 +1,16 @@
 'use client';
 import React, { useState, useEffect, createContext, useContext, useRef } from "react";
-import { Window as KeplrWindow } from "@keplr-wallet/types";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Button from '@/components/basic_button';
 import Head from "next/head";
+import { connectWallet as connectWalletStrategy, disconnectWallet, SupportedWallet, WALLET_LABEL } from "@/lib/wallet";
 
 interface PedroApiResponse {
   wallet: string;
   nft_hold: number;
   token_hold: number;
-  check: string; 
-}
-
-declare global {
-  interface Window extends KeplrWindow {}
-}
-
-function useMobileDetect() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkIfMobile = () => {
-      const mobileQuery = window.matchMedia('(max-width: 768px)');
-      setIsMobile(mobileQuery.matches);
-    };
-
-    checkIfMobile();
-
-    const listener = () => checkIfMobile();
-    window.addEventListener('resize', listener);
-
-    return () => window.removeEventListener('resize', listener);
-  }, []);
-
-  return isMobile;
+  check: string;
 }
 
 interface AuthContextType {
@@ -49,13 +25,23 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useWalletAuth = () => useContext(AuthContext);
 
+const WALLETS: SupportedWallet[] = ['keplr', 'metamask', 'trust-wallet'];
+
+const WALLET_LOGO: Record<SupportedWallet, string> = {
+  keplr: '/keplr logo.png',
+  metamask: '/metamask.svg',
+  'trust-wallet': '/trust.svg',
+};
+
+const WALLET_LOGO_EXTRA: Partial<Record<SupportedWallet, string>> = {
+  'trust-wallet': 'scale-[2.4]',
+};
+
 const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [chainId] = useState<string>("injective-1");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalMessage, setModalMessage] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [activeWalletType, setActiveWalletType] = useState<"keplr" | "leap" | null>(null);
+  const [activeWalletType, setActiveWalletType] = useState<SupportedWallet | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -75,36 +61,19 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
   };
 
   const logout = () => {
+    void disconnectWallet();
     setIsAuthenticated(false);
     setWalletAddress(null);
   };
 
-  const connectWallet = async (walletType: "keplr" | "leap") => {
+  const connectWallet = async (walletType: SupportedWallet) => {
     setActiveWalletType(walletType);
-    const wallet = walletType === "leap" ? window.leap : window.keplr;
-  
-    if (!wallet) {
-      setModalMessage(`Please install the ${walletType} extension!`);
-      setIsModalOpen(true);
-      setActiveWalletType(null);
-      return;
-    }
-  
-    setIsLoading(true);
-  
+
     try {
-      await wallet.enable(chainId);
-      const offlineSigner = wallet.getOfflineSigner(chainId);
-      const accounts = await offlineSigner.getAccounts();
-      const address = accounts[0].address;
-
-      const message = "Welcome to Pedro's NFT Generator!";
-      await wallet.signArbitrary(chainId, address, message);
-
-      localStorage.setItem("connectedWalletType", walletType);
-      localStorage.setItem("connectedWalletAddress", address);
+      const connection = await connectWalletStrategy(walletType);
+      const address = connection.injectiveAddress;
       setWalletAddress(address);
-      
+
       const response = await fetch(`https://api.injectivepedro.com/check_pedro/${address}/`);
       const result: PedroApiResponse = await response.json();
 
@@ -120,7 +89,6 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
       setModalMessage(error instanceof Error ? error.message : "An unknown error occurred");
       setIsModalOpen(true);
     } finally {
-      setIsLoading(false);
       setActiveWalletType(null);
     }
   };
@@ -203,49 +171,39 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
                 >
-                  <h2 className="text-2xl font-bold mb-6 text-center text-white font-mono tracking-tight">Connect Wallet</h2>
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => connectWallet("keplr")}
-                      disabled={isLoading && activeWalletType !== "keplr"}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-lg border-2 border-black bg-white px-3 py-2.5 text-sm font-semibold text-black hover:bg-black hover:text-white hover:border-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-black disabled:hover:border-black"
-                    >
-                      {isLoading && activeWalletType === "keplr" ? (
-                        <>
-                          <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
-                            <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                          </svg>
-                          <span>Connecting...</span>
-                        </>
-                      ) : (
-                        <>
-                          <img src="/keplr logo.png" alt="" aria-hidden="true" className="w-4 h-4 object-contain" />
-                          <span>Connect Keplr</span>
-                        </>
-                      )}
-                    </button>
-
-                    <button
-                      onClick={() => connectWallet("leap")}
-                      disabled={isLoading && activeWalletType !== "leap"}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-lg border-2 border-black bg-white px-3 py-2.5 text-sm font-semibold text-black hover:bg-black hover:text-white hover:border-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-black disabled:hover:border-black"
-                    >
-                      {isLoading && activeWalletType === "leap" ? (
-                        <>
-                          <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
-                            <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                          </svg>
-                          <span>Connecting...</span>
-                        </>
-                      ) : (
-                        <>
-                          <img src="/leap logo.png" alt="" aria-hidden="true" className="w-4 h-4 object-contain" />
-                          <span>Connect Leap</span>
-                        </>
-                      )}
-                    </button>
+                  <h2 className="text-2xl font-bold mb-2 text-center text-white font-mono tracking-tight">Connect your wallet</h2>
+                  <p className="text-sm text-gray-400 text-center mb-6 font-mono">Required to enter the NFT Generator.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {WALLETS.map((w) => {
+                      const isActive = activeWalletType === w;
+                      const isDisabled = activeWalletType !== null && !isActive;
+                      return (
+                        <button
+                          key={w}
+                          onClick={() => connectWallet(w)}
+                          disabled={isDisabled}
+                          className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-black bg-white px-3 py-2.5 text-sm font-semibold text-black hover:bg-black hover:text-white hover:border-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-black disabled:hover:border-black"
+                        >
+                          {isActive ? (
+                            <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
+                              <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                            </svg>
+                          ) : (
+                            <img
+                              src={WALLET_LOGO[w]}
+                              alt=""
+                              aria-hidden="true"
+                              className={`w-4 h-4 object-contain ${WALLET_LOGO_EXTRA[w] ?? ""}`}
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          )}
+                          <span>{WALLET_LABEL[w]}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </motion.div>
               </div>
