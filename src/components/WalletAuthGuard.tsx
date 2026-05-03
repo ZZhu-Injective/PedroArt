@@ -198,64 +198,54 @@ const WalletAuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) 
               <div className="flex-1">
                 <motion.div
                   ref={cardRef}
-                  className="group relative overflow-hidden rounded-2xl bg-black/50 transition-all duration-500 backdrop-blur-sm border border-white/10 hover:border-white/30 p-8"
+                  className="group relative overflow-hidden rounded-2xl bg-black/60 transition-all duration-500 backdrop-blur-xl border border-gray-800/60 hover:border-white/40 p-8"
                   initial={{ opacity: 0, y: 50 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
                 >
-                  <h2 className="text-2xl font-bold mb-6 text-center text-white">Connect Wallet</h2>
-                  <div className="space-y-4">
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  <h2 className="text-2xl font-bold mb-6 text-center text-white font-mono tracking-tight">Connect Wallet</h2>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => connectWallet("keplr")}
+                      disabled={isLoading && activeWalletType !== "keplr"}
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-lg border-2 border-black bg-white px-3 py-2.5 text-sm font-semibold text-black hover:bg-black hover:text-white hover:border-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-black disabled:hover:border-black"
                     >
-                      <Button
-                        onClick={() => connectWallet("keplr")}
-                        width="100%"
-                        disabled={isLoading && activeWalletType !== "keplr"}
-                        className="w-full rounded-lg text-white bg-black/80 hover:bg-white hover:text-black text-sm font-medium border border-white/50 hover:border-white transition-all duration-300"
-                        label={
-                          isLoading && activeWalletType === "keplr" ? (
-                            <span className="flex items-center justify-center">
-                              <span className="loading-spinner mr-2"></span>
-                              CONNECTING...
-                            </span>
-                          ) : (
-                            <span className="flex items-center justify-center">
-                              <img src="/keplr logo.png" alt="Keplr Logo" className="w-5 h-5 mr-3" />
-                              CONNECT KEPLR
-                            </span>
-                          )
-                        }
-                      />
-                    </motion.div>
-                    
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                      {isLoading && activeWalletType === "keplr" ? (
+                        <>
+                          <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
+                            <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                          </svg>
+                          <span>Connecting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <img src="/keplr logo.png" alt="" aria-hidden="true" className="w-4 h-4 object-contain" />
+                          <span>Connect Keplr</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => connectWallet("leap")}
+                      disabled={isLoading && activeWalletType !== "leap"}
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-lg border-2 border-black bg-white px-3 py-2.5 text-sm font-semibold text-black hover:bg-black hover:text-white hover:border-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-black disabled:hover:border-black"
                     >
-                      <Button
-                        onClick={() => connectWallet("leap")}
-                        disabled={isLoading && activeWalletType !== "leap"}
-                        width="100%"
-                        className="w-full rounded-lg text-white bg-black/50 hover:bg-white hover:text-black text-sm font-medium border border-white/50 hover:border-white transition-all duration-300"
-                        label={
-                          isLoading && activeWalletType === "leap" ? (
-                            <span className="flex items-center justify-center">
-                              <span className="loading-spinner mr-2"></span>
-                              CONNECTING...
-                            </span>
-                          ) : (
-                            <span className="flex items-center justify-center">
-                              <img src="/leap logo.png" alt="Leap Logo" className="w-5 h-5 mr-3" />
-                              CONNECT LEAP
-                            </span>
-                          )
-                        }
-                      />
-                    </motion.div>
+                      {isLoading && activeWalletType === "leap" ? (
+                        <>
+                          <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
+                            <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                          </svg>
+                          <span>Connecting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <img src="/leap logo.png" alt="" aria-hidden="true" className="w-4 h-4 object-contain" />
+                          <span>Connect Leap</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </motion.div>
               </div>
