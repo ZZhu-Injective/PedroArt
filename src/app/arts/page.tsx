@@ -1,20 +1,13 @@
 'use client';
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Head from "next/head";
 import Image from "next/image";
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 interface GalleryImage {
   url: string;
   title: string;
   link: string;
-}
-
-interface CardProps {
-  imageUrl: string;
-  title: string;
-  link: string;
-  index: number;
 }
 
 const images: GalleryImage[] = [
@@ -101,154 +94,124 @@ const images: GalleryImage[] = [
   { url: 'fan13.png', title: 'Socrates122263', link: 'https://x.com/Socrates122263' },
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 50 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80 } },
-};
-
 const XIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
   </svg>
 );
 
-const Card = ({ imageUrl, title, link, index }: CardProps) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+const MasonryCard = ({ image, index, onView }: { image: GalleryImage; index: number; onView: () => void }) => {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ delay: (index % 16) * 0.04, duration: 0.5, ease: "easeOut" }}
+      className="group relative mb-4 break-inside-avoid overflow-hidden rounded-xl border border-gray-800/60 hover:border-white/60 transition-all duration-500 cursor-zoom-in shadow-lg hover:shadow-white/10"
+      onClick={onView}
+    >
+      <img
+        src={`/${image.url}`}
+        alt={`Art by ${image.title}`}
+        loading="lazy"
+        className="w-full h-auto block transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+      />
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (cardRef.current) {
-      const rect = cardRef.current.getBoundingClientRect();
-      setMousePosition({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      });
-    }
-  };
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+      <div className="absolute inset-x-0 bottom-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-mono">Artist</p>
+            <p className="text-white font-bold truncate font-mono tracking-tight text-sm sm:text-base">@{image.title}</p>
+          </div>
+          <a
+            href={image.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            aria-label={`${image.title} on X`}
+            className="shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-white text-white hover:text-black border border-white/30 hover:border-white transition-colors backdrop-blur-md"
+          >
+            <XIcon className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      </div>
+
+      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+        <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-full p-2">
+          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const Lightbox = ({ image, onClose }: { image: GalleryImage; onClose: () => void }) => {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
 
   return (
     <motion.div
-      ref={cardRef}
-      variants={itemVariants}
-      initial={{ opacity: 0.6 }}
-      whileHover={{ 
-        scale: 1.08,
-        zIndex: 10,
-        opacity: 1,
-      }}
-      whileTap={{ scale: 0.95 }}
-      transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      className="group relative overflow-hidden rounded-2xl bg-black/40 shadow-2xl hover:shadow-white/10 transition-all duration-500 backdrop-blur-xl border border-gray-800/60 hover:border-white/40 w-full"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onMouseMove={handleMouseMove}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-8"
+      onClick={onClose}
     >
-      <motion.div 
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-        animate={{
-          background: isHovered 
-            ? `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.15), transparent 70%)`
-            : 'transparent'
-        }}
-      />
-      
-      <div className="absolute inset-0 border-2 border-transparent group-hover:border-white/40 transition-all duration-500 z-20 pointer-events-none rounded-2xl" />
-      
-      {isHovered && (
-        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
-          {[...Array(12)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute bg-white rounded-full"
-              initial={{
-                opacity: 0,
-                scale: 0,
-                x: Math.random() * 100,
-                y: Math.random() * 100,
-              }}
-              animate={{
-                opacity: [0, 0.8, 0],
-                scale: [0, 0.5 + Math.random() * 0.5, 0],
-                x: Math.random() * 100,
-                y: Math.random() * 100,
-              }}
-              transition={{
-                duration: 1.5 + Math.random() * 2,
-                repeat: Infinity,
-                delay: Math.random() * 0.5,
-                ease: "easeOut"
-              }}
-              style={{
-                width: `${1 + Math.random() * 4}px`,
-                height: `${1 + Math.random() * 4}px`,
-              }}
-            />
-          ))}
-        </div>
-      )}
-      
-      <div className="relative w-full aspect-[4/3] overflow-hidden rounded-t-2xl">
-        <Image 
-          src={`/${imageUrl}`}
-          alt={title}
-          fill
-          className="object-cover transition-all duration-700 group-hover:scale-110"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          priority={index < 6}
-        />
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
-      </div>
-      
-      <div className="bg-gradient-to-t from-black/95 via-black/70 p-5 to-transparent rounded-b-2xl">
-        <motion.h3
-          className="text-white text-xl font-bold text-center py-3 tracking-tight font-mono"
-        >
-          {title}
-        </motion.h3>
-
-        <div className="flex justify-center">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          >
-            <button
-              onClick={() => window.open(link, '_blank')}
-              className="flex items-center gap-2 bg-transparent text-gray-300 hover:bg-white hover:text-black text-sm font-mono uppercase tracking-tight px-6 py-3 border-2 border-gray-400 hover:border-white transition-all duration-300"
-            >
-              <XIcon className="w-4 h-4 transition-transform group-hover:scale-110" />
-              <span className="relative z-10">View Profile</span>
-            </button>
-          </motion.div>
-        </div>
-      </div>
-      
-      <motion.div 
-        className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none"
-        animate={{
-          x: isHovered ? mousePosition.x * 0.03 : 0,
-          y: isHovered ? mousePosition.y * 0.03 : 0,
-        }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="relative max-w-6xl w-full flex flex-col gap-4"
+        onClick={(e) => e.stopPropagation()}
       >
-        <Image 
-          src={`/${imageUrl}`}
-          alt={title}
-          fill
-          className="object-cover blur-[2px] opacity-0 group-hover:opacity-20 scale-110"
-        />
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 z-10 w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-gray-200 transition-colors shadow-xl"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div className="relative w-full max-h-[75vh] flex items-center justify-center bg-black/60 rounded-2xl border border-gray-800/60 overflow-hidden">
+          <img
+            src={`/${image.url}`}
+            alt={`Art by ${image.title}`}
+            className="w-auto h-auto max-w-full max-h-[75vh] object-contain"
+          />
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-black/60 backdrop-blur-xl border border-gray-800/60 rounded-2xl p-4 sm:p-5">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-gray-500 font-mono">Pedro Fan Artist</p>
+            <h3 className="text-xl sm:text-2xl font-bold text-white font-mono tracking-tight mt-1">@{image.title}</h3>
+          </div>
+          <a
+            href={image.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-gray-400 bg-transparent text-gray-300 font-mono uppercase tracking-tight text-sm hover:bg-white hover:text-black hover:border-white transition-all duration-300"
+          >
+            <XIcon className="w-4 h-4" />
+            <span>View Profile</span>
+          </a>
+        </div>
       </motion.div>
     </motion.div>
   );
@@ -314,30 +277,36 @@ const AnimatedGrid = () => {
 };
 
 export default function Art() {
-  const galleryRef = useRef<HTMLDivElement>(null);
+  const [query, setQuery] = useState('');
+  const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<GalleryImage | null>(null);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('animate-fadeIn');
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    if (galleryRef.current) {
-      observer.observe(galleryRef.current);
-    }
-
-    return () => {
-      if (galleryRef.current) {
-        observer.unobserve(galleryRef.current);
-      }
-    };
+  const artistCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    images.forEach(img => { counts[img.title] = (counts[img.title] || 0) + 1; });
+    return counts;
   }, []);
+
+  const topArtists = useMemo(() =>
+    Object.entries(artistCounts)
+      .filter(([name]) => name !== '?')
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name]) => name)
+  , [artistCounts]);
+
+  const filteredImages = useMemo(() => {
+    let result = images;
+    if (selectedArtist) result = result.filter(img => img.title === selectedArtist);
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      result = result.filter(img => img.title.toLowerCase().includes(q));
+    }
+    return result;
+  }, [query, selectedArtist]);
+
+  const clearFilters = () => { setQuery(''); setSelectedArtist(null); };
+  const hasFilters = query.trim() !== '' || selectedArtist !== null;
 
   return (
     <>
@@ -401,45 +370,132 @@ export default function Art() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
-              className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4"
+              className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6"
             >
               {[
-                { label: 'ART PIECES', value: images.length },
-                { label: 'ARTISTS', value: new Set(images.map(img => img.title)).size },
-                { label: 'COMMUNITY', value: '800+' },
-                { label: 'INSPIRATION', value: '100%' },
+                { label: 'Art Pieces', value: images.length },
+                { label: 'Artists', value: new Set(images.map(img => img.title)).size },
+                { label: 'Community', value: '800+' },
+                { label: 'Inspiration', value: '100%' },
               ].map((stat, i) => (
                 <motion.div
                   key={i}
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  className="text-center p-6 bg-black/40 backdrop-blur-xl rounded-2xl border border-gray-800/60 hover:border-white/40 transition-all duration-300"
+                  whileHover={{ y: -4 }}
+                  className="text-center p-4 sm:p-6 bg-black/40 backdrop-blur-xl rounded-2xl border border-gray-800/60 hover:border-white/40 transition-all duration-300"
                 >
-                  <div className="text-3xl md:text-4xl font-bold text-white mb-2 font-mono tracking-tight">{stat.value}</div>
-                  <div className="text-xs md:text-sm text-gray-500 font-mono uppercase tracking-widest">{stat.label}</div>
+                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 font-mono tracking-tight">{stat.value}</div>
+                  <div className="text-[10px] sm:text-xs text-gray-500 font-mono uppercase tracking-widest">{stat.label}</div>
                 </motion.div>
               ))}
             </motion.div>
           </section>
 
-          <section className="relative py-8 px-4 mx-auto max-w-[1500px]" ref={galleryRef}>
+          <section className="relative px-4 mx-auto max-w-[1500px]">
             <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="show"
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
+              className="bg-black/40 backdrop-blur-xl border border-gray-800/60 rounded-2xl p-4 sm:p-5 mb-6"
             >
-              {images.map((image, index) => (
-                <Card 
-                  key={index}
-                  imageUrl={image.url} 
-                  title={image.title}
-                  link={image.link}
-                  index={index}
-                />
-              ))}
+              <div className="flex flex-col gap-4">
+                <div className="relative">
+                  <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search by artist name..."
+                    className="w-full bg-black/60 border border-gray-800/60 hover:border-white/30 focus:border-white/60 rounded-xl pl-11 pr-4 py-3 text-white placeholder:text-gray-600 font-mono text-sm focus:outline-none transition-colors"
+                  />
+                  {query && (
+                    <button
+                      onClick={() => setQuery('')}
+                      aria-label="Clear search"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-gray-500 hover:text-white"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <span className="text-[10px] uppercase tracking-widest text-gray-500 font-mono shrink-0">Top Artists</span>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSelectedArtist(null)}
+                      className={`px-3 py-1.5 text-xs font-mono uppercase tracking-tight border transition-colors ${
+                        selectedArtist === null
+                          ? 'bg-white text-black border-white'
+                          : 'bg-transparent text-gray-300 border-gray-700 hover:border-white/60 hover:text-white'
+                      }`}
+                    >
+                      All
+                    </button>
+                    {topArtists.map((name) => (
+                      <button
+                        key={name}
+                        onClick={() => setSelectedArtist(selectedArtist === name ? null : name)}
+                        className={`px-3 py-1.5 text-xs font-mono uppercase tracking-tight border transition-colors ${
+                          selectedArtist === name
+                            ? 'bg-white text-black border-white'
+                            : 'bg-transparent text-gray-300 border-gray-700 hover:border-white/60 hover:text-white'
+                        }`}
+                      >
+                        @{name} <span className="opacity-60">· {artistCounts[name]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-mono text-gray-500">
+                  <span>
+                    Showing <span className="text-white font-bold">{filteredImages.length}</span> of {images.length} pieces
+                  </span>
+                  {hasFilters && (
+                    <button
+                      onClick={clearFilters}
+                      className="text-gray-400 hover:text-white underline underline-offset-4 uppercase tracking-tight"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+              </div>
             </motion.div>
           </section>
+
+          <section className="relative pb-16 px-4 mx-auto max-w-[1500px]">
+            {filteredImages.length === 0 ? (
+              <div className="py-24 text-center">
+                <p className="text-gray-500 font-mono uppercase tracking-widest text-sm">No art found</p>
+                <p className="text-gray-600 font-mono mt-2 text-xs">Try a different artist or clear filters</p>
+              </div>
+            ) : (
+              <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
+                <AnimatePresence mode="popLayout">
+                  {filteredImages.map((image, index) => (
+                    <MasonryCard
+                      key={image.url}
+                      image={image}
+                      index={index}
+                      onView={() => setLightboxImage(image)}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+          </section>
         </div>
+
+        <AnimatePresence>
+          {lightboxImage && (
+            <Lightbox image={lightboxImage} onClose={() => setLightboxImage(null)} />
+          )}
+        </AnimatePresence>
 
         <style jsx global>{`
           @keyframes sparkle {
