@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Head from "next/head";
 import Image from "next/image";
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 
 interface GalleryImage {
   url: string;
@@ -277,36 +277,7 @@ const AnimatedGrid = () => {
 };
 
 export default function Art() {
-  const [query, setQuery] = useState('');
-  const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
   const [lightboxImage, setLightboxImage] = useState<GalleryImage | null>(null);
-
-  const artistCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    images.forEach(img => { counts[img.title] = (counts[img.title] || 0) + 1; });
-    return counts;
-  }, []);
-
-  const topArtists = useMemo(() =>
-    Object.entries(artistCounts)
-      .filter(([name]) => name !== '?')
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([name]) => name)
-  , [artistCounts]);
-
-  const filteredImages = useMemo(() => {
-    let result = images;
-    if (selectedArtist) result = result.filter(img => img.title === selectedArtist);
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      result = result.filter(img => img.title.toLowerCase().includes(q));
-    }
-    return result;
-  }, [query, selectedArtist]);
-
-  const clearFilters = () => { setQuery(''); setSelectedArtist(null); };
-  const hasFilters = query.trim() !== '' || selectedArtist !== null;
 
   return (
     <>
@@ -390,104 +361,17 @@ export default function Art() {
             </motion.div>
           </section>
 
-          <section className="relative px-4 mx-auto max-w-[1500px]">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.6 }}
-              className="bg-black/40 backdrop-blur-xl border border-gray-800/60 rounded-2xl p-4 sm:p-5 mb-6"
-            >
-              <div className="flex flex-col gap-4">
-                <div className="relative">
-                  <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search by artist name..."
-                    className="w-full bg-black/60 border border-gray-800/60 hover:border-white/30 focus:border-white/60 rounded-xl pl-11 pr-4 py-3 text-white placeholder:text-gray-600 font-mono text-sm focus:outline-none transition-colors"
-                  />
-                  {query && (
-                    <button
-                      onClick={() => setQuery('')}
-                      aria-label="Clear search"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-gray-500 hover:text-white"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <span className="text-[10px] uppercase tracking-widest text-gray-500 font-mono shrink-0">Top Artists</span>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setSelectedArtist(null)}
-                      className={`px-3 py-1.5 text-xs font-mono uppercase tracking-tight border transition-colors ${
-                        selectedArtist === null
-                          ? 'bg-white text-black border-white'
-                          : 'bg-transparent text-gray-300 border-gray-700 hover:border-white/60 hover:text-white'
-                      }`}
-                    >
-                      All
-                    </button>
-                    {topArtists.map((name) => (
-                      <button
-                        key={name}
-                        onClick={() => setSelectedArtist(selectedArtist === name ? null : name)}
-                        className={`px-3 py-1.5 text-xs font-mono uppercase tracking-tight border transition-colors ${
-                          selectedArtist === name
-                            ? 'bg-white text-black border-white'
-                            : 'bg-transparent text-gray-300 border-gray-700 hover:border-white/60 hover:text-white'
-                        }`}
-                      >
-                        @{name} <span className="opacity-60">· {artistCounts[name]}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-xs font-mono text-gray-500">
-                  <span>
-                    Showing <span className="text-white font-bold">{filteredImages.length}</span> of {images.length} pieces
-                  </span>
-                  {hasFilters && (
-                    <button
-                      onClick={clearFilters}
-                      className="text-gray-400 hover:text-white underline underline-offset-4 uppercase tracking-tight"
-                    >
-                      Clear filters
-                    </button>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </section>
-
-          <section className="relative pb-16 px-4 mx-auto max-w-[1500px]">
-            {filteredImages.length === 0 ? (
-              <div className="py-24 text-center">
-                <p className="text-gray-500 font-mono uppercase tracking-widest text-sm">No art found</p>
-                <p className="text-gray-600 font-mono mt-2 text-xs">Try a different artist or clear filters</p>
-              </div>
-            ) : (
-              <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
-                <AnimatePresence mode="popLayout">
-                  {filteredImages.map((image, index) => (
-                    <MasonryCard
-                      key={image.url}
-                      image={image}
-                      index={index}
-                      onView={() => setLightboxImage(image)}
-                    />
-                  ))}
-                </AnimatePresence>
-              </div>
-            )}
+          <section className="relative pb-16 pt-2 px-4 mx-auto max-w-[1500px]">
+            <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
+              {images.map((image, index) => (
+                <MasonryCard
+                  key={image.url}
+                  image={image}
+                  index={index}
+                  onView={() => setLightboxImage(image)}
+                />
+              ))}
+            </div>
           </section>
         </div>
 
