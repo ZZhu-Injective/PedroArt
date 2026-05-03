@@ -365,26 +365,26 @@ export default function NFTCreator() {
               className="px-6 max-w-4xl relative z-10"
             >
               <motion.h1
-                className="text-4xl md:text-7xl font-bold mb-5 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight font-mono mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
               >
                 PEDRO CRAFT
               </motion.h1>
-              
+
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}
                 animate={{ opacity: 1, scaleX: 1 }}
                 transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
-                className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent mb-4"
+                className="h-px w-full bg-gradient-to-r from-transparent via-gray-500 to-transparent mb-6"
               />
-              
+
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.8 }}
-                className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto"
+                className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto font-mono"
               >
                 CREATE YOUR UNIQUE PFP
               </motion.p>
@@ -398,9 +398,9 @@ export default function NFTCreator() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-black/50 backdrop-blur-sm p-6 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden"
-                >                  
-                  <h2 className="text-2xl font-bold text-center mb-6 text-white">
+                  className="bg-black/60 backdrop-blur-xl p-6 rounded-2xl border border-gray-800/60 shadow-2xl relative overflow-hidden transition-colors duration-300 hover:border-white/40"
+                >
+                  <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 font-mono tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
                     HOW IT WORKS
                   </h2>
                   
@@ -432,13 +432,13 @@ export default function NFTCreator() {
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.3 + index * 0.1 }}
-                        className="flex items-start p-4 bg-black/30 rounded-lg border border-white/10 hover:border-white/30 transition-all duration-300 group backdrop-blur-sm"
+                        className="flex items-start p-4 bg-black/40 rounded-2xl border border-gray-800/60 hover:border-white/40 transition-all duration-300 group backdrop-blur-xl"
                       >
-                        <span className="font-mono text-gray-400 mr-4 text-lg group-hover:text-white transition-colors">
+                        <span className="font-mono text-gray-500 mr-4 text-lg group-hover:text-white transition-colors">
                           {item.icon}
                         </span>
                         <div>
-                          <h3 className="font-semibold text-white">{item.title}</h3>
+                          <h3 className="font-bold text-white font-mono tracking-tight">{item.title}</h3>
                           <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
                             {item.text}
                           </p>
@@ -461,7 +461,7 @@ export default function NFTCreator() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="relative aspect-square rounded-2xl overflow-hidden border-2 border-white/20 shadow-lg backdrop-blur-sm"
+                  className="relative aspect-square rounded-2xl overflow-hidden border-2 border-gray-800/60 hover:border-white/40 shadow-lg backdrop-blur-xl transition-colors duration-300"
                   ref={canvasRef}
                   style={{
                     ...getBackgroundStyle(),
@@ -532,10 +532,10 @@ export default function NFTCreator() {
                 <div className="flex overflow-x-auto pb-2 gap-2">
                   <button
                     onClick={() => setActiveCategory('background')}
-                    className={`px-4 py-2 rounded-full whitespace-nowrap transition-all backdrop-blur-sm border ${
-                      activeCategory === 'background' 
-                        ? 'bg-white text-black font-bold border-white' 
-                        : 'bg-white/10 hover:bg-white/20 border-white/10 hover:border-white/30'
+                    className={`px-4 py-2 whitespace-nowrap font-mono uppercase text-sm tracking-tight transition-all border-2 ${
+                      activeCategory === 'background'
+                        ? 'bg-white text-black border-white'
+                        : 'bg-transparent text-gray-300 border-gray-400 hover:bg-white hover:text-black hover:border-white'
                     }`}
                   >
                     Background
@@ -544,10 +544,10 @@ export default function NFTCreator() {
                     <button
                       key={category}
                       onClick={() => setActiveCategory(category)}
-                      className={`px-4 py-2 rounded-full whitespace-nowrap capitalize transition-all backdrop-blur-sm border ${
-                        activeCategory === category 
-                          ? 'bg-white text-black font-bold border-white' 
-                          : 'bg-white/10 hover:bg-white/20 border-white/10 hover:border-white/30'
+                      className={`px-4 py-2 whitespace-nowrap capitalize font-mono uppercase text-sm tracking-tight transition-all border-2 ${
+                        activeCategory === category
+                          ? 'bg-white text-black border-white'
+                          : 'bg-transparent text-gray-300 border-gray-400 hover:bg-white hover:text-black hover:border-white'
                       }`}
                     >
                       {category}
@@ -560,18 +560,18 @@ export default function NFTCreator() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="bg-black/50 backdrop-blur-sm p-4 rounded-xl border border-white/10 shadow-2xl"
+                  className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl border border-gray-800/60 shadow-2xl transition-colors duration-300 hover:border-white/40"
                 >
 
                   <div className="mb-3">
                     <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-lg font-semibold text-white">Combinations</h3>
+                      <h3 className="text-lg font-bold text-white font-mono tracking-tight">Combinations</h3>
                       <button
                         onClick={() => {
                           const newCombinations = Array(6).fill(0).map(() => generateRandomCombination());
                           setRandomCombinations(newCombinations);
                         }}
-                        className="px-3 py-1 text-sm text-black hover:text-white bg-white hover:bg-black rounded-full border border-white/30 transition-all duration-300"
+                        className="px-4 py-1.5 text-xs text-gray-300 bg-transparent border-2 border-gray-400 hover:bg-white hover:text-black hover:border-white font-mono uppercase tracking-tight transition-all duration-300"
                       >
                         Random
                       </button>
@@ -584,8 +584,8 @@ export default function NFTCreator() {
                           className="relative group cursor-pointer"
                           onClick={() => setSelectedElements(combo)}
                         >
-                          <div 
-                            className="aspect-square rounded-lg overflow-hidden border-2 border-white/20 hover:border-white/40 transition-all duration-300"
+                          <div
+                            className="aspect-square rounded-xl overflow-hidden border-2 border-gray-800/60 hover:border-white/40 transition-all duration-300"
                             style={{
                               backgroundColor: backgroundColors[combo.backgroundColor].value.startsWith('linear-gradient') 
                                 ? '#00000000'
@@ -610,7 +610,7 @@ export default function NFTCreator() {
 
                   {activeCategory === 'background' ? (
                     <>
-                      <h3 className="text-xl font-semibold mb-3 mt-6 text-white">
+                      <h3 className="text-lg font-bold mb-3 mt-6 text-white font-mono tracking-tight">
                         Background Color
                       </h3>
                       <div className="grid grid-cols-6 gap-2">
@@ -618,10 +618,10 @@ export default function NFTCreator() {
                           <button
                             key={index}
                             onClick={() => handleElementChange('backgroundColor', index)}
-                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all backdrop-blur-sm ${
+                            className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all backdrop-blur-sm ${
                               selectedElements.backgroundColor === index
                                 ? 'border-white ring-2 ring-white'
-                                : 'border-white/20 hover:border-white/50'
+                                : 'border-gray-800/60 hover:border-white/50'
                             }`}
                             style={color.value.startsWith('linear-gradient') ? 
                               { backgroundImage: color.value } : 
@@ -641,7 +641,7 @@ export default function NFTCreator() {
                     </>
                   ) : (
                     <>
-                      <h3 className="text-xl font-semibold mb-3 capitalize text-white">
+                      <h3 className="text-lg font-bold mb-3 capitalize text-white font-mono tracking-tight">
                         {activeCategory}
                       </h3>
                       <div className="grid grid-cols-4 gap-3">
@@ -649,10 +649,10 @@ export default function NFTCreator() {
                           <button
                             key={index}
                             onClick={() => handleElementChange(activeCategory as keyof typeof selectedElements, index)}
-                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all backdrop-blur-sm ${
+                            className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all backdrop-blur-sm ${
                               selectedElements[activeCategory as keyof typeof selectedElements] === index
                                 ? 'border-white ring-2 ring-white'
-                                : 'border-white/20 hover:border-white/50'
+                                : 'border-gray-800/60 hover:border-white/50'
                             }`}
                           >
                             {item.image ? (
@@ -662,8 +662,8 @@ export default function NFTCreator() {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <div className="absolute inset-0 flex items-center justify-center bg-white/5">
-                                <span className="text-xs text-white/70">None</span>
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                <span className="text-xs text-gray-500 font-mono">None</span>
                               </div>
                             )}
                           </button>
@@ -679,8 +679,8 @@ export default function NFTCreator() {
                   <Button
                     onClick={downloadNFT}
                     disabled={isDownloading || !imagesLoaded}
-                    className="w-full md:w-1/2 py-3 text-lg font-bold bg-gradient-to-r from-white to-gray-300 hover:from-gray-300 hover:to-white text-black rounded-full border border-white/30 hover:border-white transition-all duration-300"
-                    label={isDownloading ? 'Downloading...' : 'DOWNLOAD IMAGE'}
+                    className="w-full md:w-1/2 px-8 py-3 text-lg border-2 border-gray-400 bg-transparent text-gray-300 font-mono uppercase tracking-tight hover:bg-white hover:text-black hover:border-white transition-all duration-300 disabled:opacity-50"
+                    label={isDownloading ? 'Downloading...' : 'Download Image'}
                   />
                 </div>
 
@@ -688,7 +688,7 @@ export default function NFTCreator() {
                   <Button
                     onClick={downloadNFT}
                     disabled={isDownloading || !imagesLoaded}
-                    className="w-full py-3 text-lg font-bold bg-gradient-to-r from-white to-gray-300 hover:from-gray-300 hover:to-white text-black rounded-full border border-white/30 hover:border-white transition-all duration-300"
+                    className="w-full px-8 py-3 text-lg border-2 border-gray-400 bg-transparent text-gray-300 font-mono uppercase tracking-tight hover:bg-white hover:text-black hover:border-white transition-all duration-300 disabled:opacity-50"
                     label={isDownloading ? 'Downloading...' : 'Download Image'}
                   />
                 </div>

@@ -151,12 +151,12 @@ const Navbar = () => {
   const mobileNavItems = getMobileNavItems();
 
   return (
-    <header className="top-0 z-50 flex-shrink-0 bg-white sticky border-b border-neutral-200 shadow-sm">
+    <header className="top-0 z-50 flex-shrink-0 bg-black/85 backdrop-blur-md sticky border-b border-white/10 shadow-sm">
       <div className="container mx-auto px-3 sm:px-6 flex flex-col lg:flex-row justify-between items-center">
         <div className="flex items-center justify-between w-full lg:w-auto py-2 sm:py-3">
           <Link
             href="/"
-            className="flex items-center text-lg md:text-xl font-bold text-black hover:text-neutral-700 transition-colors"
+            className="flex items-center text-lg md:text-xl font-bold font-mono tracking-tight text-white hover:text-neutral-300 transition-colors"
             onClick={closeMenu}
           >
             <img
@@ -173,7 +173,7 @@ const Navbar = () => {
           {!isLargeScreen && (
             <button
               aria-label="Toggle navigation menu"
-              className="block lg:hidden text-black focus:outline-none hover:text-neutral-700 transition-colors p-1.5 rounded-lg border border-neutral-200"
+              className="block lg:hidden text-white focus:outline-none hover:text-neutral-300 transition-colors p-1.5 rounded-lg border border-white/20"
               onClick={toggleMenu}
             >
               <svg
@@ -362,21 +362,21 @@ const Navbar = () => {
         </div>
 
         <div className="hidden lg:flex lg:flex-row lg:w-auto lg:items-center lg:h-auto">
-          <ul className="flex flex-col gap-0 lg:gap-6 xl:gap-5 text-black items-center lg:flex-row">
+          <ul className="flex flex-col gap-0 lg:gap-6 xl:gap-5 text-white items-center lg:flex-row font-mono">
             {navItems.map((item) => (
               <li
                 key={item.href || item.label}
                 className="w-full lg:w-auto relative"
               >
                 {item.submenu ? (
-                  <div 
-                    className="relative" 
+                  <div
+                    className="relative"
                     ref={subMenuRef}
                     onMouseEnter={() => handleItemHover(item.label)}
                     onMouseLeave={handleItemLeave}
                   >
                     <button
-                      className={`py-2 px-4 text-lg font-medium transition-colors duration-200 flex items-center justify-center lg:justify-start rounded-lg hover:bg-black hover:text-white ${activeSubMenu === item.label ? 'bg-black text-white' : ''}`}
+                      className={`py-2 px-4 text-lg font-medium transition-colors duration-200 flex items-center justify-center lg:justify-start rounded-lg hover:bg-white hover:text-black ${activeSubMenu === item.label ? 'bg-white text-black' : ''}`}
                     >
                       {item.label}
                       <svg
@@ -390,15 +390,15 @@ const Navbar = () => {
                       </svg>
                     </button>
                     
-                    <div 
-                      className={`absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 z-50 border border-neutral-200 transition-all duration-200 ${subMenuOpen && activeSubMenu === item.label ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                    <div
+                      className={`absolute top-full left-0 mt-2 w-48 bg-black/90 backdrop-blur-md rounded-xl shadow-lg py-2 z-50 border border-white/10 transition-all duration-200 ${subMenuOpen && activeSubMenu === item.label ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
                       onMouseLeave={handleSubMenuLeave}
                     >
                       {item.submenu.map((subItem) => (
                         <a
                           key={subItem.href}
                           href={subItem.href}
-                          className="block px-4 py-3 text-sm text-black hover:bg-black hover:text-white transition-colors first:rounded-t-xl last:rounded-b-xl"
+                          className="block px-4 py-3 text-sm text-white hover:bg-white hover:text-black transition-colors first:rounded-t-xl last:rounded-b-xl"
                           onClick={closeMenu}
                           target={subItem.newTab ? "_blank" : undefined}
                           rel={subItem.newTab ? "noopener noreferrer" : undefined}
@@ -415,14 +415,14 @@ const Navbar = () => {
                   >
                     <Link
                       href={item.href || '#'}
-                      className={`py-2 px-4 text-lg font-medium transition-colors duration-200 relative rounded-lg hover:bg-black hover:text-white ${activeSubMenu === item.label ? 'bg-black text-white' : ''}`}
+                      className={`py-2 px-4 text-lg font-medium transition-colors duration-200 relative rounded-lg hover:bg-white hover:text-black ${activeSubMenu === item.label ? 'bg-white text-black' : ''}`}
                       onClick={closeMenu}
                       target={item.newTab ? "_blank" : undefined}
                       rel={item.newTab ? "noopener noreferrer" : undefined}
                     >
                       {item.label}
                       {(isLargeScreen && hoveredItem === item.label) && (
-                        <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-3/4 h-0.5 bg-black rounded-full"></span>
+                        <span className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-3/4 h-0.5 bg-white rounded-full"></span>
                       )}
                     </Link>
                   </div>

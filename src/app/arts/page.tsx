@@ -149,7 +149,7 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
       }}
       whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      className="group relative overflow-hidden rounded-2xl bg-black/20 shadow-2xl hover:shadow-white/20 transition-all duration-500 backdrop-blur-sm border border-white/10 hover:border-white/30 w-full"
+      className="group relative overflow-hidden rounded-2xl bg-black/40 shadow-2xl hover:shadow-white/10 transition-all duration-500 backdrop-blur-xl border border-gray-800/60 hover:border-white/40 w-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onMouseMove={handleMouseMove}
@@ -212,12 +212,12 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
       </div>
       
       <div className="bg-gradient-to-t from-black/95 via-black/70 p-5 to-transparent rounded-b-2xl">
-        <motion.h3 
-          className="text-white text-xl font-bold text-center py-3 tracking-tight"
+        <motion.h3
+          className="text-white text-xl font-bold text-center py-3 tracking-tight font-mono"
         >
           {title}
         </motion.h3>
-        
+
         <div className="flex justify-center">
           <motion.div
             whileHover={{ scale: 1.05 }}
@@ -226,12 +226,10 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
           >
             <button
               onClick={() => window.open(link, '_blank')}
-              className="flex items-center gap-2 bg-black/80 hover:bg-black text-white hover:text-white text-sm font-medium px-6 py-3 rounded-full border border-white/30 hover:border-white transition-all duration-300 relative overflow-hidden group"
+              className="flex items-center gap-2 bg-transparent text-gray-300 hover:bg-white hover:text-black text-sm font-mono uppercase tracking-tight px-6 py-3 border-2 border-gray-400 hover:border-white transition-all duration-300"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <XIcon className="w-4 h-4 transition-transform group-hover:scale-110" />
-              <span className="relative z-10">VIEW PROFILE</span>
-              <div className="absolute inset-0 border-2 border-transparent group-hover:border-white/20 rounded-full transition-all duration-300" />
+              <span className="relative z-10">View Profile</span>
             </button>
           </motion.div>
         </div>
@@ -372,26 +370,26 @@ export default function Art() {
               className="px-6 max-w-4xl relative z-10"
             >
               <motion.h1
-                className="text-4xl md:text-7xl font-bold mb-5 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight font-mono mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
               >
                 FANS ART
               </motion.h1>
-              
+
               <motion.div
                 initial={{ opacity: 0, scaleX: 0 }}
                 animate={{ opacity: 1, scaleX: 1 }}
                 transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
-                className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent mb-4"
+                className="h-px w-full bg-gradient-to-r from-transparent via-gray-500 to-transparent mb-6"
               />
-              
+
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.8 }}
-                className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto"
+                className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto font-mono"
               >
                 THANK YOU FAM
               </motion.p>
@@ -414,10 +412,10 @@ export default function Art() {
                 <motion.div
                   key={i}
                   whileHover={{ scale: 1.05, y: -5 }}
-                  className="text-center p-6 bg-black/30 backdrop-blur-sm rounded-xl border border-white/10 hover:border-white/30 transition-all duration-300"
+                  className="text-center p-6 bg-black/40 backdrop-blur-xl rounded-2xl border border-gray-800/60 hover:border-white/40 transition-all duration-300"
                 >
-                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">{stat.value}</div>
-                  <div className="text-sm md:text-base text-gray-400 font-medium">{stat.label}</div>
+                  <div className="text-3xl md:text-4xl font-bold text-white mb-2 font-mono tracking-tight">{stat.value}</div>
+                  <div className="text-xs md:text-sm text-gray-500 font-mono uppercase tracking-widest">{stat.label}</div>
                 </motion.div>
               ))}
             </motion.div>

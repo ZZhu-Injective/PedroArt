@@ -48,16 +48,16 @@ export default function AltHomePage() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="px-6 max-w-4xl"
           >
-            <motion.h1 
-              className="text-5xl md:text-8xl font-bold mb-6 tracking-tighter font-mono"
+            <motion.h1
+              className="text-5xl md:text-8xl font-bold mb-6 tracking-tight font-mono bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400"
               whileHover={{ scale: 1.02 }}
             >
-              PEDRO × <span className="text-white font-mono bg-clip-text bg-gradient-to-r">ART</span>
+              PEDRO × ART
             </motion.h1>
-            <motion.p 
-              className="text-xl md:text-2xl opacity-80 mb-8"
+            <motion.p
+              className="text-xl md:text-2xl text-gray-300 mb-8 font-mono"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.8 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.8 }}
             >
               Art is freedom
@@ -99,8 +99,8 @@ export default function AltHomePage() {
             viewport={{ once: true, margin: "-100px" }}
             className="mb-32"
           >
-            <h2 className="text-3xl md:text-5xl text-center font-bold tracking-tighter mb-12">
-              <span className="text-white bg-clip-text bg-gradient-to-r">CREATOR SANCTUARY</span>
+            <h2 className="text-3xl md:text-5xl text-center font-bold tracking-tight font-mono mb-12 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
+              CREATOR SANCTUARY
             </h2>
             
             <motion.div 
@@ -141,8 +141,8 @@ export default function AltHomePage() {
             viewport={{ once: true, margin: "-100px" }}
             className="mb-16"
           >
-            <h2 className="text-3xl md:text-5xl text-center font-bold tracking-tighter mb-6">
-              <span className="text-white bg-clip-text bg-gradient-to-r">PEDRO NFT</span>
+            <h2 className="text-3xl md:text-5xl text-center font-bold tracking-tight font-mono mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
+              PEDRO NFT
             </h2>
             <div className="h-px w-48 mx-auto bg-gradient-to-r from-transparent via-gray-500 to-transparent" />
           </motion.div>
@@ -184,12 +184,12 @@ export default function AltHomePage() {
             viewport={{ once: true, margin: "-100px" }}
             className="text-center"
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter mb-6 md:mb-8">
-              JOIN PEDRO <span className="text-white bg-clip-text bg-gradient-to-r">TODAY</span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight font-mono mb-6 md:mb-8 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
+              JOIN PEDRO TODAY
             </h2>
-            
-            <motion.p 
-              className="text-lg sm:text-xl md:text-2xl opacity-80 mb-8 md:mb-12 leading-relaxed"
+
+            <motion.p
+              className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-8 md:mb-12 leading-relaxed font-mono"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 0.8 }}
               transition={{ delay: 0.2, duration: 0.8 }}

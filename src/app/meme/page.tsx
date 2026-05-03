@@ -74,7 +74,7 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
       }}
       whileTap={{ scale: 0.95 }}
       transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      className="group relative overflow-hidden rounded-2xl bg-black/20 shadow-2xl hover:shadow-white/20 transition-all duration-500 backdrop-blur-sm border border-white/10 hover:border-white/30 w-full"
+      className="group relative overflow-hidden rounded-2xl bg-black/40 shadow-2xl hover:shadow-white/10 transition-all duration-500 backdrop-blur-xl border border-gray-800/60 hover:border-white/40 w-full"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onMouseMove={handleMouseMove}
@@ -137,12 +137,12 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
       </div>
       
       <div className="bg-gradient-to-t from-black/95 via-black/70 p-5 to-transparent rounded-b-2xl">
-        <motion.h3 
-          className="text-white text-xl font-bold text-center py-5 tracking-tight"
+        <motion.h3
+          className="text-white text-xl font-bold text-center py-5 tracking-tight font-mono"
         >
           {title}
         </motion.h3>
-        
+
         <div className="flex justify-center">
           <motion.div
             whileHover={{ scale: 1.05 }}
@@ -151,8 +151,8 @@ const Card = ({ imageUrl, title, link, index }: CardProps) => {
           >
             <Button
               onClick={() => window.open(link, '_blank')}
-              className="text-white bg-transparent hover:bg-white hover:text-black text-sm font-medium px-6 py-2.5 rounded-full border border-white/50 hover:border-white transition-all duration-300 relative overflow-hidden group" 
-              label={"FOLLOW CREATOR"}            
+              className="text-gray-300 bg-transparent hover:bg-white hover:text-black text-sm font-mono uppercase tracking-tight px-6 py-2.5 border-2 border-gray-400 hover:border-white transition-all duration-300"
+              label={"Follow Creator"}
             />
           </motion.div>
         </div>
@@ -234,7 +234,7 @@ export default function MemeGallery() {
               className="px-6 max-w-4xl relative z-10"
             >
               <motion.h1
-                className="text-4xl md:text-7xl font-bold mb-5 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight font-mono mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
@@ -245,7 +245,7 @@ export default function MemeGallery() {
                 initial={{ opacity: 0, scaleX: 0 }}
                 animate={{ opacity: 1, scaleX: 1 }}
                 transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
-                className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent"
+                className="h-px w-full bg-gradient-to-r from-transparent via-gray-500 to-transparent"
               />
             </motion.div>
           </section>

@@ -516,7 +516,7 @@ export default function ImageEditor() {
         </div>
 
         <div className="relative z-10">
-          <section className="flex items-center justify-center py-12 text-center relative overflow-hidden">
+          <section className="flex items-center justify-center py-16 sm:py-20 text-center relative overflow-hidden">
             <motion.div
                 initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -524,7 +524,7 @@ export default function ImageEditor() {
                 className="px-6 max-w-4xl relative z-10"
               >
                 <motion.h1
-                  className="text-4xl md:text-7xl font-bold mb-5 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
+                  className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight font-mono mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.8 }}
@@ -535,13 +535,13 @@ export default function ImageEditor() {
                   initial={{ opacity: 0, scaleX: 0 }}
                   animate={{ opacity: 1, scaleX: 1 }}
                   transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
-                  className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent mb-4"
+                  className="h-px w-full bg-gradient-to-r from-transparent via-gray-500 to-transparent mb-6"
                 />
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4, duration: 0.8 }}
-                  className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto"
+                  className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto font-mono"
                 >
                   CREATE YOUR UNIQUE MEMES
                 </motion.p>
@@ -549,62 +549,62 @@ export default function ImageEditor() {
           </section>
 
           <div className='sm:py-8 py-2 mx-auto max-w-[1500px] px-2'>
-            <section className="px-3 sm:px-6 py-3 sm:py-5 bg-black/50 backdrop-blur-sm rounded-xl border border-white/10 shadow-2xl mb-3 sm:mb-5">
-              <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-10 text-white">HOW IT WORKS</h2>
-              
+            <section className="px-3 sm:px-6 py-4 sm:py-6 bg-black/60 backdrop-blur-xl rounded-2xl border border-gray-800/60 shadow-2xl mb-3 sm:mb-5">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-6 sm:mb-10 font-mono tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">HOW IT WORKS</h2>
+
               <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
-                <div className="bg-black/30 p-3 sm:p-4 rounded-lg border border-white/10">
-                  <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 text-white">Editing Features</h3>
-                  <ul className="space-y-1 sm:space-y-2 text-sm sm:text-base text-gray-300">
+                <div className="bg-black/40 p-4 sm:p-5 rounded-2xl border border-gray-800/60 transition-colors duration-300 hover:border-white/40">
+                  <h3 className="text-base sm:text-lg font-bold mb-3 text-white font-mono tracking-tight">Editing Features</h3>
+                  <ul className="space-y-2 text-sm sm:text-base text-gray-300">
                     <li className="flex items-start">
-                      <span className="bg-white/20 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
-                      <span><strong>Move:</strong> Click and drag any layer</span>
+                      <span className="bg-white/10 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5 text-xs border border-gray-700">✓</span>
+                      <span><strong className="text-white">Move:</strong> Click and drag any layer</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-white/20 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
-                      <span><strong>Resize:</strong> Drag the blue handle</span>
+                      <span className="bg-white/10 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5 text-xs border border-gray-700">✓</span>
+                      <span><strong className="text-white">Resize:</strong> Drag the corner handle</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-white/20 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
-                      <span><strong>Rotate:</strong> Drag the green handle or use slider</span>
+                      <span className="bg-white/10 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5 text-xs border border-gray-700">✓</span>
+                      <span><strong className="text-white">Rotate:</strong> Drag the center handle or use slider</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-white/20 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
-                      <span><strong>Layer Order:</strong> Use layer controls in toolbar</span>
+                      <span className="bg-white/10 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5 text-xs border border-gray-700">✓</span>
+                      <span><strong className="text-white">Layer Order:</strong> Use layer controls in toolbar</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-white/20 text-white rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✓</span>
-                      <span><strong>Pedro:</strong> Be yourself and share your daily photo!</span>
+                      <span className="bg-white/10 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5 text-xs border border-gray-700">✓</span>
+                      <span><strong className="text-white">Pedro:</strong> Be yourself and share your daily photo!</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="bg-yellow-500/10 p-3 sm:p-4 rounded-lg border border-yellow-500/30">
-                  <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2 text-yellow-400">Monthly Contest</h3>
-                  <ul className="space-y-2 sm:space-y-3 text-sm sm:text-base text-gray-300">
+                <div className="bg-black/40 p-4 sm:p-5 rounded-2xl border border-gray-800/60 transition-colors duration-300 hover:border-white/40">
+                  <h3 className="text-base sm:text-lg font-bold mb-3 text-white font-mono tracking-tight">Monthly Contest</h3>
+                  <ul className="space-y-2 text-sm sm:text-base text-gray-300">
                     <li className="flex items-start">
-                      <span className="bg-yellow-500/20 text-yellow-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">✨</span>
-                      <span>Post with "GInjective" + <span className="font-mono bg-white/10 px-1 py-0.5 sm:px-1.5 rounded text-xs sm:text-sm">$INJ #Myself @injpedro</span></span>
+                      <span className="bg-white/10 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5 text-xs border border-gray-700">★</span>
+                      <span>Post with "GInjective" + <span className="font-mono bg-white/10 px-1.5 py-0.5 rounded text-xs border border-gray-700">$INJ #Myself @injpedro</span></span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-yellow-500/20 text-yellow-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🎟️</span>
+                      <span className="bg-white/10 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5 text-xs border border-gray-700">#</span>
                       <span>Max 2 entries per person (MONTHLY)</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-yellow-500/20 text-yellow-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🏆</span>
-                      <span>Prize: <span className="font-bold">1 $INJ + 100,000 $PEDRO</span></span>
+                      <span className="bg-white/10 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5 text-xs border border-gray-700">$</span>
+                      <span>Prize: <span className="font-bold text-white">1 $INJ + 100,000 $PEDRO</span></span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-yellow-500/20 text-yellow-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">👥</span>
+                      <span className="bg-white/10 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5 text-xs border border-gray-700">@</span>
                       <span>Minimum 10 participants required</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="bg-yellow-500/20 text-yellow-400 rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center mr-2 mt-0.5 text-xs sm:text-sm">🔄</span>
+                      <span className="bg-white/10 text-white rounded-full w-5 h-5 flex items-center justify-center mr-2 mt-0.5 text-xs border border-gray-700">~</span>
                       <span>New (RANDOM) winner every month!</span>
                     </li>
                   </ul>
-                  <div className="mt-3 p-2 bg-red-500/10 border border-red-500/20 rounded text-xs text-red-300">
-                    <strong>Important:</strong> Contest requires minimum 10 unique participants to be valid
+                  <div className="mt-4 p-3 bg-black/40 border border-gray-700/60 rounded-xl text-xs text-gray-400 font-mono">
+                    <strong className="text-white">Important:</strong> Contest requires minimum 10 unique participants to be valid
                   </div>
                 </div>
               </div>
@@ -613,7 +613,7 @@ export default function ImageEditor() {
           
           <div className="max-w-[1500px] mx-auto pb-10 px-6">
             <div className="flex flex-col md:flex-row gap-4">
-              <div className="bg-black/50 backdrop-blur-sm p-2 rounded-xl border border-white/10 shadow-lg w-full md:w-20 lg:w-24 transition-all duration-200">
+              <div className="bg-black/60 backdrop-blur-xl p-2 rounded-2xl border border-gray-800/60 shadow-lg w-full md:w-20 lg:w-24 transition-all duration-300 hover:border-white/30">
                 <div className="flex md:hidden items-center justify-between space-x-2 overflow-x-auto py-1">
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -682,7 +682,7 @@ export default function ImageEditor() {
 
                 <div className="hidden md:flex flex-col items-center space-y-4">
                   <div className="text-center mb-2">
-                    <h2 className="text-xs font-semibold text-white/50 uppercase tracking-wider">Tools</h2>
+                    <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest font-mono">Tools</h2>
                   </div>
 
                   <button
@@ -733,7 +733,7 @@ export default function ImageEditor() {
                     <span className="text-xs mt-1 hidden lg:block">Delete</span>
                   </button>
 
-                  <div className="border-t border-white/10 w-full my-2"></div>
+                  <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-600 to-transparent my-2"></div>
 
                   <div className="grid grid-cols-2 gap-2 w-full px-2">
                     <button
@@ -782,7 +782,7 @@ export default function ImageEditor() {
                   </div>
 
                   <div className="w-full px-4 pt-2">
-                    <div className="text-xs text-white/50 mb-1">Rotate</div>
+                    <div className="text-xs text-gray-500 mb-1 font-mono uppercase tracking-wider">Rotate</div>
                     <input
                       type="range"
                       min="0"
@@ -799,14 +799,14 @@ export default function ImageEditor() {
                         );
                       }}
                       disabled={!activeLayerId}
-                      className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer disabled:opacity-50"
+                      className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer disabled:opacity-50 accent-white"
                     />
-                    <div className="text-xs text-white/50 text-center mt-1">
+                    <div className="text-xs text-gray-400 text-center mt-1 font-mono">
                       {activeLayerId ? `${Math.round(layers.find(l => l.id === activeLayerId)?.rotate || 0)}°` : '0°'}
                     </div>
                   </div>
 
-                  <div className="border-t border-white/10 w-full my-2"></div>
+                  <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-600 to-transparent my-2"></div>
 
                   <button
                     onClick={() => setLayers([])}
@@ -823,32 +823,33 @@ export default function ImageEditor() {
                   </button>
 
                   <div className="flex-1"></div>
-                  <div className="text-center pt-4 border-t border-white/10 w-full">
-                    <span className="text-xs text-white/40">Pedro Pic Creator</span>
-                    <span className="block text-xs text-white/40">v1.30</span>
+                  <div className="text-center pt-4 w-full">
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-600 to-transparent mb-3"></div>
+                    <span className="text-xs text-gray-500 font-mono">Pedro Pic Creator</span>
+                    <span className="block text-xs text-gray-600 font-mono">v1.30</span>
                   </div>
                 </div>
               </div>
 
               <div className="flex-1 flex flex-col gap-4">
-                <div className="bg-black/50 backdrop-blur-sm p-3 rounded-xl border border-white/10 shadow-lg">
+                <div className="bg-black/60 backdrop-blur-xl p-4 rounded-2xl border border-gray-800/60 shadow-lg transition-colors duration-300 hover:border-white/30">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-lg font-semibold text-white">PEDRO THE RACCOON</h2>
+                    <h2 className="text-base sm:text-lg font-bold text-white font-mono tracking-tight">PEDRO THE RACCOON</h2>
                     <div className="flex items-center space-x-2">
-                      <button 
+                      <button
                         onClick={() => setZoom(prev => Math.min(prev + 10, 200))}
                         disabled={zoom >= 200}
-                        className="p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50 transition-colors duration-200"
+                        className="p-2 rounded-lg bg-white/5 hover:bg-white/15 border border-gray-800 hover:border-white/40 disabled:opacity-50 transition-colors duration-200"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
                       </button>
-                      <span className="text-sm text-white">{zoom}%</span>
-                      <button 
+                      <span className="text-sm text-gray-300 font-mono">{zoom}%</span>
+                      <button
                         onClick={() => setZoom(prev => Math.max(prev - 10, 50))}
                         disabled={zoom <= 50}
-                        className="p-2 rounded-lg bg-white/10 hover:bg-white/20 disabled:opacity-50 transition-colors duration-200"
+                        className="p-2 rounded-lg bg-white/5 hover:bg-white/15 border border-gray-800 hover:border-white/40 disabled:opacity-50 transition-colors duration-200"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -860,7 +861,7 @@ export default function ImageEditor() {
 
                 <div
                   ref={canvasRef}
-                  className={`bg-black/50 backdrop-blur-sm p-1 sm:p-2 rounded-xl border border-white/10 shadow-lg flex-1 min-h-[500px] h-[40vh] relative overflow-hidden touch-none ${
+                  className={`bg-black/60 backdrop-blur-xl p-1 sm:p-2 rounded-2xl border border-gray-800/60 shadow-lg flex-1 min-h-[500px] h-[40vh] relative overflow-hidden touch-none transition-colors duration-300 hover:border-white/30 ${
                     layers.length === 0 ? 'cursor-pointer' : ''
                   }`}
                   onClick={() => layers.length === 0 && fileInputRef.current?.click()}
@@ -876,24 +877,24 @@ export default function ImageEditor() {
                   }}
                 >
                   {layers.length === 0 ? (
-                    <div className="absolute inset-0 border-2 border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center text-white/50 bg-black/20 p-2 text-center">
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-8 w-8 sm:h-10 sm:w-10 mb-2 text-white/40" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
+                    <div className="absolute inset-0 border border-dashed border-gray-700 rounded-2xl flex flex-col items-center justify-center text-gray-400 bg-black/30 p-2 text-center font-mono">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8 sm:h-10 sm:w-10 mb-3 text-gray-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <span className="text-sm sm:text-base font-medium">Upload background</span>
-                      <span className="text-xs mt-1 opacity-70">or tap to select</span>
+                      <span className="text-sm sm:text-base font-bold tracking-tight text-white">UPLOAD BACKGROUND</span>
+                      <span className="text-xs mt-1 text-gray-500">or tap to select</span>
                     </div>
                   ) : (
                     layers.map((layer) => (
                       <div
                         key={layer.id}
-                        className={`absolute ${activeLayerId === layer.id && !layer.isBackground ? 'ring-1 ring-blue-500' : ''}`}
+                        className={`absolute ${activeLayerId === layer.id && !layer.isBackground ? 'ring-1 ring-white/80' : ''}`}
                         style={{
                           left: `${layer.x}px`,
                           top: `${layer.y}px`,
@@ -916,8 +917,8 @@ export default function ImageEditor() {
                         />
                         {activeLayerId === layer.id && !layer.isBackground && (
                           <>
-                            <div 
-                              className="absolute bottom-0 right-0 w-5 h-5 bg-blue-500 cursor-nwse-resize rounded-full border border-white"
+                            <div
+                              className="absolute bottom-0 right-0 w-5 h-5 bg-white cursor-nwse-resize rounded-full border border-black shadow-lg"
                               onTouchStart={(e) => {
                                 e.stopPropagation();
                                 handleTouchStart(e, layer.id, 'resize');
@@ -927,8 +928,8 @@ export default function ImageEditor() {
                                 handleMouseDown(e, layer.id, 'resize');
                               }}
                             />
-                            <div 
-                              className="absolute top-1/2 left-1/2 w-5 h-5 bg-green-500 cursor-grab rounded-full border border-white"
+                            <div
+                              className="absolute top-1/2 left-1/2 w-5 h-5 bg-gray-300 cursor-grab rounded-full border border-black shadow-lg"
                               style={{
                                 transform: `translate(-50%, -50%) rotate(${-layer.rotate}deg)`,
                               }}
@@ -949,18 +950,18 @@ export default function ImageEditor() {
                 </div>
               </div>
 
-              <div className="bg-black/50 backdrop-blur-sm rounded-xl border border-white/10 shadow-lg w-full md:w-80 lg:w-96 h-[800px] overflow-hidden flex flex-col">
-                <div className="border-b border-white/10">
+              <div className="bg-black/60 backdrop-blur-xl rounded-2xl border border-gray-800/60 shadow-lg w-full md:w-80 lg:w-96 h-[800px] overflow-hidden flex flex-col transition-colors duration-300 hover:border-white/30">
+                <div className="border-b border-gray-800/60">
                   <div className="flex">
                     <button
                       onClick={() => setShowStickers(true)}
-                      className={`flex-1 py-3 px-4 text-center font-medium ${showStickers ? 'text-white border-b-2 border-blue-500' : 'text-white/50 hover:text-white'} transition-colors duration-200`}
+                      className={`flex-1 py-3 px-4 text-center font-bold font-mono tracking-tight uppercase text-sm ${showStickers ? 'text-white border-b-2 border-white' : 'text-gray-500 hover:text-white border-b-2 border-transparent'} transition-colors duration-200`}
                     >
                       Stickers
                     </button>
                     <button
                       onClick={() => setShowStickers(false)}
-                      className={`flex-1 py-3 px-4 text-center font-medium ${!showStickers ? 'text-white border-b-2 border-blue-500' : 'text-white/50 hover:text-white'} transition-colors duration-200`}
+                      className={`flex-1 py-3 px-4 text-center font-bold font-mono tracking-tight uppercase text-sm ${!showStickers ? 'text-white border-b-2 border-white' : 'text-gray-500 hover:text-white border-b-2 border-transparent'} transition-colors duration-200`}
                     >
                       Layers
                     </button>
@@ -970,17 +971,17 @@ export default function ImageEditor() {
                 <div className="flex-1 overflow-y-auto p-4">
                   {showStickers ? (
                     <>
-                      <p className="text-sm text-white/50 mb-4">
+                      <p className="text-xs text-gray-500 mb-4 font-mono uppercase tracking-wider">
                         Click on a sticker to add it to your canvas
                       </p>
                       <div className="grid grid-cols-3 gap-3">
                         {stickers.map((sticker, index) => (
                           <div
                             key={index}
-                            className="p-2 rounded-lg hover:bg-white/10 cursor-pointer transition-colors duration-200 group"
+                            className="p-2 rounded-xl border border-gray-800/60 hover:border-white/40 hover:bg-white/5 cursor-pointer transition-colors duration-200 group"
                             onClick={() => handleStickerClick(sticker)}
                           >
-                            <div className="aspect-square bg-white/5 rounded-lg overflow-hidden flex items-center justify-center">
+                            <div className="aspect-square bg-black/40 rounded-lg overflow-hidden flex items-center justify-center">
                               <img
                                 src={sticker}
                                 alt={`Sticker ${index + 1}`}
@@ -995,7 +996,7 @@ export default function ImageEditor() {
                   ) : (
                     <div className="space-y-2">
                       {layers.filter(l => !l.isBackground).length === 0 ? (
-                        <div className="text-center py-8 text-white/50">
+                        <div className="text-center py-8 text-gray-500 font-mono text-sm">
                           No layers added yet
                         </div>
                       ) : (
@@ -1003,9 +1004,9 @@ export default function ImageEditor() {
                           <div
                             key={layer.id}
                             onClick={() => setActiveLayerId(layer.id)}
-                            className={`p-3 rounded-lg flex items-center cursor-pointer ${activeLayerId === layer.id ? 'bg-blue-500/20 border border-blue-500/30' : 'hover:bg-white/10 border border-transparent'} transition-colors duration-200`}
+                            className={`p-3 rounded-xl flex items-center cursor-pointer ${activeLayerId === layer.id ? 'bg-white/10 border border-white/40' : 'hover:bg-white/5 border border-gray-800/60 hover:border-white/30'} transition-colors duration-200`}
                           >
-                            <div className="w-10 h-10 bg-white/10 rounded mr-3 overflow-hidden">
+                            <div className="w-10 h-10 bg-black/40 border border-gray-800 rounded-lg mr-3 overflow-hidden">
                               <img
                                 src={layer.url}
                                 alt="Layer thumbnail"
@@ -1013,8 +1014,8 @@ export default function ImageEditor() {
                               />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-white truncate">Layer {layers.length - index}</p>
-                              <p className="text-xs text-white/50">{Math.round(layer.width)} × {Math.round(layer.height)}</p>
+                              <p className="text-sm font-bold text-white truncate font-mono">Layer {layers.length - index}</p>
+                              <p className="text-xs text-gray-500 font-mono">{Math.round(layer.width)} × {Math.round(layer.height)}</p>
                             </div>
                             <button
                               onClick={(e) => {
@@ -1022,7 +1023,7 @@ export default function ImageEditor() {
                                 setLayers(prev => prev.filter(l => l.id !== layer.id));
                                 if (activeLayerId === layer.id) setActiveLayerId(null);
                               }}
-                              className="p-1 text-white/40 hover:text-red-400 transition-colors duration-200"
+                              className="p-1 text-gray-500 hover:text-white transition-colors duration-200"
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1034,10 +1035,13 @@ export default function ImageEditor() {
                     </div>
                   )}
                 </div>
-                <div className="p-4 border-b border-white/10 text-center">
-                  <Button
+                <div className="p-4 border-t border-gray-800/60 text-center">
+                  <button
                     onClick={() => stickerFileInputRef.current?.click()}
-                    className="w-full py-2 px-4 rounded-lg bg-gradient-to-r from-white to-gray-300 text-black hover:from-gray-300 hover:to-white flex items-center justify-center shadow-md transition-all duration-200 border border-white/30 hover:border-white" label={'Upload Sticker'}                  />
+                    className="w-full px-6 py-3 border-2 border-gray-400 bg-transparent text-gray-300 text-sm font-mono uppercase tracking-tight hover:bg-white hover:text-black hover:border-white transition-all duration-300"
+                  >
+                    Upload Sticker
+                  </button>
                   <input
                     type="file"
                     ref={stickerFileInputRef}

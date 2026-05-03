@@ -155,8 +155,8 @@ const DraggableLayer: React.FC<{
       ref={ref}
       whileHover={{ scale: 0.95 }}
       whileTap={{ scale: 0.98 }}
-      className={`p-3 rounded-xl cursor-pointer flex items-center backdrop-blur-sm border ${
-        isActive ? 'bg-white/10 border-white/30' : 'bg-black/30 border-white/10'
+      className={`p-3 rounded-xl cursor-pointer flex items-center backdrop-blur-xl border ${
+        isActive ? 'bg-white/10 border-white/40' : 'bg-black/40 border-gray-800/60 hover:border-white/30'
       } ${isDragging ? 'opacity-50' : 'opacity-100'} transition-all duration-300`}
       onClick={onClick}
       style={{ cursor: 'grab' }}
@@ -946,7 +946,7 @@ export default function NFTGenerator() {
                 className="px-6 max-w-4xl relative z-10"
               >
                 <motion.h1
-                  className="text-4xl md:text-7xl font-bold mb-5 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300"
+                  className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight font-mono mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.8 }}
@@ -957,13 +957,13 @@ export default function NFTGenerator() {
                   initial={{ opacity: 0, scaleX: 0 }}
                   animate={{ opacity: 1, scaleX: 1 }}
                   transition={{ delay: 0.2, duration: 1.2, ease: "circOut" }}
-                  className="h-px w-full bg-gradient-to-r from-transparent via-white to-transparent mb-4"
+                  className="h-px w-full bg-gradient-to-r from-transparent via-gray-500 to-transparent mb-6"
                 />
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4, duration: 0.8 }}
-                  className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto"
+                  className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto font-mono"
                 >
                   CREATE YOUR NFT COLLECTION
                 </motion.p>
@@ -981,21 +981,21 @@ export default function NFTGenerator() {
                   <motion.div
                     key={step.id}
                     variants={itemVariants}
-                    className={`group relative overflow-hidden rounded-2xl backdrop-blur-sm border shadow-2xl transition-all duration-500 p-4 cursor-pointer ${
-                      step.completed ? 'bg-green-900/20 border-green-500/30' : 'bg-black/50 border-white/10'
-                    } ${currentStep === step.id ? 'border-white/50' : 'border-white/10'} hover:border-white/30`}
+                    className={`group relative overflow-hidden rounded-2xl backdrop-blur-xl border-2 shadow-2xl transition-all duration-500 p-4 cursor-pointer ${
+                      step.completed ? 'bg-black/60 border-white/40' : 'bg-black/60 border-gray-800/60'
+                    } ${currentStep === step.id ? 'border-white' : ''} hover:border-white/40`}
                     onClick={() => setCurrentStep(step.id)}
                   >
                     <div className="flex items-center gap-3 mb-2">
-                      <div className={`p-2 rounded-full backdrop-blur-sm ${
-                        step.completed ? 'bg-green-500/20' : 'bg-white/10'
+                      <div className={`p-2 rounded-full backdrop-blur-sm border ${
+                        step.completed ? 'bg-white/10 border-white/40' : 'bg-white/5 border-gray-800'
                       }`}>
                         {step.icon}
                       </div>
-                      <h3 className="text-lg font-bold text-white">{step.title}</h3>
+                      <h3 className="text-lg font-bold text-white font-mono tracking-tight">{step.title}</h3>
                       {step.completed && (
-                        <div className="ml-auto bg-green-500/20 p-1 rounded-full backdrop-blur-sm">
-                          <FaCheck className="text-green-400" size={12} />
+                        <div className="ml-auto bg-white/10 p-1 rounded-full backdrop-blur-sm border border-white/30">
+                          <FaCheck className="text-white" size={12} />
                         </div>
                       )}
                     </div>
@@ -1005,7 +1005,7 @@ export default function NFTGenerator() {
                         initial={{ scaleX: 0 }}
                         animate={{ scaleX: 1 }}
                         transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent origin-left"
+                        className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-500 to-transparent origin-left"
                       />
                     )}
                   </motion.div>
@@ -1017,10 +1017,10 @@ export default function NFTGenerator() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4">
                 <motion.div
                   variants={itemVariants}
-                  className="group relative overflow-hidden rounded-2xl bg-black/50 backdrop-blur-sm shadow-2xl hover:shadow-white/20 transition-all duration-500 border border-white/10 hover:border-white/30 p-6"
+                  className="group relative overflow-hidden rounded-2xl bg-black/60 backdrop-blur-xl shadow-2xl hover:shadow-white/10 transition-all duration-500 border border-gray-800/60 hover:border-white/40 p-6"
                 >
                 <DndProvider backend={HTML5Backend}>
-                  <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
+                  <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2 font-mono tracking-tight">
                     <FaLayerGroup className="text-white" />
                     Layers
                   </h3>
@@ -1064,7 +1064,7 @@ export default function NFTGenerator() {
                         placeholder="Layer name"
                         value={newLayerName}
                         onChange={(e) => setNewLayerName(e.target.value)}
-                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20 backdrop-blur-sm"
+                        className="flex-1 bg-black/40 border border-gray-800/60 rounded-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
                       />
                       <motion.button
                         whileHover={{ scale: 1.05 }}
@@ -1086,7 +1086,7 @@ export default function NFTGenerator() {
                       <FiImage />
                       Layer Preview
                     </h3>
-                    <div className="relative w-full aspect-square bg-black/50 rounded-xl overflow-hidden border border-white/10 backdrop-blur-sm">
+                    <div className="relative w-full aspect-square bg-black/40 rounded-2xl overflow-hidden border border-gray-800/60 hover:border-white/40 backdrop-blur-xl transition-colors">
                       <canvas 
                         ref={canvasRef}
                         width={width}
@@ -1099,7 +1099,7 @@ export default function NFTGenerator() {
 
                 <motion.div
                   variants={itemVariants}
-                  className="group relative overflow-hidden rounded-2xl bg-black/50 backdrop-blur-sm shadow-2xl hover:shadow-white/20 transition-all duration-500 border border-white/10 hover:border-white/30 p-6"
+                  className="group relative overflow-hidden rounded-2xl bg-black/60 backdrop-blur-xl shadow-2xl hover:shadow-white/10 transition-all duration-500 border border-gray-800/60 hover:border-white/40 p-6"
                 >
                   {layers.length > 0 ? (
                     <>
@@ -1125,7 +1125,7 @@ export default function NFTGenerator() {
                               const value = parseInt(e.target.value) || 0;
                               updateLayerRarityValue(activeLayerIndex, Math.min(100, Math.max(0, value)));
                             }}
-                            className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right backdrop-blur-sm"
+                            className="w-16 bg-black/40 border border-gray-800/60 rounded-xl px-2 py-1 text-white font-mono text-right backdrop-blur-xl focus:outline-none focus:border-white/60 transition-colors"
                           />
 
                           <span className="text-sm text-white/50">%</span>
@@ -1226,7 +1226,7 @@ export default function NFTGenerator() {
 
                           {activeTraitTab === 'rarity' && (
                             <div className="space-y-3 max-h-[550px] overflow-y-auto">
-                              <div className="p-3 bg-white/5 rounded-lg border border-white/10 mb-2 backdrop-blur-sm">
+                              <div className="p-3 bg-black/40 rounded-xl border border-gray-800/60 mb-2 backdrop-blur-xl">
                                 <div className="flex justify-between items-center">
                                   <span className="text-sm text-white/80">Total Rarity</span>
                                   <span className={`text-sm font-mono ${
@@ -1272,7 +1272,7 @@ export default function NFTGenerator() {
                                           const value = parseInt(e.target.value) || 0;
                                           updateRarity(activeLayerIndex, imgIndex, value.toString());
                                         }}
-                                        className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-right backdrop-blur-sm"
+                                        className="w-16 bg-black/40 border border-gray-800/60 rounded-xl px-2 py-1 text-white font-mono text-right backdrop-blur-xl focus:outline-none focus:border-white/60 transition-colors"
                                       />
                                       <span className="text-sm text-white/50">%</span>
                                     </div>
@@ -1296,10 +1296,10 @@ export default function NFTGenerator() {
                 {showPreviews && previews.length > 0 ? (
                   <motion.div
                     variants={itemVariants}
-                    className="group relative overflow-hidden rounded-2xl bg-black/50 backdrop-blur-sm shadow-2xl hover:shadow-white/20 transition-all duration-500 border border-white/10 hover:border-white/30 p-6"
+                    className="group relative overflow-hidden rounded-2xl bg-black/60 backdrop-blur-xl shadow-2xl hover:shadow-white/10 transition-all duration-500 border border-gray-800/60 hover:border-white/40 p-6"
                   >
                     <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-white text-xl font-bold flex items-center gap-2">
+                      <h3 className="text-white text-xl font-bold flex items-center gap-2 font-mono tracking-tight">
                         <FiImage />
                         Generated Previews ({previews.length})
                       </h3>
@@ -1317,7 +1317,7 @@ export default function NFTGenerator() {
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-[460px] overflow-y-auto p-2">
                       {previews.map((preview, idx) => (
                         <div key={preview.id} className="relative group">
-                          <div className="aspect-square bg-black/50 rounded-lg overflow-hidden border border-white/10 relative backdrop-blur-sm">
+                          <div className="aspect-square bg-black/40 rounded-xl overflow-hidden border border-gray-800/60 hover:border-white/40 relative backdrop-blur-xl transition-colors">
                             {preview.images.length > 0 ? (
                               <img 
                                 src={preview.images[0]} 
@@ -1350,23 +1350,23 @@ export default function NFTGenerator() {
                     </div>
 
                     <div className="space-y-3">
-                      <div className="p-3 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
+                      <div className="p-3 bg-black/40 rounded-xl border border-gray-800/60 backdrop-blur-xl">
                         <label className="block text-sm text-white/70 mb-1">Collection name</label>
                         <input
                           type="text"
                           value={collectionName}
                           onChange={(e) => setCollectionName(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-white/20 text-sm backdrop-blur-sm"
+                          className="w-full bg-black/40 border border-gray-800/60 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-white/60 text-sm backdrop-blur-xl transition-colors"
                         />
                       </div>
 
-                      <div className="p-3 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
+                      <div className="p-3 bg-black/40 rounded-xl border border-gray-800/60 backdrop-blur-xl">
                         <label className="block text-sm text-white/70 mb-1">Item name prefix</label>
                         <input
                           type="text"
                           value={itemPrefix}
                           onChange={(e) => setItemPrefix(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-white/20 text-sm backdrop-blur-sm"
+                          className="w-full bg-black/40 border border-gray-800/60 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-white/60 text-sm backdrop-blur-xl transition-colors"
                           placeholder="e.g., MyNFT"
                         />
                       </div>
@@ -1412,9 +1412,9 @@ export default function NFTGenerator() {
                 ) : (
                 <motion.div
                   variants={itemVariants}
-                  className="group relative overflow-hidden rounded-2xl bg-black/50 backdrop-blur-sm shadow-2xl hover:shadow-white/20 transition-all duration-500 border border-white/10 hover:border-white/30 p-6"
+                  className="group relative overflow-hidden rounded-2xl bg-black/60 backdrop-blur-xl shadow-2xl hover:shadow-white/10 transition-all duration-500 border border-gray-800/60 hover:border-white/40 p-6"
                 >
-                  <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
+                  <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2 font-mono tracking-tight">
                     <FiSettings />
                     Collection Settings
                   </h3>
@@ -1429,7 +1429,7 @@ export default function NFTGenerator() {
                         type="text"
                         value={collectionName}
                         onChange={(e) => setCollectionName(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20 backdrop-blur-sm"
+                        className="w-full bg-black/40 border border-gray-800/60 rounded-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
                       />
                     </div>
 
@@ -1439,7 +1439,7 @@ export default function NFTGenerator() {
                         type="text"
                         value={collectionDescription}
                         onChange={(e) => setCollectionDescription(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20 backdrop-blur-sm"
+                        className="w-full bg-black/40 border border-gray-800/60 rounded-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
                       />
                     </div>
 
@@ -1449,7 +1449,7 @@ export default function NFTGenerator() {
                         type="text"
                         value={itemPrefix}
                         onChange={(e) => setItemPrefix(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20 backdrop-blur-sm"
+                        className="w-full bg-black/40 border border-gray-800/60 rounded-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
                         placeholder="e.g., MyNFT"
                       />
                     </div>
@@ -1464,7 +1464,7 @@ export default function NFTGenerator() {
                             max="1600"
                             value={width}
                             onChange={(e) => setWidth(parseInt(e.target.value) || 600)}
-                            className="w-full bg-white/5 border border-white/10 rounded-l-lg px-4 py-2 text-white focus:outline-none backdrop-blur-sm"
+                            className="w-full bg-black/40 border border-gray-800/60 rounded-l-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
                           />
                           <span className="bg-white/10 border border-l-0 border-white/10 rounded-r-lg px-3 py-2 text-sm text-white/70 backdrop-blur-sm">px</span>
                         </div>
@@ -1478,7 +1478,7 @@ export default function NFTGenerator() {
                             max="1600"
                             value={height}
                             onChange={(e) => setHeight(parseInt(e.target.value) || 600)}
-                            className="w-full bg-white/5 border border-white/10 rounded-l-lg px-4 py-2 text-white focus:outline-none backdrop-blur-sm"
+                            className="w-full bg-black/40 border border-gray-800/60 rounded-l-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
                           />
                           <span className="bg-white/10 border border-l-0 border-white/10 rounded-r-lg px-3 py-2 text-sm text-white/70 backdrop-blur-sm">px</span>
                         </div>
@@ -1508,7 +1508,7 @@ export default function NFTGenerator() {
                               setBatchSize(newSize);
                             }
                           }}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/20 backdrop-blur-sm"
+                          className="w-full bg-black/40 border border-gray-800/60 rounded-xl px-4 py-2 text-white font-mono focus:outline-none focus:border-white/60 backdrop-blur-xl transition-colors"
                         />
                         {totalCombinations > 0 && (
                           <p className="text-xs text-white/50 mt-1">
@@ -1635,7 +1635,7 @@ export default function NFTGenerator() {
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaFileDownload className="text-black" size={24} />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Payment Required</h3>
+                <h3 className="text-xl font-bold text-white mb-2 font-mono tracking-tight">Payment Required</h3>
                 <p className="text-white/70">{modalMessage}</p>
               </div>
 
@@ -1667,7 +1667,7 @@ export default function NFTGenerator() {
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent origin-left"
+                className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-500 to-transparent origin-left"
               />
             </motion.div>
           </div>
@@ -1685,7 +1685,7 @@ export default function NFTGenerator() {
                   <div className="w-16 h-16 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin mx-auto mb-4 flex items-center justify-center">
                     <FaSpinner className="text-purple-500" size={24} />
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-2">Processing Payment</h3>
+                  <h3 className="text-xl font-bold text-white mb-2 font-mono tracking-tight">Processing Payment</h3>
                 </div>
               ) : (
                 <div className="mb-6">
@@ -1747,7 +1747,7 @@ export default function NFTGenerator() {
               <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiDownload className="text-white" size={24} />
               </div>
-              <h3 className="text-xl font-bold text-white mb-6">Preparing Download</h3>
+              <h3 className="text-xl font-bold text-white mb-6 font-mono tracking-tight">Preparing Download</h3>
               
               <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-2">
                 <motion.div
